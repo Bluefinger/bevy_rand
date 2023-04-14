@@ -140,11 +140,11 @@ mod tests {
     #[test]
     fn rng_reflection() {
         use super::*;
-        use rand_chacha::ChaCha8Rng;
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
             TypeRegistryInternal,
         };
+        use rand_chacha::ChaCha8Rng;
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;
 

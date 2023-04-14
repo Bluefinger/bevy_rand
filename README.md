@@ -145,7 +145,7 @@ fn setup_npc_from_source(
 
 Determinism relies on not just how RNGs are seeded, but also how systems are grouped and ordered relative to each other. Systems accessing the same source/entities will run serially to each other, but if you can separate entities into different groups that do not overlap with each other, systems can then run in parallel as well. Overall, care must be taken with regards to system ordering and scheduling, as well as unstable query iteration meaning the order of entities a query iterates through is not the same per run. This can affect the outcome/state of the PRNGs, producing different results.
 
-The examples provided in this repo demonstrate the two different concepts of parallelisation and deterministic outputs, so check them out to see how one might achieve determinism.
+The examples provided as integration tests in this repo demonstrate the two different concepts of parallelisation and deterministic outputs, so check them out to see how one might achieve determinism.
 
 ## Selecting PRNG Algorithms
 
@@ -174,7 +174,9 @@ All recommended crates implement the necessary traits to be compatible with `bev
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
 - **`serialize`** - Enables [`Serialize`] and [`Deserialize`] derives. Enabled by default.
 
-## Supported Versions
+## Supported Versions & MSRV
+
+`bevy_rand` uses the same MSRV as `bevy`.
 
 | `bevy_rand` | `bevy` |
 | ----------- | ------ |
