@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  RUSTFLAGS: -D warnings
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [nightly, beta, stable]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-${{ matrix.rust }}-${{ hashFiles('**/Cargo.toml') }}
+      - name: Install Rust
+        # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
+        run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+        if: startsWith(matrix.os, 'ubuntu')
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@wasm-pack
+        if: startsWith(matrix.os, 'ubuntu')
+      - name: Run cargo check
+        run: cargo check --all --all-features --all-targets
+        if: startsWith(matrix.rust, 'nightly')
+      - name: Run cargo check (without dev-dependencies to catch missing feature flags)
+        if: startsWith(matrix.rust, 'nightly')
+        run: cargo check -Z features=dev_dep
+      - run: cargo test --all-features
+      - name: Test wasm
+        run: wasm-pack test --headless --chrome --firefox -- --all-features
+        if: startsWith(matrix.os, 'ubuntu')
+  miri:
+    name: "Miri"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-test-nightly-${{ hashFiles('**/Cargo.toml') }}
+      - name: Install Miri
+        run: |
+          rustup toolchain install nightly --component miri
+          rustup override set nightly
+          cargo miri setup
+      - name: Test with Miri
+        run: cargo miri test --all-features
+        env:
+          # -Zrandomize-layout makes sure we dont rely on the layout of anything that might change
+          RUSTFLAGS: -Zrandomize-layout
+          # https://github.com/rust-lang/miri#miri--z-flags-and-environment-variables
+          # -Zmiri-disable-isolation is needed because our executor uses `fastrand` which accesses system time.
+          # -Zmiri-permissive-provenance disables warnings against int2ptr casts (since those are used by once_cell)
+          # -Zmiri-ignore-leaks is necessary because a bunch of tests don't join all threads before finishing.
+          MIRIFLAGS: -Zmiri-ignore-leaks -Zmiri-disable-isolation -Zmiri-permissive-provenance
+  msrv:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-stable-${{ hashFiles('**/Cargo.toml') }}
+      - name: get MSRV
+        run: |
+          msrv=`cargo metadata --no-deps --format-version 1 | jq --raw-output '.packages[] | select(.name=="wyrand") | .rust_version'`
+          echo "MSRV=$msrv" >> $GITHUB_ENV
+      - name: Install Rust
+        run: rustup update ${{ env.MSRV }} --no-self-update && rustup default ${{ env.MSRV }}
+      - name: Run cargo check
+        id: check
+        run: cargo check --all-features

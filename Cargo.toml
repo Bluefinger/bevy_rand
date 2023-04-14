@@ -8,6 +8,7 @@ repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
 keywords = ["game", "bevy", "rand", "rng"]
 categories = ["game-engines", "algorithms"]
+rust-version = "1.67.0"
 
 [features]
 default = ["serialize", "thread_local_entropy"]
@@ -33,12 +34,3 @@ wasm-bindgen-test = "0.3"
 
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
-
-# [[example]]
-# name = "determinism"
-# path = "examples/determinism.rs"
-
-# [[example]]
-# name = "parallelism"
-# path = "examples/parallelism.rs"
-
