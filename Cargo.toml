@@ -34,3 +34,7 @@ wasm-bindgen-test = "0.3"
 
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
+
+[[example]]
+name = "turn_based_game"
+path = "examples/turn_based_game.rs"
