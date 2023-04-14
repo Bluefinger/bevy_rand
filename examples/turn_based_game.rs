@@ -47,9 +47,7 @@ fn main() {
     App::new()
         .add_plugin(EntropyPlugin::<ChaCha8Rng>::with_seed([1; 32]))
         .add_startup_systems((setup_player, setup_enemies).chain())
-        .add_systems(
-            (determine_attack_order.pipe(attack_turn), buff_entities).chain(),
-        )
+        .add_systems((determine_attack_order.pipe(attack_turn), buff_entities).chain())
         .run();
 }
 
