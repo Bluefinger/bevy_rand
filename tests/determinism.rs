@@ -82,13 +82,16 @@ fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rn
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn test_parallel_determinism() {
     App::new()
-        .add_plugin(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
-        .add_startup_system(setup_sources)
-        .add_systems((
-            random_output_a,
-            random_output_b,
-            random_output_c,
-            random_output_d,
-        ))
+        .add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
+        .add_systems(Startup, setup_sources)
+        .add_systems(
+            Update,
+            (
+                random_output_a,
+                random_output_b,
+                random_output_c,
+                random_output_d,
+            ),
+        )
         .run();
 }

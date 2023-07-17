@@ -2,8 +2,8 @@ use std::fmt::Debug;
 
 use crate::traits::SeedableEntropySource;
 use bevy::{
-    prelude::{FromReflect, Reflect, ReflectResource, Resource},
-    reflect::ReflectFromReflect,
+    prelude::{Reflect, ReflectFromReflect, ReflectResource, Resource},
+    reflect::{utility::GenericTypePathCell, TypePath},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -32,7 +32,8 @@ use serde::{Deserialize, Serialize};
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect, FromReflect)]
+#[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect)]
+#[reflect_value(type_path = false)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serialize",
@@ -62,6 +63,29 @@ impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
     #[inline]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
+    }
+}
+
+impl<R: SeedableEntropySource + 'static> TypePath for GlobalEntropy<R> {
+    fn type_path() -> &'static str {
+        std::any::type_name::<Self>()
+    }
+
+    fn short_type_path() -> &'static str {
+        static CELL: GenericTypePathCell = GenericTypePathCell::new();
+        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(std::any::type_name::<Self>()))
+    }
+
+    fn type_ident() -> Option<&'static str> {
+        Some("GlobalEntropy")
+    }
+
+    fn crate_name() -> Option<&'static str> {
+        Some("bevy_rand")
+    }
+
+    fn module_path() -> Option<&'static str> {
+        Some("bevy_rand::resource")
     }
 }
 
