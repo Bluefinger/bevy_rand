@@ -19,7 +19,7 @@ serialize = ["dep:serde", "rand_core/serde1", "rand_chacha?/serde1"]
 
 [dependencies]
 # bevy
-bevy = { git = "https://github.com/MrGVSV/bevy/", branch = "reflect-type-path-opt-out", default-features = false }
+bevy = { version = "0.11.1", default-features = false }
 
 # others
 serde = { version = "1.0", features = ["derive"], optional = true }

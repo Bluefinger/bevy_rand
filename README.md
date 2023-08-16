@@ -178,9 +178,10 @@ All recommended crates implement the necessary traits to be compatible with `bev
 
 `bevy_rand` uses the same MSRV as `bevy`.
 
-| `bevy_rand` | `bevy` |
-| ----------- | ------ |
-| v0.1        | v0.10  |
+| `bevy_rand` | `bevy`  |
+| ----------- | ------- |
+| v0.2        | v0.11.1 |
+| v0.1        | v0.10   |
 
 ## License
 
