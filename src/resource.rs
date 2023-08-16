@@ -68,12 +68,18 @@ impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
 
 impl<R: SeedableEntropySource + 'static> TypePath for GlobalEntropy<R> {
     fn type_path() -> &'static str {
-        std::any::type_name::<Self>()
+        static CELL: GenericTypePathCell = GenericTypePathCell::new();
+        CELL.get_or_insert::<Self, _>(|| {
+            format!(
+                "bevy_rand::resource::GlobalEntropy<{}>",
+                std::any::type_name::<R>()
+            )
+        })
     }
 
     fn short_type_path() -> &'static str {
         static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(std::any::type_name::<Self>()))
+        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(Self::type_path()))
     }
 
     fn type_ident() -> Option<&'static str> {
@@ -160,15 +166,30 @@ impl<R: SeedableEntropySource + 'static> From<&mut R> for GlobalEntropy<R> {
 
 #[cfg(test)]
 mod tests {
+    use rand_chacha::ChaCha8Rng;
+
+    use super::*;
+
+    #[test]
+    fn type_paths() {
+        assert_eq!(
+            "bevy_rand::resource::GlobalEntropy<rand_chacha::chacha::ChaCha8Rng>",
+            GlobalEntropy::<ChaCha8Rng>::type_path()
+        );
+
+        assert_eq!(
+            "GlobalEntropy<ChaCha8Rng>",
+            GlobalEntropy::<ChaCha8Rng>::short_type_path()
+        );
+    }
+
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_reflection() {
-        use super::*;
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
             TypeRegistryInternal,
         };
-        use rand_chacha::ChaCha8Rng;
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;
 

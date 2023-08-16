@@ -174,6 +174,12 @@ All recommended crates implement the necessary traits to be compatible with `bev
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
 - **`serialize`** - Enables [`Serialize`] and [`Deserialize`] derives. Enabled by default.
 
+## Note about Reflection & `TypePath` stability.
+
+All `rand` PRNGs do not implement `TypePath` in any form, even as an optional feature, due to lack of native support for reflection in Rust. As such, while the components/resource in this library are *stable* and implement a stable `TypePath` for themselves, PRNGs rely on `std::any::type_name` for returning the type's name/path, which is NOT guaranteed to be stable for all versions of the compiler. As such, there may be instabilities/compatibilities with different compiler versions and compilations, as this instability infects the overall `TypePath` via the generic portion of the type path.
+
+If there arises problems with regards to stability for reflection purposes, please make an issue with regards to that in this repository, so I can track such occurrences. Tests are included in the crate anyway to hopefully detect such cases in the future.
+
 ## Supported Versions & MSRV
 
 `bevy_rand` uses the same MSRV as `bevy`.

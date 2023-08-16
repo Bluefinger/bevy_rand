@@ -123,15 +123,20 @@ impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
     }
 }
 
-
 impl<R: SeedableEntropySource + 'static> TypePath for EntropyComponent<R> {
     fn type_path() -> &'static str {
-        std::any::type_name::<Self>()
+        static CELL: GenericTypePathCell = GenericTypePathCell::new();
+        CELL.get_or_insert::<Self, _>(|| {
+            format!(
+                "bevy_rand::component::EntropyComponent<{}>",
+                std::any::type_name::<R>()
+            )
+        })
     }
 
     fn short_type_path() -> &'static str {
         static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(std::any::type_name::<Self>()))
+        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(Self::type_path()))
     }
 
     fn type_ident() -> Option<&'static str> {
@@ -247,6 +252,19 @@ mod tests {
         assert_ne!(
             rng1, rng2,
             "forked EntropyComponents should not match each other"
+        );
+    }
+
+    #[test]
+    fn type_paths() {
+        assert_eq!(
+            "bevy_rand::component::EntropyComponent<rand_chacha::chacha::ChaCha8Rng>",
+            EntropyComponent::<ChaCha8Rng>::type_path()
+        );
+
+        assert_eq!(
+            "EntropyComponent<ChaCha8Rng>",
+            EntropyComponent::<ChaCha8Rng>::short_type_path()
         );
     }
 
