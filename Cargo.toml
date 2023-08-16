@@ -10,7 +10,7 @@ keywords = ["game", "bevy", "rand", "rng"]
 categories = ["game-engines", "algorithms"]
 exclude = ["/.*"]
 resolver = "2"
-rust-version = "1.67.0"
+rust-version = "1.70.0"
 
 [features]
 default = ["serialize", "thread_local_entropy"]
@@ -19,7 +19,7 @@ serialize = ["dep:serde", "rand_core/serde1", "rand_chacha?/serde1"]
 
 [dependencies]
 # bevy
-bevy = { version = "0.10", default-features = false }
+bevy = { version = "0.11.1", default-features = false }
 
 # others
 serde = { version = "1.0", features = ["derive"], optional = true }

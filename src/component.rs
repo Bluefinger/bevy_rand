@@ -2,8 +2,8 @@ use std::fmt::Debug;
 
 use crate::{resource::GlobalEntropy, traits::SeedableEntropySource};
 use bevy::{
-    prelude::{Component, FromReflect, Mut, Reflect, ReflectComponent, ResMut},
-    reflect::ReflectFromReflect,
+    prelude::{Component, Mut, Reflect, ReflectComponent, ReflectFromReflect, ResMut},
+    reflect::{utility::GenericTypePathCell, TypePath},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -89,7 +89,8 @@ use serde::{Deserialize, Serialize};
 ///    }
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Component, Reflect, FromReflect)]
+#[derive(Debug, Clone, PartialEq, Eq, Component, Reflect)]
+#[reflect_value(type_path = false)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serialize",
@@ -119,6 +120,35 @@ impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
     #[inline]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
+    }
+}
+
+impl<R: SeedableEntropySource + 'static> TypePath for EntropyComponent<R> {
+    fn type_path() -> &'static str {
+        static CELL: GenericTypePathCell = GenericTypePathCell::new();
+        CELL.get_or_insert::<Self, _>(|| {
+            format!(
+                "bevy_rand::component::EntropyComponent<{}>",
+                std::any::type_name::<R>()
+            )
+        })
+    }
+
+    fn short_type_path() -> &'static str {
+        static CELL: GenericTypePathCell = GenericTypePathCell::new();
+        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(Self::type_path()))
+    }
+
+    fn type_ident() -> Option<&'static str> {
+        Some("EntropyComponent")
+    }
+
+    fn crate_name() -> Option<&'static str> {
+        Some("bevy_rand")
+    }
+
+    fn module_path() -> Option<&'static str> {
+        Some("bevy_rand::component")
     }
 }
 
@@ -222,6 +252,19 @@ mod tests {
         assert_ne!(
             rng1, rng2,
             "forked EntropyComponents should not match each other"
+        );
+    }
+
+    #[test]
+    fn type_paths() {
+        assert_eq!(
+            "bevy_rand::component::EntropyComponent<rand_chacha::chacha::ChaCha8Rng>",
+            EntropyComponent::<ChaCha8Rng>::type_path()
+        );
+
+        assert_eq!(
+            "EntropyComponent<ChaCha8Rng>",
+            EntropyComponent::<ChaCha8Rng>::short_type_path()
         );
     }
 
