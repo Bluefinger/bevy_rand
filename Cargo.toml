@@ -1,6 +1,6 @@
 [package]
 name = "bevy_rand"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 description = "A plugin to integrate rand for ECS optimised RNG for the Bevy game engine."
