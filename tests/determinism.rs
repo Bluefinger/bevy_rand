@@ -1,9 +1,9 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
+use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::*;
 use rand::prelude::Rng;
-use rand_chacha::ChaCha8Rng;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;

@@ -1,9 +1,9 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
+use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::*;
 use rand::prelude::{IteratorRandom, Rng};
-use rand_chacha::ChaCha8Rng;
 
 #[derive(Component)]
 struct Player;

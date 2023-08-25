@@ -24,45 +24,40 @@ impl ThreadLocalEntropy {
     ///
     /// # Safety
     ///
-    /// Caller must ensure only one `mut` reference exists at a time.
+    /// The borrow checker ensures that only one mut reference can exist/be used at any given time. This is also
+    /// an internal method which prevents usage outside of its intended area, so no `&mut` references to the
+    /// underlying [`ChaCha8Rng`] instance is ever exposed.
     #[inline]
-    unsafe fn get_rng(&'_ mut self) -> &'_ mut ChaCha8Rng {
+    fn get_rng(&'_ mut self) -> &'_ mut ChaCha8Rng {
         // Obtain pointer to thread local instance of PRNG which with Rc, should be !Send & !Sync as well
         // as 'static.
         let rng = SOURCE.with(|source| source.get());
 
-        &mut *rng
+        // SAFETY: The `&mut` reference is checked by the borrower checker due to `get_rng`
+        // method being `&mut self` and dependent on the lifetime of the instance. This means
+        // there can only ever be a single `&mut` reference in use at any given time.
+        unsafe { &mut *rng }
     }
 }
 
 impl RngCore for ThreadLocalEntropy {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().next_u32() }
+        self.get_rng().next_u32()
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().next_u64() }
+        self.get_rng().next_u64()
     }
 
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe {
-            self.get_rng().fill_bytes(dest);
-        }
+        self.get_rng().fill_bytes(dest);
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().try_fill_bytes(dest) }
+        self.get_rng().try_fill_bytes(dest)
     }
 }

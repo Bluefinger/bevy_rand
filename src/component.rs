@@ -1,10 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{resource::GlobalEntropy, traits::SeedableEntropySource};
-use bevy::{
-    prelude::{Component, Mut, Reflect, ReflectComponent, ReflectFromReflect, ResMut},
-    reflect::{utility::GenericTypePathCell, TypePath},
-};
+use bevy::prelude::{Component, Mut, Reflect, ReflectComponent, ReflectFromReflect, ResMut};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -31,7 +28,7 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use rand_chacha::ChaCha8Rng;
+/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -49,7 +46,7 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use rand_chacha::ChaCha8Rng;
+/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -67,7 +64,7 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use rand_chacha::ChaCha8Rng;
+/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Npc;
@@ -90,7 +87,6 @@ use serde::{Deserialize, Serialize};
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Component, Reflect)]
-#[reflect_value(type_path = false)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serialize",
@@ -98,11 +94,11 @@ use serde::{Deserialize, Serialize};
 )]
 #[cfg_attr(
     all(feature = "serialize"),
-    reflect_value(Debug, PartialEq, Component, FromReflect, Serialize, Deserialize)
+    reflect(Debug, PartialEq, Component, FromReflect, Serialize, Deserialize)
 )]
 #[cfg_attr(
     all(not(feature = "serialize")),
-    reflect_value(Debug, PartialEq, Component, FromReflect)
+    reflect(Debug, PartialEq, Component, FromReflect)
 )]
 pub struct EntropyComponent<R: SeedableEntropySource + 'static>(R);
 
@@ -113,42 +109,11 @@ impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
     pub fn new(rng: R) -> Self {
         Self(rng)
     }
-}
 
-impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
     /// Reseeds the internal `RngCore` instance with a new seed.
     #[inline]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> TypePath for EntropyComponent<R> {
-    fn type_path() -> &'static str {
-        static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| {
-            format!(
-                "bevy_rand::component::EntropyComponent<{}>",
-                std::any::type_name::<R>()
-            )
-        })
-    }
-
-    fn short_type_path() -> &'static str {
-        static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(Self::type_path()))
-    }
-
-    fn type_ident() -> Option<&'static str> {
-        Some("EntropyComponent")
-    }
-
-    fn crate_name() -> Option<&'static str> {
-        Some("bevy_rand")
-    }
-
-    fn module_path() -> Option<&'static str> {
-        Some("bevy_rand::component")
     }
 }
 
@@ -183,6 +148,7 @@ impl<R: SeedableEntropySource + 'static> RngCore for EntropyComponent<R> {
 impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
     type Seed = R::Seed;
 
+    #[inline]
     fn from_seed(seed: Self::Seed) -> Self {
         Self::new(R::from_seed(seed))
     }
@@ -205,7 +171,7 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
         // rng instances for many entities at once.
         ThreadLocalEntropy.fill_bytes(seed.as_mut());
 
-        Self::new(R::from_seed(seed))
+        Self::from_seed(seed)
     }
 }
 
@@ -239,7 +205,8 @@ impl<R: SeedableEntropySource + 'static> From<&mut ResMut<'_, GlobalEntropy<R>>>
 
 #[cfg(test)]
 mod tests {
-    use rand_chacha::ChaCha8Rng;
+    use bevy::reflect::TypePath;
+    use bevy_prng::ChaCha8Rng;
 
     use super::*;
 
@@ -258,7 +225,7 @@ mod tests {
     #[test]
     fn type_paths() {
         assert_eq!(
-            "bevy_rand::component::EntropyComponent<rand_chacha::chacha::ChaCha8Rng>",
+            "bevy_rand::component::EntropyComponent<bevy_prng::ChaCha8Rng>",
             EntropyComponent::<ChaCha8Rng>::type_path()
         );
 
@@ -270,18 +237,18 @@ mod tests {
 
     #[cfg(feature = "serialize")]
     #[test]
-    fn rng_reflection() {
+    fn rng_untyped_serialization() {
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
             TypeRegistryInternal,
         };
-        use ron::ser::to_string;
+        use ron::to_string;
         use serde::de::DeserializeSeed;
 
         let mut registry = TypeRegistryInternal::default();
         registry.register::<EntropyComponent<ChaCha8Rng>>();
 
-        let mut val = EntropyComponent::<ChaCha8Rng>::from_seed([7; 32]);
+        let mut val: EntropyComponent<ChaCha8Rng> = EntropyComponent::from_seed([7; 32]);
 
         // Modify the state of the RNG instance
         val.next_u32();
@@ -292,12 +259,62 @@ mod tests {
 
         assert_eq!(
             &serialized,
-            "{\"bevy_rand::component::EntropyComponent<rand_chacha::chacha::ChaCha8Rng>\":((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1))}"
+            "{\"bevy_rand::component::EntropyComponent<bevy_prng::ChaCha8Rng>\":(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
         );
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
 
         let de = UntypedReflectDeserializer::new(&registry);
+
+        let value = de.deserialize(&mut deserializer).unwrap();
+
+        let mut dynamic = value.take::<EntropyComponent<ChaCha8Rng>>().unwrap();
+
+        // The two instances should be the same
+        assert_eq!(
+            val, dynamic,
+            "The deserialized EntropyComponent should equal the original"
+        );
+        // They should output the same numbers, as no state is lost between serialization and deserialization.
+        assert_eq!(
+            val.next_u32(),
+            dynamic.next_u32(),
+            "The deserialized EntropyComponent should have the same output as original"
+        );
+    }
+
+    #[cfg(feature = "serialize")]
+    #[test]
+    fn rng_typed_serialization() {
+        use bevy::reflect::{
+            serde::{TypedReflectDeserializer, TypedReflectSerializer},
+            GetTypeRegistration, TypeRegistryInternal,
+        };
+        use ron::ser::to_string;
+        use serde::de::DeserializeSeed;
+
+        let mut registry = TypeRegistryInternal::default();
+        registry.register::<EntropyComponent<ChaCha8Rng>>();
+
+        let registered_type = EntropyComponent::<ChaCha8Rng>::get_type_registration();
+
+        let mut val = EntropyComponent::<ChaCha8Rng>::from_seed([7; 32]);
+
+        // Modify the state of the RNG instance
+        val.next_u32();
+
+        let ser = TypedReflectSerializer::new(&val, &registry);
+
+        let serialized = to_string(&ser).unwrap();
+
+        assert_eq!(
+            &serialized,
+            "(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))"
+        );
+
+        let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
+
+        let de = TypedReflectDeserializer::new(&registered_type, &registry);
 
         let value = de.deserialize(&mut deserializer).unwrap();
 

@@ -10,13 +10,15 @@ use rand_core::SeedableRng;
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
 /// use rand_core::RngCore;
-/// use rand_chacha::{ChaCha8Rng, ChaCha12Rng};
+/// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
 ///
 /// fn main() {
 ///  App::new()
-///    .add_plugin(EntropyPlugin::<ChaCha8Rng>::default())
-///    .add_plugin(EntropyPlugin::<ChaCha12Rng>::default())
-///    .add_system(print_random_value)
+///    .add_plugins((
+///        EntropyPlugin::<ChaCha8Rng>::default(),
+///        EntropyPlugin::<ChaCha12Rng>::default()
+///    ))
+///    .add_systems(Update, print_random_value)
 ///    .run();
 /// }
 ///

@@ -1,0 +1,32 @@
+[package]
+name = "bevy_prng"
+version = "0.1.0"
+edition = "2021"
+authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
+description = "A crate providing newtyped RNGs for integration into Bevy."
+repository = "https://github.com/Bluefinger/bevy_rand"
+license = "MIT OR Apache-2.0"
+keywords = ["game", "bevy", "rand", "rng"]
+categories = ["game-engines", "algorithms"]
+exclude = ["/.*"]
+resolver = "2"
+rust-version = "1.70.0"
+
+[features]
+serialize = [
+    "dep:serde",
+    "rand_core/serde1",
+    "rand_chacha?/serde1",
+    "rand_pcg?/serde1",
+    "rand_xoshiro?/serde1",
+    "wyrand?/serde1",
+]
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy", default-features = false }
+rand_core = { version = "0.6", features = ["std"] }
+serde = { version = "1.0", features = ["derive"], optional = true }
+rand_chacha = { version = "0.3", optional = true }
+wyrand = { version = "0.1", optional = true }
+rand_pcg = { version = "0.3", optional = true }
+rand_xoshiro = { version = "0.6", optional = true }

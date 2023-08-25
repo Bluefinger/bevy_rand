@@ -1,10 +1,7 @@
 use std::fmt::Debug;
 
 use crate::traits::SeedableEntropySource;
-use bevy::{
-    prelude::{Reflect, ReflectFromReflect, ReflectResource, Resource},
-    reflect::{utility::GenericTypePathCell, TypePath},
-};
+use bevy::prelude::{Reflect, ReflectFromReflect, ReflectResource, Resource};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -26,14 +23,13 @@ use serde::{Deserialize, Serialize};
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
 /// use rand_core::RngCore;
-/// use rand_chacha::ChaCha8Rng;
+/// use bevy_prng::ChaCha8Rng;
 ///
 /// fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect)]
-#[reflect_value(type_path = false)]
 #[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serialize",
@@ -41,11 +37,11 @@ use serde::{Deserialize, Serialize};
 )]
 #[cfg_attr(
     feature = "serialize",
-    reflect_value(Debug, PartialEq, Resource, FromReflect, Serialize, Deserialize)
+    reflect(Debug, PartialEq, Resource, FromReflect, Serialize, Deserialize)
 )]
 #[cfg_attr(
     not(feature = "serialize"),
-    reflect_value(Debug, PartialEq, Resource, FromReflect)
+    reflect(Debug, PartialEq, Resource, FromReflect)
 )]
 pub struct GlobalEntropy<R: SeedableEntropySource + 'static>(R);
 
@@ -63,35 +59,6 @@ impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
     #[inline]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> TypePath for GlobalEntropy<R> {
-    fn type_path() -> &'static str {
-        static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| {
-            format!(
-                "bevy_rand::resource::GlobalEntropy<{}>",
-                std::any::type_name::<R>()
-            )
-        })
-    }
-
-    fn short_type_path() -> &'static str {
-        static CELL: GenericTypePathCell = GenericTypePathCell::new();
-        CELL.get_or_insert::<Self, _>(|| bevy::utils::get_short_name(Self::type_path()))
-    }
-
-    fn type_ident() -> Option<&'static str> {
-        Some("GlobalEntropy")
-    }
-
-    fn crate_name() -> Option<&'static str> {
-        Some("bevy_rand")
-    }
-
-    fn module_path() -> Option<&'static str> {
-        Some("bevy_rand::resource")
     }
 }
 
@@ -126,6 +93,7 @@ impl<R: SeedableEntropySource + 'static> RngCore for GlobalEntropy<R> {
 impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
     type Seed = R::Seed;
 
+    #[inline]
     fn from_seed(seed: Self::Seed) -> Self {
         Self::new(R::from_seed(seed))
     }
@@ -148,7 +116,7 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
         // rng instances for many resources at once.
         ThreadLocalEntropy.fill_bytes(seed.as_mut());
 
-        Self::new(R::from_seed(seed))
+        Self::from_seed(seed)
     }
 }
 
@@ -166,14 +134,15 @@ impl<R: SeedableEntropySource + 'static> From<&mut R> for GlobalEntropy<R> {
 
 #[cfg(test)]
 mod tests {
-    use rand_chacha::ChaCha8Rng;
+    use bevy::reflect::TypePath;
+    use bevy_prng::ChaCha8Rng;
 
     use super::*;
 
     #[test]
     fn type_paths() {
         assert_eq!(
-            "bevy_rand::resource::GlobalEntropy<rand_chacha::chacha::ChaCha8Rng>",
+            "bevy_rand::resource::GlobalEntropy<bevy_prng::ChaCha8Rng>",
             GlobalEntropy::<ChaCha8Rng>::type_path()
         );
 
@@ -185,7 +154,7 @@ mod tests {
 
     #[cfg(feature = "serialize")]
     #[test]
-    fn rng_reflection() {
+    fn rng_untyped_serialization() {
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
             TypeRegistryInternal,
@@ -207,12 +176,62 @@ mod tests {
 
         assert_eq!(
             &serialized,
-            "{\"bevy_rand::resource::GlobalEntropy<rand_chacha::chacha::ChaCha8Rng>\":((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1))}"
+            "{\"bevy_rand::resource::GlobalEntropy<bevy_prng::ChaCha8Rng>\":(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
         );
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
 
         let de = UntypedReflectDeserializer::new(&registry);
+
+        let value = de.deserialize(&mut deserializer).unwrap();
+
+        let mut dynamic = value.take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
+
+        // The two instances should be the same
+        assert_eq!(
+            val, dynamic,
+            "The deserialized GlobalEntropy should equal the original"
+        );
+        // They should output the same numbers, as no state is lost between serialization and deserialization.
+        assert_eq!(
+            val.next_u32(),
+            dynamic.next_u32(),
+            "The deserialized GlobalEntropy should have the same output as original"
+        );
+    }
+
+    #[cfg(feature = "serialize")]
+    #[test]
+    fn rng_typed_serialization() {
+        use bevy::reflect::{
+            serde::{TypedReflectDeserializer, TypedReflectSerializer},
+            GetTypeRegistration, TypeRegistryInternal,
+        };
+        use ron::to_string;
+        use serde::de::DeserializeSeed;
+
+        let mut registry = TypeRegistryInternal::default();
+        registry.register::<GlobalEntropy<ChaCha8Rng>>();
+
+        let registered_type = GlobalEntropy::<ChaCha8Rng>::get_type_registration();
+
+        let mut val = GlobalEntropy::<ChaCha8Rng>::from_seed([7; 32]);
+
+        // Modify the state of the RNG instance
+        val.next_u32();
+
+        let ser = TypedReflectSerializer::new(&val, &registry);
+
+        let serialized = to_string(&ser).unwrap();
+
+        assert_eq!(
+            &serialized,
+            "(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))"
+        );
+
+        let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
+
+        let de = TypedReflectDeserializer::new(&registered_type, &registry);
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
