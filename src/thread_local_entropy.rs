@@ -1,7 +1,7 @@
 use std::{cell::UnsafeCell, rc::Rc};
 
 use rand_chacha::ChaCha8Rng;
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{CryptoRng, RngCore, SeedableRng};
 
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
@@ -13,51 +13,97 @@ thread_local! {
 /// is due to tuning for additional speed/throughput. While this does minimise the quality of the entropy,
 /// the output should still be sufficiently secure as per the recommendations set in the
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper.
-pub(crate) struct ThreadLocalEntropy;
+#[derive(Clone)]
+pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
 impl ThreadLocalEntropy {
-    /// Inspired by `rand`'s approach to `ThreadRng` as well as `turborand`'s instantiation methods. The [`Rc`]
-    /// prevents the Rng instance from being cleaned up, giving it a `'static` lifetime. However, it does not
-    /// allow mutable access without a cell, so using [`UnsafeCell`] to bypass overheads associated with
-    /// `RefCell`. There's no direct access to the pointer or mutable reference, so we control how long it
-    /// lives and can ensure no multiple mutable references exist.
-    ///
-    /// # Safety
-    ///
-    /// The borrow checker ensures that only one mut reference can exist/be used at any given time. This is also
-    /// an internal method which prevents usage outside of its intended area, so no `&mut` references to the
-    /// underlying [`ChaCha8Rng`] instance is ever exposed.
+    /// Create a new [`ThreadLocalEntropy`] instance. Only one instance can exist per thread at a time, so to
+    /// prevent the creation of multiple `&mut` references to
     #[inline]
-    fn get_rng(&'_ mut self) -> &'_ mut ChaCha8Rng {
-        // Obtain pointer to thread local instance of PRNG which with Rc, should be !Send & !Sync as well
-        // as 'static.
-        let rng = SOURCE.with(|source| source.get());
+    #[must_use]
+    pub(crate) fn new() -> Self {
+        Self(SOURCE.with(|source| Rc::clone(source)))
+    }
+}
 
-        // SAFETY: The `&mut` reference is checked by the borrower checker due to `get_rng`
-        // method being `&mut self` and dependent on the lifetime of the instance. This means
-        // there can only ever be a single `&mut` reference in use at any given time.
-        unsafe { &mut *rng }
+impl core::fmt::Debug for ThreadLocalEntropy {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("ThreadLocalEntropy").finish()
     }
 }
 
 impl RngCore for ThreadLocalEntropy {
-    #[inline]
+    #[inline(always)]
     fn next_u32(&mut self) -> u32 {
-        self.get_rng().next_u32()
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.next_u32()
     }
 
-    #[inline]
+    #[inline(always)]
     fn next_u64(&mut self) -> u64 {
-        self.get_rng().next_u64()
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.next_u64()
     }
 
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.get_rng().fill_bytes(dest);
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.fill_bytes(dest);
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.get_rng().try_fill_bytes(dest)
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.try_fill_bytes(dest)
+    }
+}
+
+impl CryptoRng for ThreadLocalEntropy {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn smoke_test() {
+        let mut rng1 = ThreadLocalEntropy::new();
+        let mut rng2 = ThreadLocalEntropy::new();
+
+        // Neither instance should interfere with each other
+        rng1.next_u32();
+        rng2.next_u64();
+
+        let mut bytes1 = vec![0u8; 128];
+        let mut bytes2 = vec![0u8; 128];
+
+        rng1.fill_bytes(&mut bytes1);
+        rng1.clone().fill_bytes(&mut bytes2);
+
+        // Cloned ThreadLocalEntropy instances won't output the same entropy
+        assert_ne!(&bytes1, &bytes2);
+    }
+
+    #[test]
+    fn non_leaking_debug() {
+        assert_eq!(
+            "ThreadLocalEntropy",
+            format!("{:?}", ThreadLocalEntropy::new())
+        );
     }
 }

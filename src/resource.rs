@@ -114,7 +114,7 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
         // Source entropy from thread local user-space RNG instead of
         // system entropy source to reduce overhead when creating many
         // rng instances for many resources at once.
-        ThreadLocalEntropy.fill_bytes(seed.as_mut());
+        ThreadLocalEntropy::new().fill_bytes(seed.as_mut());
 
         Self::from_seed(seed)
     }
