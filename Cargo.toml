@@ -44,9 +44,3 @@ getrandom = { version = "0.2", features = ["js"] }
 [[example]]
 name = "turn_based_game"
 path = "examples/turn_based_game.rs"
-required-features = ["rand_chacha"]
-
-[[test]]
-name = "determinism"
-path = "tests/determinism.rs"
-required-features = ["rand_chacha"]
