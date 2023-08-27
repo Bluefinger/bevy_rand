@@ -12,7 +12,9 @@ thread_local! {
 /// sourcing entropy to OS/Hardware sources. The use of `ChaCha8` with 8 rounds as opposed to 12 or 20 rounds
 /// is due to tuning for additional speed/throughput. While this does minimise the quality of the entropy,
 /// the output should still be sufficiently secure as per the recommendations set in the
-/// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper.
+/// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
+/// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
+/// needed in.
 #[derive(Clone)]
 pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
@@ -92,10 +94,72 @@ mod tests {
         let mut bytes1 = vec![0u8; 128];
         let mut bytes2 = vec![0u8; 128];
 
+        let mut cloned = rng1.clone();
+
         rng1.fill_bytes(&mut bytes1);
-        rng1.clone().fill_bytes(&mut bytes2);
+        cloned.fill_bytes(&mut bytes2);
 
         // Cloned ThreadLocalEntropy instances won't output the same entropy
+        assert_ne!(&bytes1, &bytes2);
+    }
+
+    #[test]
+    fn unique_source_per_thread() {
+        use std::sync::mpsc::channel;
+
+        let mut bytes1: Vec<u8> = vec![0u8; 128];
+        let mut bytes2: Vec<u8> = vec![0u8; 128];
+
+        let b1 = bytes1.as_mut();
+        let b2 = bytes2.as_mut();
+
+        let (sender, receiver) = channel();
+        let sender2 = sender.clone();
+
+        std::thread::scope(|s| {
+            s.spawn(move || {
+                // Obtain a thread local entropy source from this thread context.
+                // It should be initialised with a random state.
+                let mut rng = ThreadLocalEntropy::new();
+
+                // Use the source to produce some stored entropy.
+                rng.fill_bytes(b1);
+
+                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
+                // and it is not being accessed elsewhere nor being mutated. It is
+                // safe to deference & cast the pointer so we can clone the RNG.
+                let source = unsafe { &*rng.0.get() };
+
+                sender.send(source.clone()).unwrap();
+            });
+            s.spawn(move || {
+                // Obtain a thread local entropy source from this thread context.
+                // It should be initialised with a random state.
+                let mut rng = ThreadLocalEntropy::new();
+
+                // Use the source to produce some stored entropy.
+                rng.fill_bytes(b2);
+
+                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
+                // and it is not being accessed elsewhere nor being mutated. It is
+                // safe to deference & cast the pointer so we can clone the RNG.
+                let source = unsafe { &*rng.0.get() };
+
+                sender2.send(source.clone()).unwrap();
+            });
+        });
+
+        // Wait for the threads to execute and resolve.
+        let a = receiver.recv().unwrap();
+        let b = receiver.recv().unwrap();
+
+        // The references to the thread local RNG sources will not be
+        // the same, as they each were initialised with different random
+        // states to each other from OS sources, even though each went
+        // through the exact same deterministic steps to fill some bytes.
+        assert_ne!(&a, &b);
+
+        // Double check the entropy output in each buffer is not the same either.
         assert_ne!(&bytes1, &bytes2);
     }
 
