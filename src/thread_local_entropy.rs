@@ -157,6 +157,9 @@ mod tests {
         // the same, as they each were initialised with different random
         // states to each other from OS sources, even though each went
         // through the exact same deterministic steps to fill some bytes.
+        // If the tasks ran on the same thread, then the RNG sources should
+        // be in different resulting states as the same source was advanced
+        // further.
         assert_ne!(&a, &b);
 
         // Double check the entropy output in each buffer is not the same either.
