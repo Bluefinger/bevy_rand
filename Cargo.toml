@@ -30,7 +30,7 @@ rand_core = { version = "0.6", features = ["std"] }
 rand_chacha = { version = "0.3", optional = true }
 
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.1", features = ["rand_chacha", "serialize"] }
+bevy_prng = { path = "bevy_prng", version = "0.1", features = ["rand_chacha"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 

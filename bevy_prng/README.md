@@ -11,14 +11,14 @@
 
 ## Using Bevy PRNG
 
-By default, `bevy_prng` won't export anything _unless_ the feature you required is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have acitivate one of the following features:
+By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you require is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have activate one of the following features:
 
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also reexports `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth without the need to pull in `rand_xoshiro` explicitly.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 
-In addition to these feature flags to enable various supported algorithms, there's also **`serialize`** flag to provide `serde` support for `Serialize`/`Deserialize`.
+In addition to these feature flags to enable various supported algorithms, there's also **`serialize`** flag to provide `serde` support for `Serialize`/`Deserialize`, which is enabled by default.
 
 All types are provided at the top-level of the module:
 
@@ -30,7 +30,7 @@ use bevy_prng::*;
 
 All the below crates implement the necessary traits to be compatible with `bevy_prng`. Additional PRNG crates can be added via PR's to this crate/repo, provided the PRNGs implement `Debug`, `Clone`, `PartialEq` and have optional `Serialize`/`Deserialize` `serde` traits implemented and behind feature flags.
 
-### Crytographically Secure PRNGs
+### Cryptographically Secure PRNGs
 
 - [rand_chacha](https://crates.io/crates/rand_chacha)
 

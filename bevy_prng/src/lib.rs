@@ -72,12 +72,12 @@ macro_rules! newtype_prng {
         }
 
         impl RngCore for $newtype {
-            #[inline]
+            #[inline(always)]
             fn next_u32(&mut self) -> u32 {
                 self.0.next_u32()
             }
 
-            #[inline]
+            #[inline(always)]
             fn next_u64(&mut self) -> u64 {
                 self.0.next_u64()
             }

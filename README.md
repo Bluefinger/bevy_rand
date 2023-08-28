@@ -9,10 +9,6 @@
 
 Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS friendly way. It provides a set of wrapper component and resource types that allow for safe access to a PRNG for generating random numbers, giving features like reflection, serialization for free. And with these types, it becomes possible to have determinism with the usage of these integrated PRNGs in ways that work with multi-threading and also avoid pitfalls such as unstable query iteration order.
 
-## Prerequisites
-
-For a PRNG crate to be usable with Bevy Rand, at its minimum, it must implement `RngCore` and `SeedableRng` traits from `rand_core`, as well as `PartialEq`, `Clone`, and `Debug` traits. For reflection/serialization support, it should also implement `Serialize`/`Deserialize` traits from `serde`, though this can be disabled if one is not making use of reflection/serialization. As long as these traits are implemented, the PRNG can just be plugged in without an issue.
-
 ## Overview
 
 Games often use randomness as a core mechanic. For example, card games generate a random deck for each game and killing monsters in an RPG often rewards players with a random item. While randomness makes games more interesting and increases replayability, it also makes games harder to test and prevents advanced techniques such as [deterministic lockstep](https://gafferongames.com/post/deterministic_lockstep/).
@@ -58,7 +54,13 @@ Bevy Rand approaches forking via `From` implementations of the various component
 
 ## Using Bevy Rand
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, `rand_core` and `bevy_prng` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use. To select a given algorithm type with `bevy_prng`, enable the feature representing the newtypes from the `rand_*` crate you want to use.
+
+```toml
+rand_core = "0.6"
+bevy_rand = "0.3"
+bevy_prng = { version = "0.1", features = ["rand_chacha"] }
+```
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -152,7 +154,7 @@ The examples provided as integration tests in this repo demonstrate the two diff
 All supported PRNGs and compatible structs are provided by `bevy_prng`, so the easiest way to work with `bevy_rand` is to import the necessary algorithm from `bevy_prng`. Simply activate the relevant features in `bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 ```toml
-bevy_prng = { version = "0.1", features = ["rand_chacha", "serialize"] }
+bevy_prng = { version = "0.1", features = ["rand_chacha", "wyrand"] }
 ```
 
 ```rust ignore
@@ -181,6 +183,26 @@ If that extra level of security is not necessary, but there is still need for ex
 | v0.3        | TBD     |
 | v0.2        | v0.11.1 |
 | v0.1        | v0.10   |
+
+## Migrating from v0.2 to v0.3
+
+As v0.3 is a breaking change to v0.2, the process to migrate over is fairly simple. The rand algorithm crates can no longer be used directly, but they can be swapped wholesale with `bevy_prng` instead. So the following:
+
+```rust ignore
+use bevy::prelude::*;
+use bevy_rand::prelude::*;
+use rand_chacha::ChaCha8Rng;
+```
+
+becomes:
+
+```rust ignore
+use bevy::prelude::*;
+use bevy_rand::prelude::*;
+use bevy_prng::ChaCha8Rng;
+```
+
+This **will** change the type path and the serialization format for the PRNGs, but currently, moving between different bevy versions has this problem as well as there's currently no means to migrate serialized formats from one version to another yet.
 
 ## License
 
