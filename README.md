@@ -54,7 +54,7 @@ Bevy Rand approaches forking via `From` implementations of the various component
 
 ## Using Bevy Rand
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, `rand_core` and `bevy_prng` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use. To select a given algorithm type with `bevy_prng`, enable the feature representing the newtypes from the `rand_*` crate you want to use.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`,`bevy_prng`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_prng`, enable the feature representing the newtypes from the `rand_*` crate you want to use.
 
 ```toml
 rand_core = "0.6"
