@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use bevy::reflect::{FromReflect, GetTypeRegistration, Reflect, TypePath};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "serialize")]
@@ -17,6 +18,10 @@ pub trait SeedableEntropySource:
     + PartialEq
     + Sync
     + Send
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration
     + Serialize
     + for<'a> Deserialize<'a>
     + private::SealedSeedable
@@ -32,6 +37,10 @@ impl<T> SeedableEntropySource for T where
         + PartialEq
         + Sync
         + Send
+        + Reflect
+        + TypePath
+        + FromReflect
+        + GetTypeRegistration
         + Serialize
         + for<'a> Deserialize<'a>
 {
@@ -42,13 +51,34 @@ impl<T> SeedableEntropySource for T where
 /// [`crate::resource::GlobalEntropy`]. This is a sealed trait.
 #[cfg(not(feature = "serialize"))]
 pub trait SeedableEntropySource:
-    RngCore + SeedableRng + Clone + Debug + PartialEq + Sync + Send + private::SealedSeedable
+    RngCore
+    + SeedableRng
+    + Clone
+    + Debug
+    + PartialEq
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration
+    + Sync
+    + Send
+    + private::SealedSeedable
 {
 }
 
 #[cfg(not(feature = "serialize"))]
 impl<T> SeedableEntropySource for T where
-    T: RngCore + SeedableRng + Clone + Debug + PartialEq + Sync + Send
+    T: RngCore
+        + SeedableRng
+        + Clone
+        + Debug
+        + PartialEq
+        + Reflect
+        + TypePath
+        + FromReflect
+        + GetTypeRegistration
+        + Sync
+        + Send
 {
 }
 

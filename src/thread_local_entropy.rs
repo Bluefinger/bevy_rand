@@ -1,7 +1,7 @@
 use std::{cell::UnsafeCell, rc::Rc};
 
 use rand_chacha::ChaCha8Rng;
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{CryptoRng, RngCore, SeedableRng};
 
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
@@ -12,57 +12,165 @@ thread_local! {
 /// sourcing entropy to OS/Hardware sources. The use of `ChaCha8` with 8 rounds as opposed to 12 or 20 rounds
 /// is due to tuning for additional speed/throughput. While this does minimise the quality of the entropy,
 /// the output should still be sufficiently secure as per the recommendations set in the
-/// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper.
-pub(crate) struct ThreadLocalEntropy;
+/// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
+/// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
+/// needed in.
+#[derive(Clone)]
+pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
 impl ThreadLocalEntropy {
-    /// Inspired by `rand`'s approach to `ThreadRng` as well as `turborand`'s instantiation methods. The [`Rc`]
-    /// prevents the Rng instance from being cleaned up, giving it a `'static` lifetime. However, it does not
-    /// allow mutable access without a cell, so using [`UnsafeCell`] to bypass overheads associated with
-    /// `RefCell`. There's no direct access to the pointer or mutable reference, so we control how long it
-    /// lives and can ensure no multiple mutable references exist.
-    ///
-    /// # Safety
-    ///
-    /// Caller must ensure only one `mut` reference exists at a time.
+    /// Create a new [`ThreadLocalEntropy`] instance. Only one instance can exist per thread at a time, so to
+    /// prevent the creation of multiple `&mut` references to
     #[inline]
-    unsafe fn get_rng(&'_ mut self) -> &'_ mut ChaCha8Rng {
-        // Obtain pointer to thread local instance of PRNG which with Rc, should be !Send & !Sync as well
-        // as 'static.
-        let rng = SOURCE.with(|source| source.get());
+    #[must_use]
+    pub(crate) fn new() -> Self {
+        Self(SOURCE.with(|source| Rc::clone(source)))
+    }
+}
 
-        &mut *rng
+impl core::fmt::Debug for ThreadLocalEntropy {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("ThreadLocalEntropy").finish()
     }
 }
 
 impl RngCore for ThreadLocalEntropy {
-    #[inline]
+    #[inline(always)]
     fn next_u32(&mut self) -> u32 {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().next_u32() }
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.next_u32()
     }
 
-    #[inline]
+    #[inline(always)]
     fn next_u64(&mut self) -> u64 {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().next_u64() }
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.next_u64()
     }
 
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe {
-            self.get_rng().fill_bytes(dest);
-        }
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.fill_bytes(dest);
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        // SAFETY: We must ensure to drop the `&mut rng` ref before creating another
-        // mutable reference
-        unsafe { self.get_rng().try_fill_bytes(dest) }
+        // SAFETY: We will drop this `&mut` reference before we can
+        // create another one, and only one reference can exist to the
+        // underlying thread local cell at any given time.
+        let rng = unsafe { &mut *self.0.get() };
+
+        rng.try_fill_bytes(dest)
+    }
+}
+
+impl CryptoRng for ThreadLocalEntropy {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn smoke_test() {
+        let mut rng1 = ThreadLocalEntropy::new();
+        let mut rng2 = ThreadLocalEntropy::new();
+
+        // Neither instance should interfere with each other
+        rng1.next_u32();
+        rng2.next_u64();
+
+        let mut bytes1 = vec![0u8; 128];
+        let mut bytes2 = vec![0u8; 128];
+
+        let mut cloned = rng1.clone();
+
+        rng1.fill_bytes(&mut bytes1);
+        cloned.fill_bytes(&mut bytes2);
+
+        // Cloned ThreadLocalEntropy instances won't output the same entropy
+        assert_ne!(&bytes1, &bytes2);
+    }
+
+    #[test]
+    fn unique_source_per_thread() {
+        use std::sync::mpsc::channel;
+
+        let mut bytes1: Vec<u8> = vec![0u8; 128];
+        let mut bytes2: Vec<u8> = vec![0u8; 128];
+
+        let b1 = bytes1.as_mut();
+        let b2 = bytes2.as_mut();
+
+        let (sender, receiver) = channel();
+        let sender2 = sender.clone();
+
+        std::thread::scope(|s| {
+            s.spawn(move || {
+                // Obtain a thread local entropy source from this thread context.
+                // It should be initialised with a random state.
+                let mut rng = ThreadLocalEntropy::new();
+
+                // Use the source to produce some stored entropy.
+                rng.fill_bytes(b1);
+
+                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
+                // and it is not being accessed elsewhere nor being mutated. It is
+                // safe to deference & cast the pointer so we can clone the RNG.
+                let source = unsafe { &*rng.0.get() };
+
+                sender.send(source.clone()).unwrap();
+            });
+            s.spawn(move || {
+                // Obtain a thread local entropy source from this thread context.
+                // It should be initialised with a random state.
+                let mut rng = ThreadLocalEntropy::new();
+
+                // Use the source to produce some stored entropy.
+                rng.fill_bytes(b2);
+
+                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
+                // and it is not being accessed elsewhere nor being mutated. It is
+                // safe to deference & cast the pointer so we can clone the RNG.
+                let source = unsafe { &*rng.0.get() };
+
+                sender2.send(source.clone()).unwrap();
+            });
+        });
+
+        // Wait for the threads to execute and resolve.
+        let a = receiver.recv().unwrap();
+        let b = receiver.recv().unwrap();
+
+        // The references to the thread local RNG sources will not be
+        // the same, as they each were initialised with different random
+        // states to each other from OS sources, even though each went
+        // through the exact same deterministic steps to fill some bytes.
+        // If the tasks ran on the same thread, then the RNG sources should
+        // be in different resulting states as the same source was advanced
+        // further.
+        assert_ne!(&a, &b);
+
+        // Double check the entropy output in each buffer is not the same either.
+        assert_ne!(&bytes1, &bytes2);
+    }
+
+    #[test]
+    fn non_leaking_debug() {
+        assert_eq!(
+            "ThreadLocalEntropy",
+            format!("{:?}", ThreadLocalEntropy::new())
+        );
     }
 }

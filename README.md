@@ -9,10 +9,6 @@
 
 Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS friendly way. It provides a set of wrapper component and resource types that allow for safe access to a PRNG for generating random numbers, giving features like reflection, serialization for free. And with these types, it becomes possible to have determinism with the usage of these integrated PRNGs in ways that work with multi-threading and also avoid pitfalls such as unstable query iteration order.
 
-## Prerequisites
-
-For a PRNG crate to be usable with Bevy Rand, at its minimum, it must implement `RngCore` and `SeedableRng` traits from `rand_core`, as well as `PartialEq`, `Clone`, and `Debug` traits. For reflection/serialization support, it should also implement `Serialize`/`Deserialize` traits from `serde`, though this can be disabled if one is not making use of reflection/serialization. As long as these traits are implemented, the PRNG can just be plugged in without an issue.
-
 ## Overview
 
 Games often use randomness as a core mechanic. For example, card games generate a random deck for each game and killing monsters in an RPG often rewards players with a random item. While randomness makes games more interesting and increases replayability, it also makes games harder to test and prevents advanced techniques such as [deterministic lockstep](https://gafferongames.com/post/deterministic_lockstep/).
@@ -58,7 +54,13 @@ Bevy Rand approaches forking via `From` implementations of the various component
 
 ## Using Bevy Rand
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`,`bevy_prng`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_prng`, enable the feature representing the newtypes from the `rand_*` crate you want to use.
+
+```toml
+rand_core = "0.6"
+bevy_rand = "0.3"
+bevy_prng = { version = "0.1", features = ["rand_chacha"] }
+```
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -68,11 +70,11 @@ Before a PRNG can be used via `GlobalEntropy` or `EntropyComponent`, it must be 
 use bevy::prelude::*;
 use bevy_rand::prelude::*;
 use rand_core::RngCore;
-use rand_chacha::ChaCha8Rng;
+use bevy_prng::ChaCha8Rng;
 
 fn main() {
     App::new()
-        .add_plugin(EntropyPlugin::<ChaCha8Rng>::default())
+        .add_plugins(EntropyPlugin::<ChaCha8Rng>::default())
         .run();
 }
 ```
@@ -85,7 +87,7 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 use bevy::prelude::ResMut;
 use bevy_rand::prelude::*;
 use rand_core::RngCore;
-use rand_chacha::ChaCha8Rng;
+use bevy_prng::ChaCha8Rng;
 
 fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
     println!("Random value: {}", rng.next_u32());
@@ -99,7 +101,7 @@ For seeding `EntropyComponent`s from a global source, it is best to make use of 
 ```rust
 use bevy::prelude::*;
 use bevy_rand::prelude::*;
-use rand_chacha::ChaCha8Rng;
+use bevy_prng::ChaCha8Rng;
 
 #[derive(Component)]
 struct Source;
@@ -118,7 +120,7 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8
 ```rust
 use bevy::prelude::*;
 use bevy_rand::prelude::*;
-use rand_chacha::ChaCha8Rng;
+use bevy_prng::ChaCha8Rng;
 
 #[derive(Component)]
 struct Npc;
@@ -147,47 +149,59 @@ Determinism relies on not just how RNGs are seeded, but also how systems are gro
 
 The examples provided as integration tests in this repo demonstrate the two different concepts of parallelisation and deterministic outputs, so check them out to see how one might achieve determinism.
 
-## Selecting PRNG Algorithms
+## Selecting and using PRNG Algorithms
 
-`rand` provides a number of PRNGs, but under types such as `StdRng` and `SmallRng`. These are **not** intended to beble/deterministic across different versions of `rand`. `rand` might change the underlying implementations of `StdRng` and `SmallRng` at any point, yielding different output. If the lack of stability is fine, then plugging these into `bevy_rand` is fine. Else, the recommendation (made by `rand` crate as well) is that if determinism of output and stability of the algorithm used is important, then to use the algorithm crates directly. So instead of using `StdRng`, use `ChaCha12Rng` from the `rand_chacha` crate.
+All supported PRNGs and compatible structs are provided by `bevy_prng`, so the easiest way to work with `bevy_rand` is to import the necessary algorithm from `bevy_prng`. Simply activate the relevant features in `bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
+
+```toml
+bevy_prng = { version = "0.1", features = ["rand_chacha", "wyrand"] }
+```
+
+```rust ignore
+use bevy::prelude::*;
+use bevy_rand::prelude::*;
+use bevy_prng::{ChaCha8Rng, WyRand};
+```
+
+Using PRNGs directly from the `rand_*` crates is not possible without newtyping, and better to use `bevy_prng` instead of writing your own newtypes. Types from `rand` like `StdRng` and `SmallRng` are not encouraged to be used or newtyped as they are not **portable**, nor are they guaranteed to be stable. `SmallRng` is not even the same algorithm if used on 32-bit platforms versus 64-bit platforms. This makes them unsuitable for purposes of reflected/stable/portable types needed for deterministic PRNG. Likely, you'd be using `StdRng`/`SmallRng` directly without integration into Bevy's ECS. This is why the algorithm crates are used directly by `bevy_prng`, as this is the recommendation from `rand` when stability and portability is important.
 
 As a whole, which algorithm should be used/selected is dependent on a range of factors. Cryptographically Secure PRNGs (CSPRNGs) produce very hard to predict output (very high quality entropy), but in general are slow. The ChaCha algorithm can be sped up by using versions with less rounds (iterations of the algorithm), but this in turn reduces the quality of the output (making it easier to predict). However, `ChaCha8Rng` is still far stronger than what is feasible to be attacked, and is considerably faster as a source of entropy than the full `ChaCha20Rng`. `rand` uses `ChaCha12Rng` as a balance between security/quality of output and speed for its `StdRng`. CSPRNGs are important for cases when you _really_ don't want your output to be predictable and you need that extra level of assurance, such as doing any cryptography/authentication/security tasks.
 
-If that extra level of security is not necessary, but there is still need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256++` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be.
-
-## Recommended PRNG Algorithms/Crates
-
-All recommended crates implement the necessary traits to be compatible with `bevy_rand`.
-
-### Crytographically Secure PRNGs
-
-- [rand_chacha](https://crates.io/crates/rand_chacha)
-
-### Non-Cryptographically Secure PRNGS
-
-- [wyrand](https://crates.io/crates/wyrand)
-- [rand_xoshiro](https://crates.io/crates/rand_xoshiro)
-- [rand_pcg](https://crates.io/crates/rand_pcg)
+If that extra level of security is not necessary, but there is still need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256StarStar` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be.
 
 ## Features
 
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
 - **`serialize`** - Enables [`Serialize`] and [`Deserialize`] derives. Enabled by default.
 
-## Note about Reflection & `TypePath` stability.
-
-All `rand` PRNGs do not implement `TypePath` in any form, even as an optional feature, due to lack of native support for reflection in Rust. As such, while the components/resource in this library are *stable* and implement a stable `TypePath` for themselves, PRNGs rely on `std::any::type_name` for returning the type's name/path, which is NOT guaranteed to be stable for all versions of the compiler. As such, there may be instabilities/compatibilities with different compiler versions and compilations, as this instability infects the overall `TypePath` via the generic portion of the type path.
-
-If there arises problems with regards to stability for reflection purposes, please make an issue with regards to that in this repository, so I can track such occurrences. Tests are included in the crate anyway to hopefully detect such cases in the future.
-
 ## Supported Versions & MSRV
 
 `bevy_rand` uses the same MSRV as `bevy`.
 
-| `bevy_rand` | `bevy`  |
-| ----------- | ------- |
-| v0.2        | v0.11.1 |
-| v0.1        | v0.10   |
+| `bevy`   | `bevy_rand` |
+| -------- | ----------- |
+| v0.11    | v0.2, v0.3  |
+| v0.10    | v0.1        |
+
+## Migrating from v0.2 to v0.3
+
+As v0.3 is a breaking change to v0.2, the process to migrate over is fairly simple. The rand algorithm crates can no longer be used directly, but they can be swapped wholesale with `bevy_prng` instead. So the following `Cargo.toml` changes:
+
+```diff
+- rand_chacha = { version = "0.3", features = ["serde1"] }
++ bevy_prng = { version = "0.1", features = ["rand_chacha"] }
+```
+
+allows then you to swap your import like so, which should then plug straight into existing `bevy_rand` usage seamlessly:
+
+```diff
+use bevy::prelude::*;
+use bevy_rand::prelude::*;
+- use rand_chacha::ChaCha8Rng;
++ use bevy_prng::ChaCha8Rng;
+```
+
+This **will** change the type path and the serialization format for the PRNGs, but currently, moving between different bevy versions has this problem as well as there's currently no means to migrate serialized formats from one version to another yet. The rationale for this change is to enable stable `TypePath` that is being imposed by bevy's reflection system, so that future compiler changes won't break things unexpectedly as `std::any::type_name` has no stability guarantees. Going forward, this should resolve any stability problems `bevy_rand` might have and be able to hook into any migration tool `bevy` might offer for when scene formats change/update.
 
 ## License
 
