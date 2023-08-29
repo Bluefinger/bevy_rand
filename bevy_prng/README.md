@@ -28,7 +28,7 @@ use bevy_prng::*;
 
 ## Supported PRNG Algorithms/Crates
 
-All the below crates implement the necessary traits to be compatible with `bevy_prng`. Additional PRNG crates can be added via PR's to this crate/repo, provided the PRNGs implement `Debug`, `Clone`, `PartialEq` and have optional `Serialize`/`Deserialize` `serde` traits implemented and behind feature flags.
+All the below crates implement the necessary traits to be compatible with `bevy_prng`. Additional PRNG crates can be added via PR's to this crate/repo, provided the PRNGs implement `Debug`, `Clone`, `PartialEq` and have optional `Serialize`/`Deserialize` `serde` traits implemented and put behind appropriate feature flags.
 
 ### Cryptographically Secure PRNGs
 
@@ -44,9 +44,9 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 `bevy_prng` uses the same MSRV as `bevy`.
 
-| `bevy_prng` | `bevy` |
-| ----------- | ------ |
-| v0.1        | v0.11  |
+| `bevy`   | `bevy_prng` |
+| -------- | ----------- |
+| v0.11    | v0.1        |
 
 ## License
 

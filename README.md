@@ -178,11 +178,10 @@ If that extra level of security is not necessary, but there is still need for ex
 
 `bevy_rand` uses the same MSRV as `bevy`.
 
-| `bevy_rand` | `bevy`  |
-| ----------- | ------- |
-| v0.3        | TBD     |
-| v0.2        | v0.11.1 |
-| v0.1        | v0.10   |
+| `bevy`   | `bevy_rand` |
+| -------- | ----------- |
+| v0.11    | v0.2, v0.3  |
+| v0.10    | v0.1        |
 
 ## Migrating from v0.2 to v0.3
 
@@ -202,7 +201,7 @@ use bevy_rand::prelude::*;
 use bevy_prng::ChaCha8Rng;
 ```
 
-This **will** change the type path and the serialization format for the PRNGs, but currently, moving between different bevy versions has this problem as well as there's currently no means to migrate serialized formats from one version to another yet.
+This **will** change the type path and the serialization format for the PRNGs, but currently, moving between different bevy versions has this problem as well as there's currently no means to migrate serialized formats from one version to another yet. The rationale for this change is to enable stable `TypePath` that is being imposed by bevy's reflection system, so that future compiler changes won't break things unexpectedly as `std::any::type_name` has no stability guarantees. Going forward, this should resolve any stability problems `bevy_rand` might have and be able to hook into any migration tool `bevy` might offer for when scene formats change/update.
 
 ## License
 
