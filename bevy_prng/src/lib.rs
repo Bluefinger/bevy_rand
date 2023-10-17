@@ -30,15 +30,7 @@ use bevy::prelude::ReflectFromReflect;
 ))]
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 
-#[cfg(all(
-    any(
-        feature = "wyrand",
-        feature = "rand_chacha",
-        feature = "rand_pcg",
-        feature = "rand_xoshiro"
-    ),
-    feature = "serialize"
-))]
+#[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
 
 /// A marker trait to define the required trait bounds for a seedable PRNG to
