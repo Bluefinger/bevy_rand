@@ -1,6 +1,6 @@
 [package]
 name = "bevy_rand"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 description = "A plugin to integrate rand for ECS optimised RNG for the Bevy game engine."
@@ -22,7 +22,8 @@ members = ["bevy_prng"]
 
 [dependencies]
 # bevy
-bevy = { version = "0.11", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "1258ceb62cd8acb61f031dce128c2e04ee058538", version = "0.12.0-dev", default-features = false }
+bevy_prng = { path = "bevy_prng", version = "0.2" }
 
 # others
 serde = { version = "1.0", features = ["derive"], optional = true }
@@ -30,7 +31,7 @@ rand_core = { version = "0.6", features = ["std"] }
 rand_chacha = { version = "0.3", optional = true }
 
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.1", features = ["rand_chacha"] }
+bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 

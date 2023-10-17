@@ -2,20 +2,22 @@
 #![deny(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, allow(unused_attributes))]
-#[cfg(any(
-    feature = "wyrand",
-    feature = "rand_chacha",
-    feature = "rand_pcg",
-    feature = "rand_xoshiro"
-))]
-use bevy::prelude::{Reflect, ReflectFromReflect};
-#[cfg(any(
-    feature = "wyrand",
-    feature = "rand_chacha",
-    feature = "rand_pcg",
-    feature = "rand_xoshiro"
-))]
+
+use std::fmt::Debug;
+
+use bevy::{
+    prelude::{FromReflect, Reflect},
+    reflect::{GetTypeRegistration, TypePath},
+};
 use rand_core::{RngCore, SeedableRng};
+
+#[cfg(any(
+    feature = "wyrand",
+    feature = "rand_chacha",
+    feature = "rand_pcg",
+    feature = "rand_xoshiro"
+))]
+use bevy::prelude::ReflectFromReflect;
 
 #[cfg(all(
     any(
@@ -38,6 +40,52 @@ use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
     feature = "serialize"
 ))]
 use serde::{Deserialize, Serialize};
+
+/// A marker trait to define the required trait bounds for a seedable PRNG to
+/// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
+#[cfg(feature = "serialize")]
+pub trait SeedableEntropySource:
+    RngCore
+    + SeedableRng
+    + Clone
+    + Debug
+    + PartialEq
+    + Sync
+    + Send
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration
+    + Serialize
+    + for<'a> Deserialize<'a>
+    + private::SealedSeedable
+{
+}
+
+/// A marker trait to define the required trait bounds for a seedable PRNG to
+/// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
+#[cfg(not(feature = "serialize"))]
+pub trait SeedableEntropySource:
+    RngCore
+    + SeedableRng
+    + Clone
+    + Debug
+    + PartialEq
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration
+    + Sync
+    + Send
+    + private::SealedSeedable
+{
+}
+
+mod private {
+    pub trait SealedSeedable {}
+
+    impl<T: super::SeedableEntropySource> SealedSeedable for T {}
+}
 
 #[cfg(any(
     feature = "wyrand",
@@ -108,6 +156,8 @@ macro_rules! newtype_prng {
                 Self::new(value)
             }
         }
+
+        impl SeedableEntropySource for $newtype {}
     };
 }
 

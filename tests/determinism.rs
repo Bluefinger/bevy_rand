@@ -60,13 +60,13 @@ fn random_output_d(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<S
 }
 
 fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
-    commands.spawn((SourceA, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceA, rng.fork_as::<ChaCha8Rng>()));
 
-    commands.spawn((SourceB, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceB, rng.fork_rng()));
 
-    commands.spawn((SourceC, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceC, rng.fork_rng()));
 
-    commands.spawn((SourceD, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceD, rng.fork_rng()));
 }
 
 /// Entities having their own sources side-steps issues with parallel execution and scheduling

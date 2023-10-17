@@ -1,89 +1,56 @@
-use std::fmt::Debug;
-
-use bevy::reflect::{FromReflect, GetTypeRegistration, Reflect, TypePath};
+use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
+/// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic.
+pub trait ForkableRng: EcsEntropySource {
+    /// The type of instance that is to be forked from the original source.
+    type Output: EcsEntropySource;
 
-/// A wrapper trait to encapsulate the required trait bounds for a seedable PRNG to
-/// integrate into [`crate::component::EntropyComponent`] or
-/// [`crate::resource::GlobalEntropy`]. This is a sealed trait.
-#[cfg(feature = "serialize")]
-pub trait SeedableEntropySource:
-    RngCore
-    + SeedableRng
-    + Clone
-    + Debug
-    + PartialEq
-    + Sync
-    + Send
-    + Reflect
-    + TypePath
-    + FromReflect
-    + GetTypeRegistration
-    + Serialize
-    + for<'a> Deserialize<'a>
-    + private::SealedSeedable
-{
+    /// Fork the original instance to yield a new instance with a generated seed.
+    /// This method preserves the RNG algorithm between original and forked instances.
+    fn fork_rng(&mut self) -> Self::Output {
+        Self::Output::from_rng(self).unwrap()
+    }
 }
 
-#[cfg(feature = "serialize")]
-impl<T> SeedableEntropySource for T where
-    T: RngCore
-        + SeedableRng
-        + Clone
-        + Debug
-        + PartialEq
-        + Sync
-        + Send
-        + Reflect
-        + TypePath
-        + FromReflect
-        + GetTypeRegistration
-        + Serialize
-        + for<'a> Deserialize<'a>
-{
+/// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic. This trait enables forking between different PRNG algorithm types.
+pub trait ForkableAsRng: EcsEntropySource {
+    /// The type of instance that is to be forked from the original source.
+    type Output<R>: EcsEntropySource
+    where
+        R: SeedableEntropySource;
+
+    /// Fork the original instance to yield a new instance with a generated seed.
+    /// This method allows one to specify the RNG algorithm to be used for the forked instance.
+    fn fork_as<T: SeedableEntropySource>(&mut self) -> Self::Output<T> {
+        Self::Output::<_>::from_rng(self).unwrap()
+    }
 }
 
-/// A wrapper trait to encapsulate the required trait bounds for a seedable PRNG to
-/// integrate into [`crate::component::EntropyComponent`] or
-/// [`crate::resource::GlobalEntropy`]. This is a sealed trait.
-#[cfg(not(feature = "serialize"))]
-pub trait SeedableEntropySource:
-    RngCore
-    + SeedableRng
-    + Clone
-    + Debug
-    + PartialEq
-    + Reflect
-    + TypePath
-    + FromReflect
-    + GetTypeRegistration
-    + Sync
-    + Send
-    + private::SealedSeedable
-{
+/// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic. This trait enables forking the inner PRNG instance of the source component/resource.
+pub trait ForkableInnerRng: EcsEntropySource {
+    /// The type of instance that is to be forked from the original source.
+    type Output: SeedableEntropySource;
+
+    /// Fork the original instance to yield a new instance with a generated seed.
+    /// This method yields the inner PRNG instance directly as a forked instance.
+    fn fork_inner(&mut self) -> Self::Output {
+        Self::Output::from_rng(self).unwrap()
+    }
 }
 
-#[cfg(not(feature = "serialize"))]
-impl<T> SeedableEntropySource for T where
-    T: RngCore
-        + SeedableRng
-        + Clone
-        + Debug
-        + PartialEq
-        + Reflect
-        + TypePath
-        + FromReflect
-        + GetTypeRegistration
-        + Sync
-        + Send
-{
-}
+/// A marker trait for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// This is a sealed trait and cannot be consumed by downstream.
+pub trait EcsEntropySource: RngCore + SeedableRng + private::SealedSource {}
 
 mod private {
-    pub trait SealedSeedable {}
+    pub trait SealedSource {}
 
-    impl<T: super::SeedableEntropySource> SealedSeedable for T {}
+    impl<T: super::EcsEntropySource> SealedSource for T {}
 }

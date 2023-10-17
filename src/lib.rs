@@ -14,4 +14,5 @@ pub mod prelude;
 pub mod resource;
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
-mod traits;
+/// Traits for enabling utility methods for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+pub mod traits;

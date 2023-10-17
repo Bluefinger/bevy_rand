@@ -1,7 +1,11 @@
 use std::fmt::Debug;
 
-use crate::{resource::GlobalEntropy, traits::SeedableEntropySource};
+use crate::{
+    resource::GlobalEntropy,
+    traits::{EcsEntropySource, ForkableAsRng, ForkableInnerRng, ForkableRng},
+};
 use bevy::prelude::{Component, Mut, Reflect, ReflectComponent, ReflectFromReflect, ResMut};
+use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -175,6 +179,8 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
     }
 }
 
+impl<R: SeedableEntropySource + 'static> EcsEntropySource for EntropyComponent<R> {}
+
 impl<R: SeedableEntropySource + 'static> From<R> for EntropyComponent<R> {
     fn from(value: R) -> Self {
         Self::new(value)
@@ -203,6 +209,27 @@ impl<R: SeedableEntropySource + 'static> From<&mut ResMut<'_, GlobalEntropy<R>>>
     }
 }
 
+impl<R> ForkableRng for EntropyComponent<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output = EntropyComponent<R>;
+}
+
+impl<R> ForkableAsRng for EntropyComponent<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output<T> = EntropyComponent<T> where T: SeedableEntropySource;
+}
+
+impl<R> ForkableInnerRng for EntropyComponent<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output = R;
+}
+
 #[cfg(test)]
 mod tests {
     use bevy::reflect::TypePath;
@@ -214,7 +241,7 @@ mod tests {
     fn forking() {
         let mut rng1 = EntropyComponent::<ChaCha8Rng>::default();
 
-        let rng2 = EntropyComponent::from(&mut rng1);
+        let rng2 = rng1.fork_rng();
 
         assert_ne!(
             rng1, rng2,
@@ -240,12 +267,12 @@ mod tests {
     fn rng_untyped_serialization() {
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
-            TypeRegistryInternal,
+            TypeRegistry,
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;
 
-        let mut registry = TypeRegistryInternal::default();
+        let mut registry = TypeRegistry::default();
         registry.register::<EntropyComponent<ChaCha8Rng>>();
 
         let mut val: EntropyComponent<ChaCha8Rng> = EntropyComponent::from_seed([7; 32]);
@@ -288,12 +315,12 @@ mod tests {
     fn rng_typed_serialization() {
         use bevy::reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
-            GetTypeRegistration, TypeRegistryInternal,
+            GetTypeRegistration, TypeRegistry,
         };
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;
 
-        let mut registry = TypeRegistryInternal::default();
+        let mut registry = TypeRegistry::default();
         registry.register::<EntropyComponent<ChaCha8Rng>>();
 
         let registered_type = EntropyComponent::<ChaCha8Rng>::get_type_registration();

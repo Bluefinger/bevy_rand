@@ -1,7 +1,11 @@
 use std::fmt::Debug;
 
-use crate::traits::SeedableEntropySource;
+use crate::{
+    component::EntropyComponent,
+    traits::{EcsEntropySource, ForkableAsRng, ForkableInnerRng, ForkableRng},
+};
 use bevy::prelude::{Reflect, ReflectFromReflect, ReflectResource, Resource};
+use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -120,6 +124,8 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
     }
 }
 
+impl<R: SeedableEntropySource + 'static> EcsEntropySource for GlobalEntropy<R> {}
+
 impl<R: SeedableEntropySource + 'static> From<R> for GlobalEntropy<R> {
     fn from(value: R) -> Self {
         Self::new(value)
@@ -130,6 +136,27 @@ impl<R: SeedableEntropySource + 'static> From<&mut R> for GlobalEntropy<R> {
     fn from(value: &mut R) -> Self {
         Self::from_rng(value).unwrap()
     }
+}
+
+impl<R> ForkableRng for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output = EntropyComponent<R>;
+}
+
+impl<R> ForkableAsRng for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output<T> = EntropyComponent<T> where T: SeedableEntropySource;
+}
+
+impl<R> ForkableInnerRng for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output = R;
 }
 
 #[cfg(test)]
@@ -152,17 +179,30 @@ mod tests {
         );
     }
 
+    #[test]
+    fn forking_into_component() {
+        let mut source: GlobalEntropy<ChaCha8Rng> = GlobalEntropy::<ChaCha8Rng>::from_seed([1; 32]);
+
+        let mut forked = source.fork_rng();
+
+        let source_val = source.next_u32();
+
+        let forked_val = forked.next_u32();
+
+        assert_ne!(source_val, forked_val);
+    }
+
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_untyped_serialization() {
         use bevy::reflect::{
             serde::{ReflectSerializer, UntypedReflectDeserializer},
-            TypeRegistryInternal,
+            TypeRegistry,
         };
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;
 
-        let mut registry = TypeRegistryInternal::default();
+        let mut registry = TypeRegistry::default();
         registry.register::<GlobalEntropy<ChaCha8Rng>>();
 
         let mut val = GlobalEntropy::<ChaCha8Rng>::from_seed([7; 32]);
@@ -205,12 +245,12 @@ mod tests {
     fn rng_typed_serialization() {
         use bevy::reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
-            GetTypeRegistration, TypeRegistryInternal,
+            GetTypeRegistration, TypeRegistry,
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;
 
-        let mut registry = TypeRegistryInternal::default();
+        let mut registry = TypeRegistry::default();
         registry.register::<GlobalEntropy<ChaCha8Rng>>();
 
         let registered_type = GlobalEntropy::<ChaCha8Rng>::get_type_registration();

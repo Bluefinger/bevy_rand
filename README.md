@@ -50,7 +50,7 @@ Bevy Rand operates around a global entropy source provided as a resource, and th
 
 If cloning creates a second instance that shares the same state as the original, forking derives a new state from the original, leaving the original 'changed' and the new instance with a randomised seed. Forking RNG instances from a global source is a way to ensure that one seed produces many deterministic states, while making it difficult to predict outputs from many sources and also ensuring no one source shares the same state either with the original or with each other.
 
-Bevy Rand approaches forking via `From` implementations of the various component/resource types, making it straightforward to use.
+Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` traits, allowing one to easily fork with just a simple `.fork_rng()` method call, and also with `From` implementations of the various component/resource types, making it straightforward to use.
 
 ## Using Bevy Rand
 
@@ -96,7 +96,7 @@ fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
 
 ### Forking RNGs
 
-For seeding `EntropyComponent`s from a global source, it is best to make use of forking instead of generating the seed value directly.
+For seeding `EntropyComponent`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `EntropyComponent` instances.
 
 ```rust
 use bevy::prelude::*;
@@ -110,7 +110,7 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8
     commands
         .spawn((
             Source,
-            EntropyComponent::from(&mut global),
+            global.fork_rng(),
         ));
 }
 ```
@@ -137,11 +137,13 @@ fn setup_npc_from_source(
        commands
            .spawn((
                Npc,
-               EntropyComponent::from(&mut source)
+               source.fork_rng()
            ));
    }
 }
 ```
+
+For both `GlobalEntropy` and `EntropyComponent`s, one can fork the inner PRNG instance to use directly or pass into methods via `fork_inner()`.
 
 ### Enabling Determinism
 
@@ -172,16 +174,17 @@ If that extra level of security is not necessary, but there is still need for ex
 ## Features
 
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
-- **`serialize`** - Enables [`Serialize`] and [`Deserialize`] derives. Enabled by default.
+- **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
 
 ## Supported Versions & MSRV
 
 `bevy_rand` uses the same MSRV as `bevy`.
 
-| `bevy`   | `bevy_rand` |
-| -------- | ----------- |
-| v0.11    | v0.2, v0.3  |
-| v0.10    | v0.1        |
+| `bevy` | `bevy_rand` |
+| ------ | ----------- |
+| v0.12  | v0.4        |
+| v0.11  | v0.2, v0.3  |
+| v0.10  | v0.1        |
 
 ## Migrating from v0.2 to v0.3
 
