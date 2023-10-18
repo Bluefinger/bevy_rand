@@ -10,6 +10,22 @@ pub trait ForkableRng: EcsEntropySource {
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method preserves the RNG algorithm between original and forked instances.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// use bevy_prng::ChaCha8Rng;
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    ///     commands
+    ///         .spawn((
+    ///             Source,
+    ///             global.fork_rng(),
+    ///         ));
+    /// }
+    /// ```
     fn fork_rng(&mut self) -> Self::Output {
         Self::Output::from_rng(self).unwrap()
     }
@@ -26,6 +42,22 @@ pub trait ForkableAsRng: EcsEntropySource {
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha12Rng>>) {
+    ///     commands
+    ///         .spawn((
+    ///             Source,
+    ///             global.fork_as::<ChaCha8Rng>(),
+    ///         ));
+    /// }
+    /// ```
     fn fork_as<T: SeedableEntropySource>(&mut self) -> Self::Output<T> {
         Self::Output::<_>::from_rng(self).unwrap()
     }
@@ -40,6 +72,25 @@ pub trait ForkableInnerRng: EcsEntropySource {
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method yields the inner PRNG instance directly as a forked instance.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// use bevy_prng::ChaCha8Rng;
+    /// use rand_core::RngCore;
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn do_random_action(source: &mut ChaCha8Rng) {
+    ///     println!("Random value: {}", source.next_u32());
+    /// }
+    ///
+    /// fn access_source(mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    ///     let mut source = global.fork_inner();
+    ///
+    ///     do_random_action(&mut source);
+    /// }
+    /// ```
     fn fork_inner(&mut self) -> Self::Output {
         Self::Output::from_rng(self).unwrap()
     }
