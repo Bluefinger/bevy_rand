@@ -59,7 +59,7 @@ use serde::{Deserialize, Serialize};
 ///     commands
 ///         .spawn((
 ///             Source,
-///             EntropyComponent::from(&mut global),
+///             global.fork_rng(),
 ///         ));
 /// }
 /// ```
@@ -85,7 +85,7 @@ use serde::{Deserialize, Serialize};
 ///        commands
 ///            .spawn((
 ///                Npc,
-///                EntropyComponent::from(&mut source)
+///                source.fork_rng()
 ///            ));
 ///    }
 /// }

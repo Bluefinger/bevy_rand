@@ -1,4 +1,4 @@
 pub use crate::component::EntropyComponent;
 pub use crate::plugin::EntropyPlugin;
 pub use crate::resource::GlobalEntropy;
-pub use crate::traits::{EcsEntropySource, ForkableAsRng, ForkableInnerRng, ForkableRng};
+pub use crate::traits::{ForkableAsRng, ForkableInnerRng, ForkableRng};
