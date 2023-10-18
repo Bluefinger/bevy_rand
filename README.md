@@ -50,7 +50,7 @@ Bevy Rand operates around a global entropy source provided as a resource, and th
 
 If cloning creates a second instance that shares the same state as the original, forking derives a new state from the original, leaving the original 'changed' and the new instance with a randomised seed. Forking RNG instances from a global source is a way to ensure that one seed produces many deterministic states, while making it difficult to predict outputs from many sources and also ensuring no one source shares the same state either with the original or with each other.
 
-Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` traits, allowing one to easily fork with just a simple `.fork_rng()` method call, and also with `From` implementations of the various component/resource types, making it straightforward to use.
+Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` traits, allowing one to easily fork with just a simple `.fork_rng()` method call, making it straightforward to use. There's also `From` implementations, but from v0.4 onwards, these are considered deprecated and will likely be removed/changed in a future version.
 
 ## Using Bevy Rand
 
