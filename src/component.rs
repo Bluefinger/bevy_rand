@@ -250,6 +250,18 @@ mod tests {
     }
 
     #[test]
+    fn forking_inner() {
+        let mut rng1 = EntropyComponent::<ChaCha8Rng>::default();
+
+        let rng2 = rng1.fork_inner();
+
+        assert_ne!(
+            rng1.0, rng2,
+            "forked ChaCha8Rngs should not match each other"
+        );
+    }
+
+    #[test]
     fn type_paths() {
         assert_eq!(
             "bevy_rand::component::EntropyComponent<bevy_prng::ChaCha8Rng>",

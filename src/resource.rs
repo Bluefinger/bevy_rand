@@ -192,6 +192,18 @@ mod tests {
         assert_ne!(source_val, forked_val);
     }
 
+    #[test]
+    fn forking_inner() {
+        let mut rng1 = GlobalEntropy::<ChaCha8Rng>::default();
+
+        let rng2 = rng1.fork_inner();
+
+        assert_ne!(
+            rng1.0, rng2,
+            "forked ChaCha8Rngs should not match each other"
+        );
+    }
+
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_untyped_serialization() {
