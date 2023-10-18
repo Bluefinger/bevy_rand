@@ -233,7 +233,7 @@ where
 #[cfg(test)]
 mod tests {
     use bevy::reflect::TypePath;
-    use bevy_prng::ChaCha8Rng;
+    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
 
     use super::*;
 
@@ -247,6 +247,18 @@ mod tests {
             rng1, rng2,
             "forked EntropyComponents should not match each other"
         );
+    }
+
+    #[test]
+    fn forking_as() {
+        let mut rng1 = EntropyComponent::<ChaCha12Rng>::default();
+
+        let rng2 = rng1.fork_as::<ChaCha8Rng>();
+
+        let rng1 = format!("{:?}", rng1);
+        let rng2 = format!("{:?}", rng2);
+
+        assert_ne!(&rng1, &rng2, "forked EntropyComponents should not match each other");
     }
 
     #[test]
