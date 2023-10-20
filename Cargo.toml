@@ -30,8 +30,15 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 rand_core = { version = "0.6", features = ["std"] }
 rand_chacha = { version = "0.3", optional = true }
 
+# This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
+# version in lockstep with bevy_rand, so that even minor versions
+# cannot be out of step with bevy_rand due to dependencies on traits
+# and implementations between the two crates.
+[target.'cfg(any())'.dependencies]
+bevy_prng = { path = "bevy_prng", version = "=0.2" }
+
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha"] }
+bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha", "wyrand"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 

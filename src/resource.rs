@@ -162,7 +162,7 @@ where
 #[cfg(test)]
 mod tests {
     use bevy::reflect::TypePath;
-    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
 
     use super::*;
 
@@ -196,7 +196,7 @@ mod tests {
     fn forking_as() {
         let mut rng1 = GlobalEntropy::<ChaCha12Rng>::default();
 
-        let rng2 = rng1.fork_as::<ChaCha8Rng>();
+        let rng2 = rng1.fork_as::<WyRand>();
 
         let rng1 = format!("{:?}", rng1);
         let rng2 = format!("{:?}", rng2);
