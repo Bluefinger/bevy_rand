@@ -54,12 +54,19 @@ Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` 
 
 ## Using Bevy Rand
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`,`bevy_prng`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_prng`, enable the feature representing the newtypes from the `rand_*` crate you want to use.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `rand_chacha` directly will not work as these don't implement the necessary traits to support bevy's reflection. The examples below use `bevy_prng` directly for purposes of clarity.
 
+#### `bevy_rand` feature activation
 ```toml
 rand_core = "0.6"
-bevy_rand = "0.3"
-bevy_prng = { version = "0.1", features = ["rand_chacha"] }
+bevy_rand = { version = "0.4", features = ["rand_chacha"] }
+```
+
+#### `bevy_prng` feature activation
+```toml
+rand_core = "0.6"
+bevy_rand = "0.4"
+bevy_prng = { version = "0.2", features = ["rand_chacha"] }
 ```
 
 ### Registering a PRNG for use with Bevy Rand
@@ -153,12 +160,20 @@ The examples provided as integration tests in this repo demonstrate the two diff
 
 ## Selecting and using PRNG Algorithms
 
-All supported PRNGs and compatible structs are provided by `bevy_prng`, so the easiest way to work with `bevy_rand` is to import the necessary algorithm from `bevy_prng`. Simply activate the relevant features in `bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
+All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 ```toml
-bevy_prng = { version = "0.1", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.4", features = ["rand_chacha", "wyrand"] }
 ```
-
+```rust ignore
+use bevy::prelude::*;
+use bevy_rand::prelude::{ChaCha8Rng, WyRand};
+```
+or
+```toml
+bevy_rand = "0.4"
+bevy_prng = { version = "0.2", features = ["rand_chacha", "wyrand"] }
+```
 ```rust ignore
 use bevy::prelude::*;
 use bevy_rand::prelude::*;
@@ -169,12 +184,16 @@ Using PRNGs directly from the `rand_*` crates is not possible without newtyping,
 
 As a whole, which algorithm should be used/selected is dependent on a range of factors. Cryptographically Secure PRNGs (CSPRNGs) produce very hard to predict output (very high quality entropy), but in general are slow. The ChaCha algorithm can be sped up by using versions with less rounds (iterations of the algorithm), but this in turn reduces the quality of the output (making it easier to predict). However, `ChaCha8Rng` is still far stronger than what is feasible to be attacked, and is considerably faster as a source of entropy than the full `ChaCha20Rng`. `rand` uses `ChaCha12Rng` as a balance between security/quality of output and speed for its `StdRng`. CSPRNGs are important for cases when you _really_ don't want your output to be predictable and you need that extra level of assurance, such as doing any cryptography/authentication/security tasks.
 
-If that extra level of security is not necessary, but there is still need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256StarStar` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be.
+If that extra level of security is not necessary, but there is still need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256StarStar` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be. PRNGs like `WyRand` also have small state sizes, which makes them take less memory per instance compared to CSPRNGs like `ChaCha8Rng`.
 
 ## Features
 
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
+- **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
+- **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
+- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also reexports `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth without the need to pull in `rand_xoshiro` explicitly.
+- **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 
 ## Supported Versions & MSRV
 

@@ -31,3 +31,8 @@ rand_chacha = { version = "0.3", optional = true }
 wyrand = { version = "0.1", optional = true }
 rand_pcg = { version = "0.3", optional = true }
 rand_xoshiro = { version = "0.6", optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+rustc-args = ["--cfg", "docsrs"]
