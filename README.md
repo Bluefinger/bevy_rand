@@ -50,7 +50,7 @@ Bevy Rand operates around a global entropy source provided as a resource, and th
 
 If cloning creates a second instance that shares the same state as the original, forking derives a new state from the original, leaving the original 'changed' and the new instance with a randomised seed. Forking RNG instances from a global source is a way to ensure that one seed produces many deterministic states, while making it difficult to predict outputs from many sources and also ensuring no one source shares the same state either with the original or with each other.
 
-Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` traits, allowing one to easily fork with just a simple `.fork_rng()` method call, making it straightforward to use. There's also `From` implementations, but from v0.4 onwards, these are considered deprecated and will likely be removed/changed in a future version.
+Bevy Rand provides forking via `ForkableRng`/`ForkableAsRng`/`ForkableInnerRng` traits, allowing one to easily fork with just a simple `.fork_rng()` method call, making it straightforward to use. There's also `From` implementations, **but from v0.4 onwards, these are considered deprecated and will likely be removed/changed in a future version**.
 
 ## Using Bevy Rand
 
@@ -205,25 +205,9 @@ If that extra level of security is not necessary, but there is still need for ex
 | v0.11  | v0.2, v0.3  |
 | v0.10  | v0.1        |
 
-## Migrating from v0.2 to v0.3
+## Migrations
 
-As v0.3 is a breaking change to v0.2, the process to migrate over is fairly simple. The rand algorithm crates can no longer be used directly, but they can be swapped wholesale with `bevy_prng` instead. So the following `Cargo.toml` changes:
-
-```diff
-- rand_chacha = { version = "0.3", features = ["serde1"] }
-+ bevy_prng = { version = "0.1", features = ["rand_chacha"] }
-```
-
-allows then you to swap your import like so, which should then plug straight into existing `bevy_rand` usage seamlessly:
-
-```diff
-use bevy::prelude::*;
-use bevy_rand::prelude::*;
-- use rand_chacha::ChaCha8Rng;
-+ use bevy_prng::ChaCha8Rng;
-```
-
-This **will** change the type path and the serialization format for the PRNGs, but currently, moving between different bevy versions has this problem as well as there's currently no means to migrate serialized formats from one version to another yet. The rationale for this change is to enable stable `TypePath` that is being imposed by bevy's reflection system, so that future compiler changes won't break things unexpectedly as `std::any::type_name` has no stability guarantees. Going forward, this should resolve any stability problems `bevy_rand` might have and be able to hook into any migration tool `bevy` might offer for when scene formats change/update.
+Notes on migrating between versions can be found [here](MIGRATIONS.md).
 
 ## License
 

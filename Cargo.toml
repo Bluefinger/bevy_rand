@@ -26,7 +26,7 @@ members = ["bevy_prng"]
 
 [dependencies]
 # bevy
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "1258ceb62cd8acb61f031dce128c2e04ee058538", version = "0.12.0-dev", default-features = false }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "51c70bc98cd9c71d8e55a4656f22d0229a0ef06e", version = "0.12.0-dev", default-features = false }
 bevy_prng = { path = "bevy_prng", version = "0.2" }
 
 # others
