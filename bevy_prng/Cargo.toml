@@ -24,7 +24,7 @@ serialize = [
 ]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "51c70bc98cd9c71d8e55a4656f22d0229a0ef06e", version = "0.12.0-dev", default-features = false }
+bevy = { version = "0.12.0", default-features = false }
 rand_core = { version = "0.6", features = ["std"] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 rand_chacha = { version = "0.3", optional = true }
