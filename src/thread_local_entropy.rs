@@ -24,7 +24,7 @@ impl ThreadLocalEntropy {
     #[inline]
     #[must_use]
     pub(crate) fn new() -> Self {
-        Self(SOURCE.with(|source| Rc::clone(source)))
+        Self(SOURCE.with(Rc::clone))
     }
 }
 

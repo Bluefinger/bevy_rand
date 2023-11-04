@@ -74,7 +74,7 @@ fn setup_player(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng
         // Forking from the global instance creates a random, but deterministic
         // seed for the component, making it hard to guess yet still have a
         // deterministic output
-        EntropyComponent::from(&mut rng),
+        rng.fork_rng(),
     ));
 }
 
@@ -96,7 +96,7 @@ fn setup_enemies(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rn
             // Forking from the global instance creates a random, but deterministic
             // seed for the component, making it hard to guess yet still have a
             // deterministic output
-            EntropyComponent::from(&mut rng),
+            rng.fork_rng(),
         ));
     }
 }

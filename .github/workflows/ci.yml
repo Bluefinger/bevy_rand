@@ -70,7 +70,7 @@ jobs:
           rustup override set nightly
           cargo miri setup
       - name: Test with Miri
-        run: cargo miri test --all-features
+        run: cargo miri test
         env:
           # -Zrandomize-layout makes sure we dont rely on the layout of anything that might change
           RUSTFLAGS: -Zrandomize-layout
@@ -102,4 +102,4 @@ jobs:
         run: rustup update ${{ env.MSRV }} --no-self-update && rustup default ${{ env.MSRV }}
       - name: Run cargo check
         id: check
-        run: cargo check --all-features
+        run: cargo check

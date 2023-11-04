@@ -44,9 +44,10 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 `bevy_prng` uses the same MSRV as `bevy`.
 
-| `bevy`   | `bevy_prng` |
-| -------- | ----------- |
-| v0.11    | v0.1        |
+| `bevy` | `bevy_prng` |
+| ------ | ----------- |
+| v0.12  | v0.2        |
+| v0.11  | v0.1        |
 
 ## License
 

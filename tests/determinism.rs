@@ -1,10 +1,11 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
-use bevy_prng::ChaCha8Rng;
+use bevy_prng::{ChaCha8Rng, WyRand, ChaCha12Rng};
 use bevy_rand::prelude::*;
 use rand::prelude::Rng;
 
+use rand_core::RngCore;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
@@ -22,6 +23,9 @@ struct SourceC;
 
 #[derive(Component)]
 struct SourceD;
+
+#[derive(Component)]
+struct SourceE;
 
 fn random_output_a(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<SourceA>>) {
     let mut rng = q_source.single_mut();
@@ -49,24 +53,40 @@ fn random_output_c(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<S
     );
 }
 
-fn random_output_d(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<SourceD>>) {
+fn random_output_d(mut q_source: Query<&mut EntropyComponent<ChaCha12Rng>, With<SourceD>>) {
     let mut rng = q_source.single_mut();
 
     assert_eq!(
         rng.gen::<(u16, u16)>(),
-        (61569, 26940),
+        (41421, 7891),
         "SourceD does not match expected output"
     );
 }
 
+fn random_output_e(mut q_source: Query<&mut EntropyComponent<WyRand>, With<SourceE>>) {
+    let mut rng = q_source.single_mut();
+
+    let mut bytes = [0u8; 8];
+
+    rng.fill_bytes(bytes.as_mut());
+
+    assert_eq!(
+        &bytes,
+        &[195, 159, 73, 157, 39, 99, 104, 111],
+        "SourceE does not match expected output"
+    );
+}
+
 fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
-    commands.spawn((SourceA, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceA, rng.fork_rng()));
 
-    commands.spawn((SourceB, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceB, rng.fork_rng()));
 
-    commands.spawn((SourceC, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceC, rng.fork_rng()));
 
-    commands.spawn((SourceD, EntropyComponent::from(&mut rng)));
+    commands.spawn((SourceD, rng.fork_as::<ChaCha12Rng>()));
+
+    commands.spawn((SourceE, rng.fork_as::<WyRand>()));
 }
 
 /// Entities having their own sources side-steps issues with parallel execution and scheduling
@@ -91,6 +111,7 @@ fn test_parallel_determinism() {
                 random_output_b,
                 random_output_c,
                 random_output_d,
+                random_output_e,
             ),
         )
         .run();

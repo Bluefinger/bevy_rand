@@ -1,6 +1,6 @@
 [package]
 name = "bevy_rand"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 description = "A plugin to integrate rand for ECS optimised RNG for the Bevy game engine."
@@ -16,21 +16,33 @@ rust-version = "1.70.0"
 default = ["serialize", "thread_local_entropy"]
 thread_local_entropy = ["dep:rand_chacha"]
 serialize = ["dep:serde", "rand_core/serde1"]
+rand_chacha = ["bevy_prng/rand_chacha"]
+rand_pcg = ["bevy_prng/rand_pcg"]
+rand_xoshiro = ["bevy_prng/rand_xoshiro"]
+wyrand = ["bevy_prng/wyrand"]
 
 [workspace]
 members = ["bevy_prng"]
 
 [dependencies]
 # bevy
-bevy = { version = "0.11", default-features = false }
+bevy = { version = "0.12.0", default-features = false }
+bevy_prng = { path = "bevy_prng", version = "0.2" }
 
 # others
 serde = { version = "1.0", features = ["derive"], optional = true }
 rand_core = { version = "0.6", features = ["std"] }
 rand_chacha = { version = "0.3", optional = true }
 
+# This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
+# version in lockstep with bevy_rand, so that even minor versions
+# cannot be out of step with bevy_rand due to dependencies on traits
+# and implementations between the two crates.
+[target.'cfg(any())'.dependencies]
+bevy_prng = { path = "bevy_prng", version = "=0.2" }
+
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.1", features = ["rand_chacha"] }
+bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha", "wyrand"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 
@@ -43,3 +55,8 @@ getrandom = { version = "0.2", features = ["js"] }
 [[example]]
 name = "turn_based_game"
 path = "examples/turn_based_game.rs"
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+rustc-args = ["--cfg", "docsrs"]

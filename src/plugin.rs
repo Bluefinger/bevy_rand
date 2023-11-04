@@ -1,5 +1,6 @@
-use crate::{component::EntropyComponent, resource::GlobalEntropy, traits::SeedableEntropySource};
+use crate::{component::EntropyComponent, resource::GlobalEntropy};
 use bevy::prelude::{App, Plugin};
+use bevy_prng::SeedableEntropySource;
 use rand_core::SeedableRng;
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
