@@ -42,10 +42,7 @@ rand_chacha = { version = "0.3", optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.2" }
 
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.2", features = [
-    "rand_chacha",
-    "wyrand",
-] }
+bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha", "wyrand"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 
