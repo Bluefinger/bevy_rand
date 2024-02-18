@@ -26,7 +26,7 @@ members = ["bevy_prng"]
 
 [dependencies]
 # bevy
-bevy = { version = "0.12.0", default-features = false }
+bevy = { version = "0.13.0", default-features = false }
 bevy_prng = { path = "bevy_prng", version = "0.2" }
 
 # others
@@ -42,7 +42,10 @@ rand_chacha = { version = "0.3", optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.2" }
 
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.2", features = ["rand_chacha", "wyrand"] }
+bevy_prng = { path = "bevy_prng", version = "0.2", features = [
+    "rand_chacha",
+    "wyrand",
+] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 
