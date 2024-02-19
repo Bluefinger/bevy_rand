@@ -33,13 +33,13 @@ use serde::{Deserialize, Serialize};
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
+#[cfg(feature = "rand_xoshiro")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]
+pub use rand_xoshiro::Seed512;
 #[cfg(feature = "wyrand")]
 pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]
 pub use xoshiro::*;
-#[cfg(feature = "rand_xoshiro")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]
-pub use rand_xoshiro::Seed512;
 
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.

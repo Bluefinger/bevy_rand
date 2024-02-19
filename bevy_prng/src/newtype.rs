@@ -2,7 +2,10 @@ macro_rules! newtype_prng {
     ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
         #[derive(Debug, Clone, PartialEq, Reflect)]
-        #[cfg_attr(feature = "serialize", derive(::serde_derive::Serialize, ::serde_derive::Deserialize))]
+        #[cfg_attr(
+            feature = "serialize",
+            derive(::serde_derive::Serialize, ::serde_derive::Deserialize)
+        )]
         #[cfg_attr(
             all(feature = "serialize"),
             reflect_value(Debug, PartialEq, FromReflect, Serialize, Deserialize)
