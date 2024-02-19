@@ -1,15 +1,8 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
-use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::*;
 use rand::prelude::{IteratorRandom, Rng};
-
-#[derive(Component)]
-struct Player;
-
-#[derive(Component)]
-struct Enemy;
 
 #[derive(Component, PartialEq, Eq)]
 enum Kind {
