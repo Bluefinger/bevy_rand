@@ -12,8 +12,8 @@ pub trait ForkableRng: EcsEntropySource {
     /// This method preserves the RNG algorithm between original and forked instances.
     /// ```
     /// use bevy::prelude::*;
-    /// use bevy_rand::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
@@ -44,7 +44,7 @@ pub trait ForkableAsRng: EcsEntropySource {
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
     /// ```
     /// use bevy::prelude::*;
-    /// use bevy_rand::prelude::*;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
     /// #[derive(Component)]
@@ -74,7 +74,7 @@ pub trait ForkableInnerRng: EcsEntropySource {
     /// This method yields the inner PRNG instance directly as a forked instance.
     /// ```
     /// use bevy::prelude::*;
-    /// use bevy_rand::prelude::*;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerRng};
     /// use bevy_prng::ChaCha8Rng;
     /// use rand_core::RngCore;
     ///

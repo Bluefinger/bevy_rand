@@ -1,21 +1,21 @@
 [package]
 name = "bevy_prng"
-version = "0.2.0"
-edition = "2021"
-authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
+version = { workspace = true }
+edition = { workspace = true }
+authors = { workspace = true }
 description = "A crate providing newtyped RNGs for integration into Bevy."
-repository = "https://github.com/Bluefinger/bevy_rand"
-license = "MIT OR Apache-2.0"
+repository = { workspace = true }
+license = { workspace = true }
 keywords = ["game", "bevy", "rand", "rng"]
 categories = ["game-engines", "algorithms"]
 exclude = ["/.*"]
-resolver = "2"
-rust-version = "1.70.0"
+rust-version = { workspace = true }
 
 [features]
 default = ["serialize"]
 serialize = [
     "dep:serde",
+    "dep:serde_derive",
     "rand_core/serde1",
     "rand_chacha?/serde1",
     "rand_pcg?/serde1",
@@ -24,13 +24,14 @@ serialize = [
 ]
 
 [dependencies]
-bevy = { version = "0.12.0", default-features = false }
-rand_core = { version = "0.6", features = ["std"] }
-serde = { version = "1.0", features = ["derive"], optional = true }
-rand_chacha = { version = "0.3", optional = true }
-wyrand = { version = "0.1", optional = true }
-rand_pcg = { version = "0.3", optional = true }
-rand_xoshiro = { version = "0.6", optional = true }
+bevy.workspace = true
+rand_core.workspace = true
+serde = { workspace = true, optional = true }
+serde_derive = { workspace = true, optional = true }
+rand_chacha = { workspace = true, optional = true }
+wyrand = { workspace = true, optional = true }
+rand_pcg = { workspace = true, optional = true }
+rand_xoshiro = { workspace = true, optional = true }
 
 [package.metadata.docs.rs]
 all-features = true

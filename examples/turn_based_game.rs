@@ -2,14 +2,8 @@
 
 use bevy::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::*;
+use bevy_rand::prelude::{EntropyComponent, EntropyPlugin, ForkableRng, GlobalEntropy};
 use rand::prelude::{IteratorRandom, Rng};
-
-#[derive(Component)]
-struct Player;
-
-#[derive(Component)]
-struct Enemy;
 
 #[derive(Component, PartialEq, Eq)]
 enum Kind {

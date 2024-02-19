@@ -15,7 +15,7 @@ use crate::thread_local_entropy::ThreadLocalEntropy;
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /// A Global [`RngCore`] instance, meant for use as a Resource. Gets
 /// created automatically with [`crate::plugin::EntropyPlugin`], or
@@ -25,16 +25,19 @@ use serde::{Deserialize, Serialize};
 ///
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
-/// use rand_core::RngCore;
 /// use bevy_prng::ChaCha8Rng;
+/// use bevy_rand::prelude::GlobalEntropy;
+/// use rand_core::RngCore;
 ///
 /// fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde_derive::Serialize, serde_derive::Deserialize)
+)]
 #[cfg_attr(
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
@@ -162,7 +165,7 @@ where
 #[cfg(test)]
 mod tests {
     use bevy::reflect::TypePath;
-    use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
+    use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 
     use super::*;
 
@@ -201,7 +204,10 @@ mod tests {
         let rng1 = format!("{:?}", rng1);
         let rng2 = format!("{:?}", rng2);
 
-        assert_ne!(&rng1, &rng2, "GlobalEntropy should not match the forked component");
+        assert_ne!(
+            &rng1, &rng2,
+            "GlobalEntropy should not match the forked component"
+        );
     }
 
     #[test]
