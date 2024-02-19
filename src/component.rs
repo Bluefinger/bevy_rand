@@ -15,7 +15,7 @@ use crate::thread_local_entropy::ThreadLocalEntropy;
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /// An [`EntropyComponent`] that wraps a random number generator that implements
 /// [`RngCore`] & [`SeedableRng`].
@@ -32,7 +32,6 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -41,7 +40,7 @@ use serde::{Deserialize, Serialize};
 ///     commands
 ///         .spawn((
 ///             Source,
-///             EntropyComponent::<ChaCha8Rng>::default(),
+///             EntropyComponent::<WyRand>::default(),
 ///         ));
 /// }
 /// ```
@@ -50,7 +49,6 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -68,7 +66,6 @@ use serde::{Deserialize, Serialize};
 /// ```
 /// use bevy::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use bevy_prng::ChaCha8Rng;
 ///
 /// #[derive(Component)]
 /// struct Npc;
@@ -77,7 +74,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// fn setup_npc_from_source(
 ///    mut commands: Commands,
-///    mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, (With<Source>, Without<Npc>)>,
+///    mut q_source: Query<&mut EntropyComponent<WyRand>, (With<Source>, Without<Npc>)>,
 /// ) {
 ///    let mut source = q_source.single_mut();
 ///
@@ -91,7 +88,10 @@ use serde::{Deserialize, Serialize};
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Component, Reflect)]
-#[cfg_attr(feature = "serialize", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde_derive::Serialize, serde_derive::Deserialize)
+)]
 #[cfg_attr(
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
@@ -233,7 +233,7 @@ where
 #[cfg(test)]
 mod tests {
     use bevy::reflect::TypePath;
-    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    use bevy_prng::{ChaCha12Rng, ChaCha8Rng};
 
     use super::*;
 
@@ -258,7 +258,10 @@ mod tests {
         let rng1 = format!("{:?}", rng1);
         let rng2 = format!("{:?}", rng2);
 
-        assert_ne!(&rng1, &rng2, "forked EntropyComponents should not match each other");
+        assert_ne!(
+            &rng1, &rng2,
+            "forked EntropyComponents should not match each other"
+        );
     }
 
     #[test]
