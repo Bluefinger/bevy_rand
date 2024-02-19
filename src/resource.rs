@@ -25,7 +25,8 @@ use serde::Deserialize;
 ///
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
+/// use bevy_prng::ChaCha8Rng;
+/// use bevy_rand::prelude::GlobalEntropy;
 /// use rand_core::RngCore;
 ///
 /// fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {

@@ -28,7 +28,8 @@ When you've selected and imported the PRNG algorithm you want to use, you then n
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
 
 fn main() {
@@ -42,7 +43,8 @@ By default, the plugin will instantiate the `GlobalEntropy` resource with a rand
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
 
 fn main() {

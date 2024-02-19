@@ -4,7 +4,8 @@ In order to move beyond the restrictions placed by `GlobalEntropy` and achieve d
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::EntropyComponent;
 
 #[derive(Component)]
 struct Source;
@@ -22,7 +23,8 @@ In the above example, we are creating an entity with a `Source` marker component
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::EntropyComponent;
 
 #[derive(Component)]
 struct Npc;
@@ -48,7 +50,8 @@ Because PRNG algorithms are deterministic, forking is a deterministic process, a
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::ChaCha8Rng;
+use bevy_rand::prelude::{EntropyComponent, GlobalEntropy, ForkableRng};
 
 #[derive(Component)]
 struct Source;
@@ -66,7 +69,8 @@ We can even fork to different PRNG algorithms.
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::{ChaCha8Rng, WyRand};
+use bevy_rand::prelude::{EntropyComponent, GlobalEntropy, ForkableAsRng};
 
 #[derive(Component)]
 struct Source;
@@ -84,7 +88,8 @@ So we created a `Source` entity with an RNG source, let's use it to spawn more e
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 
 #[derive(Component)]
 struct Npc;

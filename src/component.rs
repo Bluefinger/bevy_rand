@@ -31,7 +31,8 @@ use serde::Deserialize;
 /// Randomised Component:
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
+/// use bevy_prng::WyRand;
+/// use bevy_rand::prelude::EntropyComponent;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -48,7 +49,8 @@ use serde::Deserialize;
 /// Seeded from a resource:
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
+/// use bevy_prng::ChaCha8Rng;
+/// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -65,7 +67,8 @@ use serde::Deserialize;
 /// Seeded from a component:
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
+/// use bevy_prng::WyRand;
+/// use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 ///
 /// #[derive(Component)]
 /// struct Npc;

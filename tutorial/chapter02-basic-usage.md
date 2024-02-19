@@ -4,7 +4,8 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::ChaCha8Rng;
+use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
 fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
@@ -26,7 +27,8 @@ An example of a guaranteed deterministic system is perhaps spawning new entities
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
 #[derive(Component)]
@@ -51,7 +53,8 @@ However, iterating over queries will **not** yield deterministic output, as quer
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
 #[derive(Component)]

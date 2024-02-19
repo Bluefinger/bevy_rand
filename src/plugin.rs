@@ -9,7 +9,8 @@ use rand_core::SeedableRng;
 ///
 /// ```
 /// use bevy::prelude::*;
-/// use bevy_rand::prelude::*;
+/// use bevy_prng::{ChaCha8Rng, WyRand};
+/// use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 /// use rand_core::RngCore;
 ///
 /// fn main() {

@@ -38,7 +38,8 @@ Before a PRNG can be used via `GlobalEntropy` or `EntropyComponent`, it must be 
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
 
 fn main() {
@@ -54,7 +55,8 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 
 ```rust
 use bevy::prelude::ResMut;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
 fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
@@ -68,7 +70,8 @@ For seeding `EntropyComponent`s from a global source, it is best to make use of 
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
 
 #[derive(Component)]
 struct Source;
@@ -86,7 +89,8 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>
 
 ```rust
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 
 #[derive(Component)]
 struct Npc;
