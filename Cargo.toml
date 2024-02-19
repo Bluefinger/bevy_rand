@@ -7,7 +7,7 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.5.0"
+version = "0.5.1"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
@@ -74,8 +74,3 @@ getrandom = { version = "0.2", features = ["js"] }
 [[example]]
 name = "turn_based_game"
 path = "examples/turn_based_game.rs"
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
-rustc-args = ["--cfg", "docsrs"]

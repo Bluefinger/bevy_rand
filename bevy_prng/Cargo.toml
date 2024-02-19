@@ -32,8 +32,3 @@ rand_chacha = { workspace = true, optional = true }
 wyrand = { workspace = true, optional = true }
 rand_pcg = { workspace = true, optional = true }
 rand_xoshiro = { workspace = true, optional = true }
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
-rustc-args = ["--cfg", "docsrs"]
