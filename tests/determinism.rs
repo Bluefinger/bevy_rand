@@ -1,7 +1,10 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::prelude::*;
-use bevy_rand::prelude::*;
+use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
+use bevy_rand::prelude::{
+    EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy,
+};
 use rand::prelude::Rng;
 
 use rand_core::RngCore;
