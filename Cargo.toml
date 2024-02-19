@@ -74,3 +74,6 @@ getrandom = { version = "0.2", features = ["js"] }
 [[example]]
 name = "turn_based_game"
 path = "examples/turn_based_game.rs"
+
+[package.metadata.docs.rs]
+all-features = true
