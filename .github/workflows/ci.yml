@@ -79,6 +79,32 @@ jobs:
           # -Zmiri-permissive-provenance disables warnings against int2ptr casts (since those are used by once_cell)
           # -Zmiri-ignore-leaks is necessary because a bunch of tests don't join all threads before finishing.
           MIRIFLAGS: -Zmiri-ignore-leaks -Zmiri-disable-isolation -Zmiri-permissive-provenance
+  benches:
+    name: "Benches"
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    needs: test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-benches-${{ hashFiles('**/Cargo.toml') }}
+      - name: Install Rust
+        # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
+        run: rustup update stable --no-self-update && rustup default stable
+      - name: Install alsa and udev
+        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
+      - name: Run benchmarks
+        run: cargo bench
   msrv:
     runs-on: ubuntu-latest
     timeout-minutes: 15

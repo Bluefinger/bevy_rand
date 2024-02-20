@@ -41,6 +41,7 @@ rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
+internal_benchmarks = ["dep:divan"]
 
 [dependencies]
 # bevy
@@ -48,6 +49,7 @@ bevy.workspace = true
 bevy_prng = { path = "bevy_prng", version = "0.5" }
 
 # others
+divan = { version = "0.1", optional = true }
 rand_core.workspace = true
 rand_chacha = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
@@ -62,8 +64,13 @@ bevy_prng = { path = "bevy_prng", version = "=0.5" }
 
 [dev-dependencies]
 bevy_prng = { path = "bevy_prng", version = "0.5", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { path = ".", version = "0.5", features = ["internal_benchmarks"]}
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
+
+[[bench]]
+name = "internal"
+harness = false
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
