@@ -21,7 +21,7 @@ macro_rules! newtype_prng {
 
         impl $newtype {
             /// Create a new instance.
-            #[inline]
+            #[inline(always)]
             #[must_use]
             pub fn new(rng: $rng) -> Self {
                 Self(rng)

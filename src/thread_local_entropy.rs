@@ -1,4 +1,4 @@
-use std::{cell::UnsafeCell, rc::Rc};
+use std::{cell::UnsafeCell, marker::PhantomData, ptr::NonNull, rc::Rc};
 
 use rand_chacha::ChaCha8Rng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
@@ -16,15 +16,30 @@ thread_local! {
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
 #[derive(Clone)]
-pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
+pub(crate) struct ThreadLocalEntropy(PhantomData<*mut ()>);
 
 impl ThreadLocalEntropy {
-    /// Create a new [`ThreadLocalEntropy`] instance. Only one instance can exist per thread at a time, so to
-    /// prevent the creation of multiple `&mut` references to
+    /// Create a new [`ThreadLocalEntropy`] instance.
     #[inline]
     #[must_use]
     pub(crate) fn new() -> Self {
-        Self(SOURCE.with(Rc::clone))
+        Self(PhantomData)
+    }
+
+    #[inline]
+    fn access_local_source<F, O>(&mut self, f: F) -> O
+    where
+        F: FnOnce(&mut ChaCha8Rng) -> O,
+    {
+        SOURCE.with(|source| {
+            // SAFETY: Constructing `NonNull` from a `&T` is safe as it will never be a
+            // null pointer, and the contents of the reference will always be initialised.
+            let mut ptr = unsafe { NonNull::new_unchecked(source.get()) };
+
+            // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
+            // for the thread local access.
+            unsafe { f(ptr.as_mut()) }
+        })
     }
 }
 
@@ -37,42 +52,22 @@ impl core::fmt::Debug for ThreadLocalEntropy {
 impl RngCore for ThreadLocalEntropy {
     #[inline(always)]
     fn next_u32(&mut self) -> u32 {
-        // SAFETY: We will drop this `&mut` reference before we can
-        // create another one, and only one reference can exist to the
-        // underlying thread local cell at any given time.
-        let rng = unsafe { &mut *self.0.get() };
-
-        rng.next_u32()
+        self.access_local_source(RngCore::next_u32)
     }
 
     #[inline(always)]
     fn next_u64(&mut self) -> u64 {
-        // SAFETY: We will drop this `&mut` reference before we can
-        // create another one, and only one reference can exist to the
-        // underlying thread local cell at any given time.
-        let rng = unsafe { &mut *self.0.get() };
-
-        rng.next_u64()
+        self.access_local_source(RngCore::next_u64)
     }
 
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        // SAFETY: We will drop this `&mut` reference before we can
-        // create another one, and only one reference can exist to the
-        // underlying thread local cell at any given time.
-        let rng = unsafe { &mut *self.0.get() };
-
-        rng.fill_bytes(dest);
+        self.access_local_source(|rng| rng.fill_bytes(dest));
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        // SAFETY: We will drop this `&mut` reference before we can
-        // create another one, and only one reference can exist to the
-        // underlying thread local cell at any given time.
-        let rng = unsafe { &mut *self.0.get() };
-
-        rng.try_fill_bytes(dest)
+        self.access_local_source(|rng| rng.try_fill_bytes(dest))
     }
 }
 
@@ -125,12 +120,9 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
 
-                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
-                // and it is not being accessed elsewhere nor being mutated. It is
-                // safe to deference & cast the pointer so we can clone the RNG.
-                let source = unsafe { &*rng.0.get() };
+                let source = rng.access_local_source(|rng| rng.clone());
 
-                sender.send(source.clone()).unwrap();
+                sender.send(source).unwrap();
             });
             s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
@@ -140,12 +132,9 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
 
-                // SAFETY: The pointer is valid and points to a ChaCha8Rng instance,
-                // and it is not being accessed elsewhere nor being mutated. It is
-                // safe to deference & cast the pointer so we can clone the RNG.
-                let source = unsafe { &*rng.0.get() };
+                let source = rng.access_local_source(|rng| rng.clone());
 
-                sender2.send(source.clone()).unwrap();
+                sender2.send(source).unwrap();
             });
         });
 
