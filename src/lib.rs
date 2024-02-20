@@ -18,3 +18,7 @@ mod thread_local_entropy;
 pub mod traits;
 #[cfg(doc)]
 pub mod tutorial;
+
+#[cfg(feature = "internal_benchmarks")]
+/// Only for benches
+pub const BENCH: bool = true;
