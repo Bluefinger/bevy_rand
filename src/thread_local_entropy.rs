@@ -15,7 +15,6 @@ thread_local! {
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
-#[derive(Clone)]
 pub(crate) struct ThreadLocalEntropy(PhantomData<*mut ()>);
 
 impl ThreadLocalEntropy {
@@ -89,10 +88,8 @@ mod tests {
         let mut bytes1 = vec![0u8; 128];
         let mut bytes2 = vec![0u8; 128];
 
-        let mut cloned = rng1.clone();
-
         rng1.fill_bytes(&mut bytes1);
-        cloned.fill_bytes(&mut bytes2);
+        rng2.fill_bytes(&mut bytes2);
 
         // Cloned ThreadLocalEntropy instances won't output the same entropy
         assert_ne!(&bytes1, &bytes2);
