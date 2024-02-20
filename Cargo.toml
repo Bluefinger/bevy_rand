@@ -64,13 +64,15 @@ bevy_prng = { path = "bevy_prng", version = "=0.5" }
 
 [dev-dependencies]
 bevy_prng = { path = "bevy_prng", version = "0.5", features = ["rand_chacha", "wyrand"] }
-bevy_rand = { path = ".", version = "0.5", features = ["internal_benchmarks"]}
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 
 [[bench]]
 name = "internal"
 harness = false
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+bevy_rand = { path = ".", version = "0.5", features = ["internal_benchmarks"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"

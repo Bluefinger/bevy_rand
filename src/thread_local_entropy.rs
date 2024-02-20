@@ -99,18 +99,6 @@ mod benchmarks {
 mod tests {
     use super::*;
 
-    #[divan::bench(sample_size = 1024, sample_count = 64)]
-    fn local_access(bencher: divan::Bencher) {
-        use divan::counter::BytesCount;
-
-        bencher
-            .with_inputs(|| [0u8; 64])
-            .input_counter(BytesCount::of_slice)
-            .bench_refs(|bytes| {
-                ThreadLocalEntropy::new().fill_bytes(bytes);
-            });
-    }
-
     #[test]
     fn smoke_test() {
         let mut rng1 = ThreadLocalEntropy::new();
