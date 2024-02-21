@@ -91,7 +91,8 @@ mod tests {
         rng1.fill_bytes(&mut bytes1);
         rng2.fill_bytes(&mut bytes2);
 
-        // Cloned ThreadLocalEntropy instances won't output the same entropy
+        // ThreadLocalEntropy instances won't output the same entropy as the
+        // underlying thread local source gets mutated each access.
         assert_ne!(&bytes1, &bytes2);
     }
 
