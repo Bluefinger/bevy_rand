@@ -25,6 +25,12 @@ impl ThreadLocalEntropy {
         Self(PhantomData)
     }
 
+    /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
+    /// closure.
+    ///
+    /// # Panics
+    ///
+    /// This method will panic if the thread destructor is running or has been previously run.
     #[inline]
     fn access_local_source<F, O>(&mut self, f: F) -> O
     where
