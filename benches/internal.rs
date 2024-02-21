@@ -1,8 +1,5 @@
-use bevy_rand::BENCH;
+extern crate bevy_rand;
 
 fn main() {
-    // MacOS workaround T___T
-    let _ = BENCH;
-
     divan::main();
 }

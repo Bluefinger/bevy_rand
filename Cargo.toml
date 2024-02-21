@@ -85,4 +85,4 @@ name = "turn_based_game"
 path = "examples/turn_based_game.rs"
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["rand_chacha", "rand_pcg", "rand_xoshiro", "wyrand"]
