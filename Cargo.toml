@@ -7,7 +7,7 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.5.1"
+version = "0.5.2"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
