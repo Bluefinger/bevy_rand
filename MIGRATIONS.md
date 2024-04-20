@@ -22,4 +22,4 @@ This **will** change the type path and the serialization format for the PRNGs, b
 
 ## Migrating from v0.5 to v0.6
 
-As the wyrand dependency has been updated and contains a breaking output change, users of `bevy_rand` making use of the `wyrand` feature will need to update their code in cases where deterministic output from the old version is expected. The new `WyRand` output is considered to provide better entropy than the old version, so it is recommended to adopt the new version. In reality, this is likely to affect tests and serialised output rather than game code.
+As the `wyrand` dependency has been updated and contains a breaking output change, users of `bevy_rand` making use of the `wyrand` feature will need to update their code in cases where deterministic output from the old version is expected. The new `WyRand` output is considered to provide better entropy than the old version, so it is recommended to adopt the new version. In reality, this is likely to affect tests and serialised output rather than game code.
