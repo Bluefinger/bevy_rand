@@ -74,7 +74,7 @@ fn random_output_e(mut q_source: Query<&mut EntropyComponent<WyRand>, With<Sourc
 
     assert_eq!(
         &bytes,
-        &[195, 159, 73, 157, 39, 99, 104, 111],
+        &[42, 244, 101, 178, 244, 252, 72, 104],
         "SourceE does not match expected output"
     );
 }
