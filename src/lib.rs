@@ -12,6 +12,8 @@ pub mod plugin;
 pub mod prelude;
 /// Resource for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
 pub mod resource;
+/// Seed Resource for seeding [`crate::resource::GlobalEntropy`].
+pub mod seed;
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
 /// Traits for enabling utility methods for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].

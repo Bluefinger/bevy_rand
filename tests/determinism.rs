@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 use bevy_rand::prelude::{
-    EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy,
+    EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy, GlobalRngSeed,
 };
 use rand::prelude::Rng;
 
@@ -91,6 +91,10 @@ fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rn
     commands.spawn((SourceE, rng.fork_as::<WyRand>()));
 }
 
+fn read_global_seed(seed: Res<GlobalRngSeed<ChaCha8Rng>>) {
+    assert_eq!(seed.get_seed(), [2; 32]);
+}
+
 /// Entities having their own sources side-steps issues with parallel execution and scheduling
 /// not ensuring that certain systems run before others. With an entity having its own RNG source,
 /// no matter when the systems that query that entity run, it will always result in a deterministic
@@ -114,6 +118,7 @@ fn test_parallel_determinism() {
                 random_output_c,
                 random_output_d,
                 random_output_e,
+                read_global_seed,
             ),
         )
         .run();
