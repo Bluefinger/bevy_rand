@@ -107,8 +107,17 @@ fn read_global_seed(seed: Res<GlobalRngSeed<ChaCha8Rng>>) {
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn test_parallel_determinism() {
-    App::new()
-        .add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
+    let mut app = App::new();
+
+    #[cfg(not(target_arch = "wasm32"))]
+    app.edit_schedule(Update, |schedule| {
+        use bevy::ecs::schedule::ExecutorKind;
+
+        // Ensure the Update schedule is Multithreaded on non-WASM platforms
+        schedule.set_executor_kind(ExecutorKind::MultiThreaded);
+    });
+
+    app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
         .add_systems(Startup, setup_sources)
         .add_systems(
             Update,
