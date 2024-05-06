@@ -1,7 +1,9 @@
-use crate::{component::EntropyComponent, resource::GlobalEntropy};
-use bevy::prelude::{App, Plugin};
+use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::GlobalRngSeed};
+use bevy::{
+    prelude::{App, Plugin},
+    reflect::{FromReflect, GetTypeRegistration, Reflect, TypePath},
+};
 use bevy_prng::SeedableEntropySource;
-use rand_core::SeedableRng;
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
 /// the bevy engine, registering types for a global resource and
@@ -33,7 +35,7 @@ pub struct EntropyPlugin<R: SeedableEntropySource + 'static> {
 
 impl<R: SeedableEntropySource + 'static> EntropyPlugin<R>
 where
-    R::Seed: Send + Sync + Copy,
+    R::Seed: Send + Sync + Clone,
 {
     /// Creates a new plugin instance configured for randomised,
     /// non-deterministic seeding of the global entropy resource.
@@ -53,7 +55,7 @@ where
 
 impl<R: SeedableEntropySource + 'static> Default for EntropyPlugin<R>
 where
-    R::Seed: Send + Sync + Copy,
+    R::Seed: Send + Sync + Clone,
 {
     fn default() -> Self {
         Self::new()
@@ -62,16 +64,20 @@ where
 
 impl<R: SeedableEntropySource + 'static> Plugin for EntropyPlugin<R>
 where
-    R::Seed: Send + Sync + Copy,
+    R::Seed: Send + Sync + Clone + Reflect + FromReflect + GetTypeRegistration + TypePath,
 {
     fn build(&self, app: &mut App) {
         app.register_type::<GlobalEntropy<R>>()
             .register_type::<EntropyComponent<R>>();
 
-        if let Some(seed) = self.seed {
-            app.insert_resource(GlobalEntropy::<R>::from_seed(seed));
+        GlobalRngSeed::<R>::register_type(app);
+
+        if let Some(seed) = self.seed.as_ref() {
+            app.insert_resource(GlobalRngSeed::<R>::new(seed.clone()));
         } else {
-            app.init_resource::<GlobalEntropy<R>>();
+            app.init_resource::<GlobalRngSeed<R>>();
         }
+
+        app.init_resource::<GlobalEntropy<R>>();
     }
 }

@@ -2,9 +2,13 @@ use std::fmt::Debug;
 
 use crate::{
     component::EntropyComponent,
+    seed::GlobalRngSeed,
     traits::{EcsEntropySource, ForkableAsRng, ForkableInnerRng, ForkableRng},
 };
-use bevy::prelude::{Reflect, ReflectFromReflect, ReflectResource, Resource};
+use bevy::{
+    ecs::world::{FromWorld, World},
+    prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource},
+};
 use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
@@ -44,12 +48,21 @@ use serde::Deserialize;
 )]
 #[cfg_attr(
     feature = "serialize",
-    reflect(Debug, PartialEq, Resource, FromReflect, Serialize, Deserialize)
+    reflect(
+        Debug,
+        PartialEq,
+        Resource,
+        FromReflect,
+        Serialize,
+        Deserialize,
+        FromWorld
+    )
 )]
 #[cfg_attr(
     not(feature = "serialize"),
-    reflect(Debug, PartialEq, Resource, FromReflect)
+    reflect(Debug, PartialEq, Resource, FromReflect, FromWorld)
 )]
+#[reflect(where R::Seed: Sync + Send + Clone)]
 pub struct GlobalEntropy<R: SeedableEntropySource + 'static>(R);
 
 impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
@@ -69,9 +82,16 @@ impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
     }
 }
 
-impl<R: SeedableEntropySource + 'static> Default for GlobalEntropy<R> {
-    fn default() -> Self {
-        Self::from_entropy()
+impl<R: SeedableEntropySource + 'static> FromWorld for GlobalEntropy<R>
+where
+    R::Seed: Send + Sync + Clone,
+{
+    fn from_world(world: &mut World) -> Self {
+        if let Some(seed) = world.get_resource::<GlobalRngSeed<R>>() {
+            Self::new(R::from_seed(seed.get_seed()))
+        } else {
+            Self::from_entropy()
+        }
     }
 }
 
@@ -197,7 +217,7 @@ mod tests {
 
     #[test]
     fn forking_as() {
-        let mut rng1 = GlobalEntropy::<ChaCha12Rng>::default();
+        let mut rng1 = GlobalEntropy::<ChaCha12Rng>::from_entropy();
 
         let rng2 = rng1.fork_as::<WyRand>();
 
@@ -212,7 +232,7 @@ mod tests {
 
     #[test]
     fn forking_inner() {
-        let mut rng1 = GlobalEntropy::<ChaCha8Rng>::default();
+        let mut rng1 = GlobalEntropy::<ChaCha8Rng>::from_entropy();
 
         let rng2 = rng1.fork_inner();
 
