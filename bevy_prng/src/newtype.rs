@@ -1,5 +1,5 @@
 macro_rules! newtype_prng {
-    ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
+    ($newtype:tt, $rng:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
         #[derive(Debug, Clone, PartialEq, Reflect)]
         #[cfg_attr(
@@ -51,7 +51,7 @@ macro_rules! newtype_prng {
         }
 
         impl SeedableRng for $newtype {
-            type Seed = $seed;
+            type Seed = <$rng as SeedableRng>::Seed;
 
             #[inline]
             fn from_seed(seed: Self::Seed) -> Self {

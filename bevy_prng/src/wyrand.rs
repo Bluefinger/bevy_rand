@@ -9,7 +9,6 @@ use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 newtype_prng!(
     WyRand,
     ::wyrand::WyRand,
-    [u8; 8],
     "A newtyped [`wyrand::WyRand`] RNG",
     "wyrand"
 );
