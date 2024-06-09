@@ -246,7 +246,7 @@ mod tests {
     #[test]
     fn rng_untyped_serialization() {
         use bevy::reflect::{
-            serde::{ReflectSerializer, UntypedReflectDeserializer},
+            serde::{ReflectSerializer, ReflectDeserializer},
             TypeRegistry,
         };
         use ron::ser::to_string;
@@ -271,7 +271,7 @@ mod tests {
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
 
-        let de = UntypedReflectDeserializer::new(&registry);
+        let de = ReflectDeserializer::new(&registry);
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
