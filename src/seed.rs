@@ -61,6 +61,11 @@ where
         self.seed.clone()
     }
 
+    /// Set the global seed to a new value
+    pub fn set_seed(&mut self, seed: R::Seed) {
+        self.seed = seed;
+    }
+
     /// Initializes an instance of [`GlobalRngSeed`] with a randomised seed
     /// value, drawn from thread-local or OS sources.
     #[inline]
