@@ -1,4 +1,9 @@
-use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::GlobalRngSeed};
+use crate::{
+    component::EntropyComponent,
+    resource::GlobalEntropy,
+    seed::{GlobalRngSeed, RngSeed},
+    traits::SeedSource,
+};
 use bevy::{
     prelude::{App, Plugin},
     reflect::{FromReflect, GetTypeRegistration, Reflect, TypePath},
@@ -68,16 +73,18 @@ where
 {
     fn build(&self, app: &mut App) {
         app.register_type::<GlobalEntropy<R>>()
-            .register_type::<EntropyComponent<R>>();
-
-        GlobalRngSeed::<R>::register_type(app);
+            .register_type::<EntropyComponent<R>>()
+            .register_type::<GlobalRngSeed<R>>()
+            .register_type::<R::Seed>();
 
         if let Some(seed) = self.seed.as_ref() {
-            app.insert_resource(GlobalRngSeed::<R>::new(seed.clone()));
+            app.insert_resource(GlobalRngSeed::<R>::from_seed(seed.clone()));
         } else {
             app.init_resource::<GlobalRngSeed<R>>();
         }
 
-        app.init_resource::<GlobalEntropy<R>>();
+        app.init_resource::<GlobalEntropy<R>>()
+            .world_mut()
+            .register_component_hooks::<RngSeed<R>>();
     }
 }

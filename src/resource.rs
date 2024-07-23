@@ -2,8 +2,11 @@ use std::fmt::Debug;
 
 use crate::{
     component::EntropyComponent,
-    seed::GlobalRngSeed,
-    traits::{EcsEntropySource, ForkableAsRng, ForkableInnerRng, ForkableRng},
+    seed::{GlobalRngSeed, RngSeed},
+    traits::{
+        EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng,
+        ForkableSeed, SeedSource,
+    },
 };
 use bevy::{
     ecs::world::{FromWorld, World},
@@ -88,7 +91,7 @@ where
 {
     fn from_world(world: &mut World) -> Self {
         if let Some(seed) = world.get_resource::<GlobalRngSeed<R>>() {
-            Self::new(R::from_seed(seed.get_seed()))
+            Self::new(R::from_seed(seed.clone_seed()))
         } else {
             Self::from_entropy()
         }
@@ -125,6 +128,11 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
         Self::new(R::from_seed(seed))
     }
 
+    #[inline]
+    fn from_rng<S: RngCore>(rng: S) -> Result<Self, rand_core::Error> {
+        R::from_rng(rng).map(Self::new)
+    }
+
     /// Creates a new instance of the RNG seeded via [`ThreadLocalEntropy`]. This method is the recommended way
     /// to construct non-deterministic PRNGs since it is convenient and secure. It overrides the standard
     /// [`SeedableRng::from_entropy`] method while the `thread_local_entropy` feature is enabled.
@@ -136,14 +144,8 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
     #[cfg(feature = "thread_local_entropy")]
     #[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
     fn from_entropy() -> Self {
-        let mut seed = Self::Seed::default();
-
-        // Source entropy from thread local user-space RNG instead of
-        // system entropy source to reduce overhead when creating many
-        // rng instances for many resources at once.
-        ThreadLocalEntropy::new().fill_bytes(seed.as_mut());
-
-        Self::from_seed(seed)
+        // This operation should never yield Err on any supported PRNGs
+        Self::from_rng(ThreadLocalEntropy::new()).unwrap()
     }
 }
 
@@ -180,6 +182,21 @@ where
     R: SeedableEntropySource + 'static,
 {
     type Output = R;
+}
+
+impl<R> ForkableSeed<R> for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+    R::Seed: Send + Sync + Clone,
+{
+    type Output = RngSeed<R>;
+}
+
+impl<R> ForkableAsSeed<R> for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+{
+    type Output<T> = RngSeed<T> where T: SeedableEntropySource, T::Seed: Send + Sync + Clone;
 }
 
 #[cfg(test)]
@@ -246,7 +263,7 @@ mod tests {
     #[test]
     fn rng_untyped_serialization() {
         use bevy::reflect::{
-            serde::{ReflectSerializer, ReflectDeserializer},
+            serde::{ReflectDeserializer, ReflectSerializer},
             TypeRegistry,
         };
         use ron::ser::to_string;

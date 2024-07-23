@@ -96,12 +96,144 @@ pub trait ForkableInnerRng: EcsEntropySource {
     }
 }
 
+/// Trait for implementing forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
+pub trait ForkableSeed<S: SeedableEntropySource>: EcsEntropySource
+where
+    S::Seed: Send + Sync + Clone,
+{
+    /// The type of seed component that is to be forked from the original source.
+    type Output: SeedSource<S>;
+
+    /// Fork a new seed from the original entropy source.
+    /// This method preserves the RNG algorithm between original instance and forked seed.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    ///     commands
+    ///         .spawn((
+    ///             Source,
+    ///             global.fork_seed(),
+    ///         ));
+    /// }
+    /// ```
+    fn fork_seed(&mut self) -> Self::Output {
+        let mut seed = S::Seed::default();
+
+        self.fill_bytes(seed.as_mut());
+
+        Self::Output::from_seed(seed)
+    }
+}
+
+/// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component of a different
+/// PRNG algorithm.
+pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
+    /// The type of seed component that is to be forked from the original source.
+    type Output<T>: SeedSource<T>
+    where
+        T: SeedableEntropySource,
+        T::Seed: Send + Sync + Clone;
+
+    /// Fork a new seed from the original entropy source.
+    /// This method allows one to specify the RNG algorithm to be used for the forked seed.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsSeed};
+    /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha12Rng>>) {
+    ///     commands
+    ///         .spawn((
+    ///             Source,
+    ///             global.fork_as_seed::<ChaCha8Rng>(),
+    ///         ));
+    /// }
+    /// ```
+    fn fork_as_seed<T: SeedableEntropySource>(&mut self) -> Self::Output<T>
+    where
+        T::Seed: Send + Sync + Clone,
+    {
+        let mut seed = T::Seed::default();
+
+        self.fill_bytes(seed.as_mut());
+
+        Self::Output::<T>::from_seed(seed)
+    }
+}
+
+/// A trait for providing [`crate::seed::GlobalRngSeed`] and [`crate::seed::RngSeed`] with
+/// common initialization strategies. This trait is not object safe and is also a sealed trait.
+pub trait SeedSource<R: SeedableEntropySource>: private::SealedSeed<R>
+where
+    R::Seed: Send + Sync + Clone,
+{
+    /// Initialize a [`SeedSource`] from a given `seed` value.
+    fn from_seed(seed: R::Seed) -> Self;
+
+    /// Returns a reference of the seed value.
+    fn get_seed(&self) -> &R::Seed;
+
+    /// Returns a cloned instance of the seed value.
+    fn clone_seed(&self) -> R::Seed;
+
+    /// Initialize a [`SeedSource`] from a `seed` value obtained from a
+    /// OS-level or user-space RNG source.
+    fn from_entropy() -> Self
+    where
+        Self: Sized,
+    {
+        let mut dest = R::Seed::default();
+
+        #[cfg(feature = "thread_local_entropy")]
+        {
+            use crate::thread_local_entropy::ThreadLocalEntropy;
+
+            ThreadLocalEntropy::new().fill_bytes(dest.as_mut());
+        }
+        #[cfg(not(feature = "thread_local_entropy"))]
+        {
+            use getrandom::getrandom;
+
+            getrandom(seed.as_mut()).expect("Unable to source entropy for seeding");
+        }
+
+        Self::from_seed(dest)
+    }
+}
+
 /// A marker trait for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// This is a sealed trait and cannot be consumed by downstream.
 pub trait EcsEntropySource: RngCore + SeedableRng + private::SealedSource {}
 
 mod private {
-    pub trait SealedSource {}
+    use super::{EcsEntropySource, SeedSource, SeedableEntropySource};
 
-    impl<T: super::EcsEntropySource> SealedSource for T {}
+    pub trait SealedSource {}
+    pub trait SealedSeed<R>
+    where
+        R: SeedableEntropySource,
+    {
+    }
+
+    impl<T> SealedSource for T where T: EcsEntropySource {}
+    impl<R, T> SealedSeed<R> for T
+    where
+        T: SeedSource<R>,
+        R: SeedableEntropySource,
+        R::Seed: Send + Sync + Clone,
+    {
+    }
 }
