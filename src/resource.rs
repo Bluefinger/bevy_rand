@@ -5,7 +5,7 @@ use crate::{
     seed::{GlobalRngSeed, RngSeed},
     traits::{
         EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng,
-        ForkableSeed,
+        ForkableSeed, SeedSource,
     },
 };
 use bevy::{
@@ -91,7 +91,7 @@ where
 {
     fn from_world(world: &mut World) -> Self {
         if let Some(seed) = world.get_resource::<GlobalRngSeed<R>>() {
-            Self::new(R::from_seed(seed.get_seed()))
+            Self::new(R::from_seed(seed.clone_seed()))
         } else {
             Self::from_entropy()
         }

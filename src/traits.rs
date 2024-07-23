@@ -183,6 +183,12 @@ where
     /// Initialize a [`SeedSource`] from a given `seed` value.
     fn from_seed(seed: R::Seed) -> Self;
 
+    /// Returns a reference of the seed value.
+    fn get_seed(&self) -> &R::Seed;
+
+    /// Returns a cloned instance of the seed value.
+    fn clone_seed(&self) -> R::Seed;
+
     /// Initialize a [`SeedSource`] from a `seed` value obtained from a
     /// OS-level or user-space RNG source.
     fn from_entropy() -> Self

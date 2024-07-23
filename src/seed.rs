@@ -35,7 +35,7 @@ impl<R: SeedableEntropySource> SeedSource<R> for GlobalRngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
-    /// Create a new instance of [`GlobalRngSeed`].
+    /// Create a new instance of [`GlobalRngSeed`] from a given `seed` value.
     #[inline]
     #[must_use]
     fn from_seed(seed: R::Seed) -> Self {
@@ -43,6 +43,16 @@ where
             seed,
             rng: PhantomData,
         }
+    }
+
+    #[inline]
+    fn get_seed(&self) -> &R::Seed {
+        &self.seed
+    }
+
+    #[inline]
+    fn clone_seed(&self) -> R::Seed {
+        self.seed.clone()
     }
 }
 
@@ -63,12 +73,6 @@ impl<R: SeedableEntropySource> GlobalRngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
-    /// Returns a cloned instance of the seed value.
-    #[inline]
-    pub fn get_seed(&self) -> R::Seed {
-        self.seed.clone()
-    }
-
     /// Set the global seed to a new value
     pub fn set_seed(&mut self, seed: R::Seed) {
         self.seed = seed;
@@ -110,11 +114,24 @@ impl<R: SeedableEntropySource> SeedSource<R> for RngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
+    /// Create a new instance of [`RngSeed`] from a given `seed` value.
+    #[inline]
+    #[must_use]
     fn from_seed(seed: R::Seed) -> Self {
         Self {
             seed,
             rng: PhantomData,
         }
+    }
+
+    #[inline]
+    fn get_seed(&self) -> &R::Seed {
+        &self.seed
+    }
+
+    #[inline]
+    fn clone_seed(&self) -> R::Seed {
+        self.seed.clone()
     }
 }
 
@@ -183,6 +200,6 @@ mod tests {
 
         let recreated = GlobalRngSeed::<WyRand>::from_reflect(value.as_reflect()).unwrap();
 
-        assert_eq!(val.get_seed(), recreated.get_seed());
+        assert_eq!(val.clone_seed(), recreated.clone_seed());
     }
 }

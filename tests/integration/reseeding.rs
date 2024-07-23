@@ -8,7 +8,7 @@ use bevy_rand::{
     prelude::EntropyComponent,
     resource::GlobalEntropy,
     seed::GlobalRngSeed,
-    traits::{ForkableAsSeed, ForkableSeed},
+    traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -26,7 +26,7 @@ fn test_global_reseeding() {
         R::Seed: Sync + Send + Clone,
     {
         if seed.is_changed() && !seed.is_added() {
-            rng.reseed(seed.get_seed());
+            rng.reseed(seed.clone_seed());
         }
     }
 
