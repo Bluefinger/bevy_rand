@@ -2,14 +2,17 @@ use std::marker::PhantomData;
 
 use bevy::{
     app::App,
-    ecs::system::Resource,
+    ecs::{component::StorageType, system::Resource},
+    prelude::Component,
     reflect::{FromReflect, GetTypeRegistration, Reflect, TypePath},
 };
 use bevy_prng::SeedableEntropySource;
-use rand_core::RngCore;
+use rand_core::SeedableRng;
 
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
+
+use crate::{component::EntropyComponent, traits::SeedSource};
 
 #[derive(Debug, Resource, Reflect)]
 #[cfg_attr(
@@ -26,6 +29,21 @@ pub struct GlobalRngSeed<R: SeedableEntropySource> {
     seed: R::Seed,
     #[reflect(ignore)]
     rng: PhantomData<R>,
+}
+
+impl<R: SeedableEntropySource> SeedSource<R> for GlobalRngSeed<R>
+where
+    R::Seed: Sync + Send + Clone,
+{
+    /// Create a new instance of [`GlobalRngSeed`].
+    #[inline]
+    #[must_use]
+    fn from_seed(seed: R::Seed) -> Self {
+        Self {
+            seed,
+            rng: PhantomData,
+        }
+    }
 }
 
 impl<R: SeedableEntropySource> GlobalRngSeed<R>
@@ -45,16 +63,6 @@ impl<R: SeedableEntropySource> GlobalRngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
-    /// Create a new instance of [`GlobalRngSeed`].
-    #[inline]
-    #[must_use]
-    pub fn new(seed: R::Seed) -> Self {
-        Self {
-            seed,
-            rng: PhantomData,
-        }
-    }
-
     /// Returns a cloned instance of the seed value.
     #[inline]
     pub fn get_seed(&self) -> R::Seed {
@@ -64,28 +72,6 @@ where
     /// Set the global seed to a new value
     pub fn set_seed(&mut self, seed: R::Seed) {
         self.seed = seed;
-    }
-
-    /// Initializes an instance of [`GlobalRngSeed`] with a randomised seed
-    /// value, drawn from thread-local or OS sources.
-    #[inline]
-    pub fn from_entropy() -> Self {
-        let mut seed = Self::new(R::Seed::default());
-
-        #[cfg(feature = "thread_local_entropy")]
-        {
-            use crate::thread_local_entropy::ThreadLocalEntropy;
-
-            ThreadLocalEntropy::new().fill_bytes(seed.as_mut());
-        }
-        #[cfg(not(feature = "thread_local_entropy"))]
-        {
-            use getrandom::getrandom;
-
-            getrandom(seed.as_mut()).expect("Unable to source entropy for seeding");
-        }
-
-        seed
     }
 }
 
@@ -106,6 +92,53 @@ where
     #[inline]
     fn as_mut(&mut self) -> &mut [u8] {
         self.seed.as_mut()
+    }
+}
+
+/// The initial seed/state for an [`EntropyComponent`]. Adding this component to an `Entity` will cause
+/// an `EntropyComponent` to be initialised as well. To force a reseed, just insert this component to an
+/// `Entity` to overwrite the old value, and the `EntropyComponent` will be overwritten with the new seed
+/// in turn.
+#[derive(Debug, Reflect)]
+pub struct RngSeed<R: SeedableEntropySource> {
+    seed: R::Seed,
+    #[reflect(ignore)]
+    rng: PhantomData<R>,
+}
+
+impl<R: SeedableEntropySource> SeedSource<R> for RngSeed<R>
+where
+    R::Seed: Sync + Send + Clone,
+{
+    fn from_seed(seed: R::Seed) -> Self {
+        Self {
+            seed,
+            rng: PhantomData,
+        }
+    }
+}
+
+impl<R: SeedableEntropySource> Component for RngSeed<R>
+where
+    R::Seed: Sync + Send + Clone,
+{
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+
+    fn register_component_hooks(hooks: &mut bevy::ecs::component::ComponentHooks) {
+        hooks
+            .on_insert(|mut world, entity, _| {
+                let seed = world.get::<RngSeed<R>>(entity).unwrap().seed.clone();
+                world
+                    .commands()
+                    .entity(entity)
+                    .insert(EntropyComponent::<R>::from_seed(seed));
+            })
+            .on_remove(|mut world, entity, _| {
+                world
+                    .commands()
+                    .entity(entity)
+                    .remove::<EntropyComponent<R>>();
+            });
     }
 }
 
@@ -130,7 +163,7 @@ mod tests {
 
         let registered_type = GlobalRngSeed::<WyRand>::get_type_registration();
 
-        let val = GlobalRngSeed::<WyRand>::new(u64::MAX.to_ne_bytes());
+        let val = GlobalRngSeed::<WyRand>::from_seed(u64::MAX.to_ne_bytes());
 
         let ser = TypedReflectSerializer::new(&val, &registry);
 

@@ -2,7 +2,9 @@ pub use crate::component::EntropyComponent;
 pub use crate::plugin::EntropyPlugin;
 pub use crate::resource::GlobalEntropy;
 pub use crate::seed::GlobalRngSeed;
-pub use crate::traits::{ForkableAsRng, ForkableInnerRng, ForkableRng};
+pub use crate::traits::{
+    ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng, ForkableSeed,
+};
 #[cfg(feature = "wyrand")]
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]
 pub use bevy_prng::WyRand;

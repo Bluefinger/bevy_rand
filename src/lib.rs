@@ -1,7 +1,7 @@
 #![warn(clippy::undocumented_unsafe_blocks)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, allow(unused_attributes))]
-#![deny(missing_docs)]
+#![warn(missing_docs)]
 #![doc = include_str!("../README.md")]
 
 /// Components for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].

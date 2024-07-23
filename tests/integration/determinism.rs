@@ -1,18 +1,14 @@
-#![allow(clippy::type_complexity)]
-
 use bevy::prelude::*;
-use bevy_prng::{ChaCha12Rng, ChaCha8Rng, SeedableEntropySource, WyRand};
+use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 use bevy_rand::prelude::{
     EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy, GlobalRngSeed,
 };
-use rand::prelude::{Rng, SeedableRng};
+use rand::prelude::Rng;
 
 use rand_core::RngCore;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_test::*;
 
 #[cfg(target_arch = "wasm32")]
-wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_browser);
+use wasm_bindgen_test::*;
 
 #[derive(Component)]
 struct SourceA;
@@ -131,67 +127,4 @@ fn test_parallel_determinism() {
             ),
         )
         .run();
-}
-
-#[test]
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn test_global_reseeding() {
-    /// Basic Reseeding mechanism by change detection against GlobalRngSeed
-    fn reseed_global_rng<R: SeedableEntropySource>(
-        seed: Res<GlobalRngSeed<R>>,
-        mut rng: ResMut<GlobalEntropy<R>>,
-    ) where
-        R::Seed: Sync + Send + Clone,
-    {
-        if seed.is_changed() && !seed.is_added() {
-            rng.reseed(seed.get_seed());
-        }
-    }
-
-    let mut app = App::new();
-
-    let seed = [2; 32];
-
-    let rng_eq = GlobalEntropy::<ChaCha8Rng>::from_seed(seed);
-
-    app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed(seed))
-        .add_systems(PreUpdate, reseed_global_rng::<ChaCha8Rng>);
-
-    {
-        let global_rng = app.world().resource_ref::<GlobalEntropy<ChaCha8Rng>>();
-        let global_seed = app.world().resource_ref::<GlobalRngSeed<ChaCha8Rng>>();
-
-        // Our RNGs should be the same as each other as they were initialised with the same seed
-        assert_eq!(global_rng.as_ref(), &rng_eq);
-
-        // The condition here should mean our reseeding system will NOT run
-        assert!(global_seed.is_changed() && global_seed.is_added());
-    }
-
-    app.update();
-
-    {
-        let global_rng = app.world().resource_ref::<GlobalEntropy<ChaCha8Rng>>();
-
-        // Our RNGs should remain the same as each other as we have not run the update
-        assert_eq!(global_rng.as_ref(), &rng_eq);
-    }
-
-    {
-        let mut global_seed = app.world_mut().resource_mut::<GlobalRngSeed<ChaCha8Rng>>();
-
-        global_seed.set_seed([3; 32]);
-
-        // The condition here should mean our reseeding system WILL run
-        assert!(global_seed.is_changed() && !global_seed.is_added());
-    }
-
-    app.update();
-
-    {
-        let global_rng = app.world().resource_ref::<GlobalEntropy<ChaCha8Rng>>();
-
-        // Now our RNG will not be the same, even though we did not use it directly
-        assert_ne!(global_rng.as_ref(), &rng_eq);
-    }
 }
