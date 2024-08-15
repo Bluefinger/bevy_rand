@@ -1,14 +1,13 @@
 use bevy::{
-    app::{App, PreStartup, PreUpdate, Update},
-    prelude::{Commands, DetectChanges, Query, Res, ResMut},
+    app::{App, PreStartup, Update},
+    prelude::{Commands, Query, ResMut},
 };
-use bevy_prng::{ChaCha8Rng, SeedableEntropySource, WyRand};
+use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
     plugin::EntropyPlugin,
     prelude::EntropyComponent,
     resource::GlobalEntropy,
-    seed::GlobalRngSeed,
-    traits::{ForkableAsSeed, ForkableSeed, SeedSource},
+    traits::{ForkableAsSeed, ForkableSeed},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -18,36 +17,19 @@ use wasm_bindgen_test::*;
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn test_global_reseeding() {
-    /// Basic Reseeding mechanism by change detection against GlobalRngSeed
-    fn reseed_global_rng<R: SeedableEntropySource>(
-        seed: Res<GlobalRngSeed<R>>,
-        mut rng: ResMut<GlobalEntropy<R>>,
-    ) where
-        R::Seed: Sync + Send + Clone,
-    {
-        if seed.is_changed() && !seed.is_added() {
-            rng.reseed(seed.clone_seed());
-        }
-    }
-
     let mut app = App::new();
 
     let seed = [2; 32];
 
     let rng_eq = GlobalEntropy::<ChaCha8Rng>::from_seed(seed);
 
-    app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed(seed))
-        .add_systems(PreUpdate, reseed_global_rng::<ChaCha8Rng>);
+    app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed(seed));
 
     {
         let global_rng = app.world().resource_ref::<GlobalEntropy<ChaCha8Rng>>();
-        let global_seed = app.world().resource_ref::<GlobalRngSeed<ChaCha8Rng>>();
 
         // Our RNGs should be the same as each other as they were initialised with the same seed
         assert_eq!(global_rng.as_ref(), &rng_eq);
-
-        // The condition here should mean our reseeding system will NOT run
-        assert!(global_seed.is_changed() && global_seed.is_added());
     }
 
     app.update();
@@ -60,12 +42,9 @@ fn test_global_reseeding() {
     }
 
     {
-        let mut global_seed = app.world_mut().resource_mut::<GlobalRngSeed<ChaCha8Rng>>();
+        let mut global_seed = app.world_mut().resource_mut::<GlobalEntropy<ChaCha8Rng>>();
 
-        global_seed.set_seed([3; 32]);
-
-        // The condition here should mean our reseeding system WILL run
-        assert!(global_seed.is_changed() && !global_seed.is_added());
+        global_seed.reseed([3; 32]);
     }
 
     app.update();

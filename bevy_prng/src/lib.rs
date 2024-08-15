@@ -62,6 +62,43 @@ pub trait SeedableEntropySource:
 {
 }
 
+/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will 
+/// apply to all suitable types that meet the trait criteria.
+#[cfg(feature = "serialize")]
+pub trait EntropySeed:
+    Debug
+    + Default
+    + PartialEq
+    + Clone
+    + Sync
+    + Send
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration
+    + Serialize
+    + for<'a> Deserialize<'a>
+{
+}
+
+#[cfg(feature = "serialize")]
+impl<
+        T: Debug
+            + Default
+            + PartialEq
+            + Clone
+            + Sync
+            + Send
+            + Reflect
+            + TypePath
+            + FromReflect
+            + GetTypeRegistration
+            + Serialize
+            + for<'a> Deserialize<'a>,
+    > EntropySeed for T
+{
+}
+
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(not(feature = "serialize"))]
@@ -78,6 +115,40 @@ pub trait SeedableEntropySource:
     + Sync
     + Send
     + private::SealedSeedable
+{
+}
+
+#[cfg(not(feature = "serialize"))]
+/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will 
+/// apply to all suitable types that meet the trait criteria.
+pub trait EntropySeed:
+    Debug
+    + Default
+    + AsMut<u8>
+    + PartialEq
+    + Clone
+    + Sync
+    + Send
+    + Reflect
+    + TypePath
+    + FromReflect
+    + GetTypeRegistration //+ private::SealedSeed
+{
+}
+
+#[cfg(not(feature = "serialize"))]
+impl<
+        T: Debug
+            + Default
+            + PartialEq
+            + Clone
+            + Sync
+            + Send
+            + Reflect
+            + TypePath
+            + FromReflect
+            + GetTypeRegistration,
+    > EntropySeed for T
 {
 }
 

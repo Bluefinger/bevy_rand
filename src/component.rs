@@ -1,14 +1,13 @@
 use std::fmt::Debug;
 
 use crate::{
-    resource::GlobalEntropy,
     seed::RngSeed,
     traits::{
         EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng,
         ForkableSeed,
     },
 };
-use bevy::prelude::{Component, Mut, Reflect, ReflectComponent, ReflectFromReflect, ResMut};
+use bevy::prelude::{Component, Reflect, ReflectComponent, ReflectFromReflect};
 use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
@@ -186,34 +185,6 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
 }
 
 impl<R: SeedableEntropySource + 'static> EcsEntropySource for EntropyComponent<R> {}
-
-impl<R: SeedableEntropySource + 'static> From<R> for EntropyComponent<R> {
-    fn from(value: R) -> Self {
-        Self::new(value)
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> From<&mut EntropyComponent<R>> for EntropyComponent<R> {
-    fn from(rng: &mut EntropyComponent<R>) -> Self {
-        Self::from_rng(rng).unwrap()
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> From<&mut Mut<'_, EntropyComponent<R>>>
-    for EntropyComponent<R>
-{
-    fn from(rng: &mut Mut<'_, EntropyComponent<R>>) -> Self {
-        Self::from(rng.as_mut())
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> From<&mut ResMut<'_, GlobalEntropy<R>>>
-    for EntropyComponent<R>
-{
-    fn from(rng: &mut ResMut<'_, GlobalEntropy<R>>) -> Self {
-        Self::from_rng(rng.as_mut()).unwrap()
-    }
-}
 
 impl<R> ForkableRng for EntropyComponent<R>
 where
