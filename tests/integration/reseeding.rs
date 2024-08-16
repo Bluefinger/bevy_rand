@@ -222,21 +222,27 @@ fn observer_children_reseeding() {
     struct SeedChildren(Vec<Entity>);
 
     #[derive(Event)]
-    struct ReseedChildren;
+    struct ReseedChildren(EntropyComponent<WyRand>);
 
     #[derive(Event)]
     struct Reseed([u8; 8]);
 
-    fn reseed(trigger: Trigger<Reseed>, q_children: Query<&SeedChildren>, mut commands: Commands) {
+    fn reseed(
+        trigger: Trigger<Reseed>,
+        q_children: Query<(&EntropyComponent<WyRand>, &SeedChildren)>,
+        mut commands: Commands,
+    ) {
         let entity = trigger.entity();
 
         if let Some(mut entity_commands) = commands.get_entity(trigger.entity()) {
             let seed = trigger.event();
             entity_commands.insert(RngSeed::<WyRand>::from_seed(seed.0));
+        }
 
-            if q_children.contains(entity) {
-                commands.trigger_targets(ReseedChildren, entity);
-            }
+        // MUST trigger AFTER the insert
+        if let Ok((rng, _)) = q_children.get(entity) {
+            // Clone our RNG component to track changes to the entity later
+            commands.trigger_targets(ReseedChildren(rng.clone()), entity);
         }
     }
 
@@ -248,6 +254,11 @@ fn observer_children_reseeding() {
         let entity = trigger.entity();
 
         if let Ok((mut rng, children)) = q_source.get_mut(entity) {
+            let previous = &trigger.event().0;
+            // We check to ensure that the RNG component has been updated via hooks before
+            // the observer has been run.
+            assert_ne!(previous, rng.as_ref());
+
             for child in children.0.iter() {
                 commands.entity(*child).insert(rng.fork_seed());
             }
@@ -283,6 +294,8 @@ fn observer_children_reseeding() {
             },
         )
         .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>>| {
+            // Before we send a Reseed event, let's check if we have properly initialised
+            // seeds.
             let expected = [
                 9035371013317154993u64,
                 8695044747327652655,
@@ -315,17 +328,35 @@ fn observer_children_reseeding() {
                 7661732659691953580,
                 4722119124111390177,
             ];
-            let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+            let expected = [
+                6101264679293753504u64,
+                2656876351602726802,
+                4226413670151402273,
+                2344778986622729714,
+                9109365740673988404,
+            ];
 
             prev_expected
                 .into_iter()
-                .zip(seeds.map(u64::from_ne_bytes))
-                .for_each(|(expected, actual)| assert_ne!(expected, actual));
+                .zip(expected)
+                .zip(
+                    query
+                        .iter()
+                        .map(RngSeed::<WyRand>::clone_seed)
+                        .map(u64::from_ne_bytes),
+                )
+                .for_each(|((previous, expected), actual)| {
+                    // Must not equal the previous seeds.
+                    assert_ne!(previous, actual);
+                    // Should equal the expected updated seeds.
+                    assert_eq!(expected, actual)
+                });
         })
         .add_systems(
             Last,
             |source: Query<&EntropyComponent<WyRand>, With<SeedChildren>>,
              children: Query<&EntropyComponent<WyRand>, Without<SeedChildren>>| {
+                // Check we have the correct amount of allocated RNG entities
                 assert_eq!(source.iter().size_hint().0, 1);
                 assert_eq!(children.iter().size_hint().0, 5);
             },
