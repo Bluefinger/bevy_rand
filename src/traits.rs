@@ -176,7 +176,7 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
 
 /// Trait for implementing forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
-/// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
+/// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
 pub trait ForkableInnerSeed<S: SeedableEntropySource>: EcsEntropySource
 where
     S::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
@@ -189,7 +189,7 @@ where
     /// ```
     /// use bevy::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerSeed, SeedSource, RngSeed};
     ///
     /// #[derive(Component)]
     /// struct Source;
@@ -198,7 +198,7 @@ where
     ///     commands
     ///         .spawn((
     ///             Source,
-    ///             global.fork_seed(),
+    ///             RngSeed::<ChaCha8Rng>::from_seed(global.fork_inner_seed()),
     ///         ));
     /// }
     /// ```
