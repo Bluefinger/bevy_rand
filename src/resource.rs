@@ -90,6 +90,7 @@ where
     }
 
     /// Get a reference to the initial seed
+    #[inline]
     pub fn get_seed(&self) -> &R::Seed {
         &self.seed
     }
@@ -99,24 +100,29 @@ impl<R: SeedableEntropySource + 'static> Default for GlobalEntropy<R>
 where
     R::Seed: Clone,
 {
+    #[inline]
     fn default() -> Self {
         Self::from_entropy()
     }
 }
 
 impl<R: SeedableEntropySource + 'static> RngCore for GlobalEntropy<R> {
+    #[inline]
     fn next_u32(&mut self) -> u32 {
         self.rng.next_u32()
     }
 
+    #[inline]
     fn next_u64(&mut self) -> u64 {
         self.rng.next_u64()
     }
 
+    #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.rng.fill_bytes(dest);
     }
 
+    #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
         self.rng.try_fill_bytes(dest)
     }

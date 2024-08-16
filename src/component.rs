@@ -128,6 +128,7 @@ impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
 }
 
 impl<R: SeedableEntropySource + 'static> Default for EntropyComponent<R> {
+    #[inline]
     fn default() -> Self {
         Self::from_entropy()
     }
