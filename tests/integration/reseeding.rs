@@ -260,9 +260,15 @@ fn observer_children_reseeding() {
         .add_systems(
             Startup,
             |mut commands: Commands, mut source: ResMut<GlobalEntropy<WyRand>>| {
-                let mut source = commands.spawn(source.fork_seed());
+                let seed = source.fork_seed();
+
+                // Ensure the forked seed and original source don't match
+                assert_ne!(source.get_seed(), seed.get_seed());
+
+                let mut source = commands.spawn(seed);
 
                 source.add(|mut entity: EntityWorldMut| {
+                    // FORK! Quicker than allocating a new Vec of components to spawn.
                     let mut rng = entity
                         .get_mut::<EntropyComponent<WyRand>>()
                         .unwrap()
