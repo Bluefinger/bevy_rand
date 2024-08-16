@@ -1,9 +1,9 @@
 pub use crate::component::EntropyComponent;
 pub use crate::plugin::EntropyPlugin;
 pub use crate::resource::GlobalEntropy;
-pub use crate::seed::{GlobalRngSeed, RngSeed};
+pub use crate::seed::RngSeed;
 pub use crate::traits::{
-    ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng, ForkableSeed, SeedSource
+    ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng, ForkableSeed, SeedSource,
 };
 #[cfg(feature = "wyrand")]
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]

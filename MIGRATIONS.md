@@ -26,4 +26,4 @@ As the `wyrand` dependency has been updated and contains a breaking output chang
 
 ## Migrating from v0.7 to v0.8
 
-`GlobalRngSeed` has been changed to make use of `SeedSource` trait, for things like instantiation: `new` is now `from_seed`. `get_seed` is now `clone_seed`. Most of these changes can be done easily by importing the `SeedSource` trait.
+`GlobalRngSeed` has been removed, instead being rolled into `GlobalEntropy`. This will allow better reflection tracking of the global rng source, and will allow for automatic reseeding without any custom system needing to be provided. Use the `reseed` method to reinstantiate the internal RNG source with the new seed, and `get_seed` to return a reference to the initial starting seed for the source. The serialized format of `GlobalEntropy` has changed and previously serialized instances are no longer compatible.

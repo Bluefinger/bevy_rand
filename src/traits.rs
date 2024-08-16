@@ -174,7 +174,7 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
     }
 }
 
-/// A trait for providing [`crate::seed::GlobalRngSeed`] and [`crate::seed::RngSeed`] with
+/// A trait for providing [`crate::seed::RngSeed`] with
 /// common initialization strategies. This trait is not object safe and is also a sealed trait.
 pub trait SeedSource<R: SeedableEntropySource>: private::SealedSeed<R>
 where

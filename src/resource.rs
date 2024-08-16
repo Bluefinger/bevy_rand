@@ -2,16 +2,13 @@ use std::fmt::Debug;
 
 use crate::{
     component::EntropyComponent,
-    seed::{GlobalRngSeed, RngSeed},
+    seed::RngSeed,
     traits::{
         EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng,
-        ForkableSeed, SeedSource,
+        ForkableSeed,
     },
 };
-use bevy::{
-    ecs::world::{FromWorld, World},
-    prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource},
-};
+use bevy::prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource};
 use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
@@ -22,7 +19,7 @@ use crate::thread_local_entropy::ThreadLocalEntropy;
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// A Global [`RngCore`] instance, meant for use as a Resource. Gets
 /// created automatically with [`crate::plugin::EntropyPlugin`], or
@@ -43,14 +40,6 @@ use serde::Deserialize;
 #[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect)]
 #[cfg_attr(
     feature = "serialize",
-    derive(serde_derive::Serialize, serde_derive::Deserialize)
-)]
-#[cfg_attr(
-    feature = "serialize",
-    serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
-)]
-#[cfg_attr(
-    feature = "serialize",
     reflect(
         Debug,
         PartialEq,
@@ -65,72 +54,89 @@ use serde::Deserialize;
     not(feature = "serialize"),
     reflect(Debug, PartialEq, Resource, FromReflect, FromWorld)
 )]
-#[reflect(where R::Seed: Sync + Send + Clone)]
-pub struct GlobalEntropy<R: SeedableEntropySource + 'static>(R);
-
-impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
-    /// Create a new resource from a `RngCore` instance.
-    #[inline]
-    #[must_use]
-    pub fn new(rng: R) -> Self {
-        Self(rng)
-    }
+#[cfg_attr(
+    feature = "serialize",
+    derive(serde_derive::Serialize, serde_derive::Deserialize)
+)]
+#[cfg_attr(
+    feature = "serialize",
+    serde(bound(deserialize = "R: for<'a> Deserialize<'a>, R::Seed: for<'a> Deserialize<'a>"))
+)]
+#[cfg_attr(feature = "serialize", reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone + Serialize + for<'a> Deserialize<'a>))]
+#[cfg_attr(not(feature = "serialize"), reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone))]
+pub struct GlobalEntropy<R: SeedableEntropySource + 'static> {
+    seed: R::Seed,
+    rng: R,
 }
 
-impl<R: SeedableEntropySource + 'static> GlobalEntropy<R> {
+impl<R: SeedableEntropySource + 'static> GlobalEntropy<R>
+where
+    R::Seed: Clone,
+{
+    #[inline]
+    #[must_use]
+    fn new(seed: R::Seed) -> Self {
+        Self {
+            seed: seed.clone(),
+            rng: R::from_seed(seed),
+        }
+    }
+
     /// Reseeds the internal `RngCore` instance with a new seed.
     #[inline]
     pub fn reseed(&mut self, seed: R::Seed) {
-        self.0 = R::from_seed(seed);
+        self.seed = seed.clone();
+        self.rng = R::from_seed(seed);
+    }
+
+    /// Get a reference to the initial seed
+    #[inline]
+    pub fn get_seed(&self) -> &R::Seed {
+        &self.seed
     }
 }
 
-impl<R: SeedableEntropySource + 'static> FromWorld for GlobalEntropy<R>
+impl<R: SeedableEntropySource + 'static> Default for GlobalEntropy<R>
 where
-    R::Seed: Send + Sync + Clone,
+    R::Seed: Clone,
 {
-    fn from_world(world: &mut World) -> Self {
-        if let Some(seed) = world.get_resource::<GlobalRngSeed<R>>() {
-            Self::new(R::from_seed(seed.clone_seed()))
-        } else {
-            Self::from_entropy()
-        }
+    #[inline]
+    fn default() -> Self {
+        Self::from_entropy()
     }
 }
 
 impl<R: SeedableEntropySource + 'static> RngCore for GlobalEntropy<R> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
-        self.0.next_u32()
+        self.rng.next_u32()
     }
 
     #[inline]
     fn next_u64(&mut self) -> u64 {
-        self.0.next_u64()
+        self.rng.next_u64()
     }
 
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.0.fill_bytes(dest);
+        self.rng.fill_bytes(dest);
     }
 
     #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.0.try_fill_bytes(dest)
+        self.rng.try_fill_bytes(dest)
     }
 }
 
-impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
+impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R>
+where
+    R::Seed: Clone,
+{
     type Seed = R::Seed;
 
     #[inline]
     fn from_seed(seed: Self::Seed) -> Self {
-        Self::new(R::from_seed(seed))
-    }
-
-    #[inline]
-    fn from_rng<S: RngCore>(rng: S) -> Result<Self, rand_core::Error> {
-        R::from_rng(rng).map(Self::new)
+        Self::new(seed)
     }
 
     /// Creates a new instance of the RNG seeded via [`ThreadLocalEntropy`]. This method is the recommended way
@@ -144,28 +150,20 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R> {
     #[cfg(feature = "thread_local_entropy")]
     #[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
     fn from_entropy() -> Self {
-        // This operation should never yield Err on any supported PRNGs
-        Self::from_rng(ThreadLocalEntropy::new()).unwrap()
+        let mut seed = R::Seed::default();
+
+        ThreadLocalEntropy::new().fill_bytes(seed.as_mut());
+
+        Self::new(seed)
     }
 }
 
-impl<R: SeedableEntropySource + 'static> EcsEntropySource for GlobalEntropy<R> {}
-
-impl<R: SeedableEntropySource + 'static> From<R> for GlobalEntropy<R> {
-    fn from(value: R) -> Self {
-        Self::new(value)
-    }
-}
-
-impl<R: SeedableEntropySource + 'static> From<&mut R> for GlobalEntropy<R> {
-    fn from(value: &mut R) -> Self {
-        Self::from_rng(value).unwrap()
-    }
-}
+impl<R: SeedableEntropySource + 'static> EcsEntropySource for GlobalEntropy<R> where R::Seed: Clone {}
 
 impl<R> ForkableRng for GlobalEntropy<R>
 where
     R: SeedableEntropySource + 'static,
+    R::Seed: Clone,
 {
     type Output = EntropyComponent<R>;
 }
@@ -173,6 +171,7 @@ where
 impl<R> ForkableAsRng for GlobalEntropy<R>
 where
     R: SeedableEntropySource + 'static,
+    R::Seed: Clone,
 {
     type Output<T> = EntropyComponent<T> where T: SeedableEntropySource;
 }
@@ -180,6 +179,7 @@ where
 impl<R> ForkableInnerRng for GlobalEntropy<R>
 where
     R: SeedableEntropySource + 'static,
+    R::Seed: Clone,
 {
     type Output = R;
 }
@@ -195,6 +195,7 @@ where
 impl<R> ForkableAsSeed<R> for GlobalEntropy<R>
 where
     R: SeedableEntropySource + 'static,
+    R::Seed: Clone,
 {
     type Output<T> = RngSeed<T> where T: SeedableEntropySource, T::Seed: Send + Sync + Clone;
 }
@@ -254,7 +255,7 @@ mod tests {
         let rng2 = rng1.fork_inner();
 
         assert_ne!(
-            rng1.0, rng2,
+            rng1.rng, rng2,
             "forked ChaCha8Rngs should not match each other"
         );
     }
@@ -283,7 +284,7 @@ mod tests {
 
         assert_eq!(
             &serialized,
-            "{\"bevy_rand::resource::GlobalEntropy<bevy_prng::ChaCha8Rng>\":(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
+            "{\"bevy_rand::resource::GlobalEntropy<bevy_prng::ChaCha8Rng>\":(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),rng:((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
         );
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
@@ -333,7 +334,7 @@ mod tests {
 
         assert_eq!(
             &serialized,
-            "(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))"
+            "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),rng:((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))"
         );
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
