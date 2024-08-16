@@ -4,8 +4,8 @@ use crate::{
     component::EntropyComponent,
     seed::RngSeed,
     traits::{
-        EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableRng,
-        ForkableSeed,
+        EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
+        ForkableRng, ForkableSeed,
     },
 };
 use bevy::prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource};
@@ -198,6 +198,14 @@ where
     R::Seed: Clone,
 {
     type Output<T> = RngSeed<T> where T: SeedableEntropySource, T::Seed: Send + Sync + Clone;
+}
+
+impl<R> ForkableInnerSeed<R> for GlobalEntropy<R>
+where
+    R: SeedableEntropySource + 'static,
+    R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
+{
+    type Output = R::Seed;
 }
 
 #[cfg(test)]

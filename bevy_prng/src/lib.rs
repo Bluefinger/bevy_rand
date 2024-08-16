@@ -62,13 +62,14 @@ pub trait SeedableEntropySource:
 {
 }
 
-/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will 
+/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 #[cfg(feature = "serialize")]
 pub trait EntropySeed:
     Debug
     + Default
     + PartialEq
+    + AsMut<[u8]>
     + Clone
     + Sync
     + Send
@@ -86,6 +87,7 @@ impl<
         T: Debug
             + Default
             + PartialEq
+            + AsMut<[u8]>
             + Clone
             + Sync
             + Send
@@ -108,6 +110,7 @@ pub trait SeedableEntropySource:
     + Clone
     + Debug
     + PartialEq
+    + AsMut<[u8]>
     + Reflect
     + TypePath
     + FromReflect
@@ -119,13 +122,13 @@ pub trait SeedableEntropySource:
 }
 
 #[cfg(not(feature = "serialize"))]
-/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will 
+/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 pub trait EntropySeed:
     Debug
     + Default
-    + AsMut<u8>
     + PartialEq
+    + AsMut<u8>
     + Clone
     + Sync
     + Send
@@ -141,6 +144,7 @@ impl<
         T: Debug
             + Default
             + PartialEq
+            + AsMut<[u8]>
             + Clone
             + Sync
             + Send

@@ -174,6 +174,43 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
     }
 }
 
+/// Trait for implementing forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
+/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
+/// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
+pub trait ForkableInnerSeed<S: SeedableEntropySource>: EcsEntropySource
+where
+    S::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
+{
+    /// The type of seed component that is to be forked from the original source.
+    type Output: Send + Sync + Clone + AsMut<[u8]> + Default;
+
+    /// Fork a new seed from the original entropy source.
+    /// This method preserves the RNG algorithm between original instance and forked seed.
+    /// ```
+    /// use bevy::prelude::*;
+    /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerSeed, SeedSource, RngSeed};
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    ///
+    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    ///     commands
+    ///         .spawn((
+    ///             Source,
+    ///             RngSeed::<ChaCha8Rng>::from_seed(global.fork_inner_seed()),
+    ///         ));
+    /// }
+    /// ```
+    fn fork_inner_seed(&mut self) -> Self::Output {
+        let mut seed = Self::Output::default();
+
+        self.fill_bytes(seed.as_mut());
+
+        seed
+    }
+}
+
 /// A trait for providing [`crate::seed::RngSeed`] with
 /// common initialization strategies. This trait is not object safe and is also a sealed trait.
 pub trait SeedSource<R: SeedableEntropySource>: private::SealedSeed<R>
