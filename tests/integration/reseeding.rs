@@ -7,7 +7,7 @@ use bevy_rand::{
     plugin::EntropyPlugin,
     prelude::EntropyComponent,
     resource::GlobalEntropy,
-    traits::{ForkableAsSeed, ForkableSeed},
+    traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -128,4 +128,204 @@ fn component_fork_as_seed() {
         });
 
     app.update();
+}
+
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn observer_global_reseeding() {
+    use bevy::prelude::{Entity, Event, PostUpdate, PreUpdate, Startup, Trigger, With};
+    use bevy_rand::{seed::RngSeed, traits::ForkableInnerSeed};
+
+    let seed = [2; 8];
+
+    #[derive(Event)]
+    struct Reseed([u8; 8]);
+
+    fn reseed(trigger: Trigger<Reseed>, mut commands: Commands) {
+        if let Some(mut entity) = commands.get_entity(trigger.entity()) {
+            let seed = trigger.event();
+            entity.insert(RngSeed::<WyRand>::from_seed(seed.0));
+        }
+    }
+
+    let mut app = App::new();
+
+    app.add_plugins(EntropyPlugin::<WyRand>::with_seed(seed))
+        .add_systems(
+            Startup,
+            |mut commands: Commands, mut source: ResMut<GlobalEntropy<WyRand>>| {
+                for _ in 0..5 {
+                    commands.spawn(source.fork_seed());
+                }
+            },
+        )
+        .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>>| {
+            let expected = [
+                2484862625678185386u64,
+                10323237495534242118,
+                14704548354072994214,
+                14638519449267265798,
+                11723565746675474547,
+            ];
+            let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+
+            expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(expected, actual)| assert_eq!(expected, actual));
+        })
+        .add_systems(
+            Update,
+            |mut commands: Commands,
+             query: Query<Entity, With<EntropyComponent<WyRand>>>,
+             mut source: ResMut<GlobalEntropy<WyRand>>| {
+                for e in &query {
+                    commands.trigger_targets(Reseed(source.fork_inner_seed()), e);
+                }
+            },
+        )
+        .add_systems(PostUpdate, |query: Query<&RngSeed<WyRand>>| {
+            let prev_expected = [
+                2484862625678185386u64,
+                10323237495534242118,
+                14704548354072994214,
+                14638519449267265798,
+                11723565746675474547,
+            ];
+            let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+
+            prev_expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(expected, actual)| assert_ne!(expected, actual));
+        })
+        .observe(reseed);
+
+    app.run();
+}
+
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn observer_component_reseeding() {
+    use bevy::prelude::{
+        Component, Entity, EntityWorldMut, Event, Last, PostUpdate, PreUpdate, Startup, Trigger,
+        With, Without, World,
+    };
+    use bevy_rand::{
+        seed::RngSeed,
+        traits::{ForkableInnerSeed, ForkableRng},
+    };
+
+    let seed = [2; 8];
+
+    #[derive(Component)]
+    struct SeedChildren(Vec<Entity>);
+
+    #[derive(Event)]
+    struct ReseedChildren;
+
+    #[derive(Event)]
+    struct Reseed([u8; 8]);
+
+    fn reseed(trigger: Trigger<Reseed>, q_children: Query<&SeedChildren>, mut commands: Commands) {
+        let entity = trigger.entity();
+
+        if let Some(mut entity_commands) = commands.get_entity(trigger.entity()) {
+            let seed = trigger.event();
+            entity_commands.insert(RngSeed::<WyRand>::from_seed(seed.0));
+
+            if q_children.get(entity).is_ok() {
+                commands.trigger_targets(ReseedChildren, entity);
+            }
+        }
+    }
+
+    fn reseed_children(
+        trigger: Trigger<ReseedChildren>,
+        mut q_source: Query<(&mut EntropyComponent<WyRand>, &SeedChildren)>,
+        mut commands: Commands,
+    ) {
+        let entity = trigger.entity();
+
+        if let Ok((mut rng, children)) = q_source.get_mut(entity) {
+            for child in children.0.iter() {
+                commands.entity(*child).insert(rng.fork_seed());
+            }
+        }
+    }
+
+    let mut app = App::new();
+
+    app.add_plugins(EntropyPlugin::<WyRand>::with_seed(seed))
+        .add_systems(
+            Startup,
+            |mut commands: Commands, mut source: ResMut<GlobalEntropy<WyRand>>| {
+                let mut source = commands.spawn(source.fork_seed());
+
+                source.add(|mut entity: EntityWorldMut| {
+                    let mut rng = entity
+                        .get_mut::<EntropyComponent<WyRand>>()
+                        .unwrap()
+                        .fork_rng();
+
+                    let children: Vec<Entity> = entity.world_scope(move |world: &mut World| {
+                        world.spawn_batch((0..5).map(|_| rng.fork_seed())).collect()
+                    });
+
+                    entity.insert(SeedChildren(children));
+                });
+            },
+        )
+        .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>>| {
+            let expected = [
+                9035371013317154993u64,
+                8695044747327652655,
+                4791951605491714159,
+                7661732659691953580,
+                4722119124111390177,
+            ];
+            let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+
+            expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(expected, actual)| assert_eq!(expected, actual));
+        })
+        .add_systems(
+            Update,
+            |mut commands: Commands,
+             query: Query<Entity, With<SeedChildren>>,
+             mut source: ResMut<GlobalEntropy<WyRand>>| {
+                for e in &query {
+                    commands.trigger_targets(Reseed(source.fork_inner_seed()), e);
+                }
+            },
+        )
+        .add_systems(PostUpdate, |query: Query<&RngSeed<WyRand>>| {
+            let prev_expected = [
+                9035371013317154993u64,
+                8695044747327652655,
+                4791951605491714159,
+                7661732659691953580,
+                4722119124111390177,
+            ];
+            let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+
+            prev_expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(expected, actual)| assert_ne!(expected, actual));
+        })
+        .add_systems(
+            Last,
+            |source: Query<&EntropyComponent<WyRand>, With<SeedChildren>>,
+             children: Query<&EntropyComponent<WyRand>, Without<SeedChildren>>| {
+                assert_eq!(source.iter().size_hint().0, 1);
+                assert_eq!(children.iter().size_hint().0, 5);
+            },
+        )
+        .observe(reseed)
+        .observe(reseed_children);
+
+    app.run();
 }
