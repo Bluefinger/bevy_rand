@@ -234,7 +234,7 @@ fn observer_children_reseeding() {
             let seed = trigger.event();
             entity_commands.insert(RngSeed::<WyRand>::from_seed(seed.0));
 
-            if q_children.get(entity).is_ok() {
+            if q_children.contains(entity) {
                 commands.trigger_targets(ReseedChildren, entity);
             }
         }
