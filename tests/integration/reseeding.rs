@@ -206,7 +206,7 @@ fn observer_global_reseeding() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn observer_component_reseeding() {
+fn observer_children_reseeding() {
     use bevy::prelude::{
         Component, Entity, EntityWorldMut, Event, Last, PostUpdate, PreUpdate, Startup, Trigger,
         With, Without, World,
