@@ -20,3 +20,5 @@ mod thread_local_entropy;
 pub mod traits;
 #[cfg(doc)]
 pub mod tutorial;
+/// Utility commands
+pub mod observers;
