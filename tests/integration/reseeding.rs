@@ -1,12 +1,14 @@
 use bevy::{
-    app::{App, PreStartup, Update},
-    prelude::{Commands, Query, ResMut},
+    app::{App, Last, PostUpdate, PreStartup, PreUpdate, Startup, Update},
+    prelude::{Commands, Component, Entity, Query, ResMut, With, Without},
 };
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
-    plugin::EntropyPlugin,
+    observers::{LinkRngSourceToTarget, SeedFromGlobal},
+    plugin::{EntropyPlugin, ObserveEntropySources},
     prelude::EntropyComponent,
     resource::GlobalEntropy,
+    seed::RngSeed,
     traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
 use rand_core::{RngCore, SeedableRng};
@@ -206,15 +208,114 @@ fn observer_global_reseeding() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+fn generic_observer_reseeding() {
+    let seed = [2u8; 8];
+
+    #[derive(Component)]
+    struct Source;
+    #[derive(Component, Clone, Copy)]
+    struct Target;
+
+    let mut app = App::new();
+
+    app.add_plugins((
+        EntropyPlugin::<WyRand>::with_seed(seed),
+        ObserveEntropySources::<Target, WyRand>::new(),
+    ))
+    .add_systems(Startup, |mut commands: Commands| {
+        commands.spawn_batch(vec![Target; 5]);
+        let source = commands.spawn(Source).id();
+
+        commands.trigger_targets(LinkRngSourceToTarget::<Target, WyRand>::new(), source);
+        commands.trigger_targets(SeedFromGlobal::<WyRand>::new(), source);
+    })
+    .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Target>>| {
+        let expected = [
+            6445550333322662121u64,
+            14968821102299026759,
+            12617564484450995185,
+            908888629357954483,
+            6128439264405451235,
+        ];
+        let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+
+        assert_eq!(seeds.size_hint().0, 5);
+
+        expected
+            .into_iter()
+            .zip(seeds.map(u64::from_ne_bytes))
+            .for_each(|(expected, actual)| assert_eq!(expected, actual));
+    })
+    .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
+        let expected = 2484862625678185386u64;
+        let seeds = u64::from_ne_bytes(query.single().clone_seed());
+
+        assert_eq!(expected, seeds);
+    })
+    .add_systems(
+        Update,
+        |mut commands: Commands, query: Query<Entity, With<Source>>| {
+            for entity in &query {
+                commands.trigger_targets(SeedFromGlobal::<WyRand>::new(), entity);
+            }
+        },
+    )
+    .add_systems(
+        PostUpdate,
+        |query: Query<&RngSeed<WyRand>, With<Target>>| {
+            let prev_expected = [
+                6445550333322662121u64,
+                14968821102299026759,
+                12617564484450995185,
+                908888629357954483,
+                6128439264405451235,
+            ];
+            let expected = [
+                2656876351602726802u64,
+                4226413670151402273,
+                2344778986622729714,
+                9109365740673988404,
+                6101264679293753504,
+            ];
+
+            prev_expected
+                .into_iter()
+                .zip(expected)
+                .zip(
+                    query
+                        .iter()
+                        .map(RngSeed::<WyRand>::clone_seed)
+                        .map(u64::from_ne_bytes),
+                )
+                .for_each(|((previous, expected), actual)| {
+                    // Must not equal the previous seeds.
+                    assert_ne!(previous, actual);
+                    // Should equal the expected updated seeds.
+                    assert_eq!(expected, actual)
+                });
+        },
+    )
+    .add_systems(
+        Last,
+        |source: Query<&RngSeed<WyRand>, With<Source>>,
+         children: Query<&RngSeed<WyRand>, Without<Source>>| {
+            // Check we have the correct amount of allocated RNG entities
+            assert_eq!(source.iter().size_hint().0, 1);
+            assert_eq!(children.iter().size_hint().0, 5);
+        },
+    );
+
+    app.run();
+}
+
+#[test]
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn observer_children_reseeding() {
     use bevy::prelude::{
         Component, Entity, EntityWorldMut, Event, Last, PostUpdate, PreUpdate, Startup, Trigger,
         With, Without, World,
     };
-    use bevy_rand::{
-        seed::RngSeed,
-        traits::{ForkableInnerSeed, ForkableRng},
-    };
+    use bevy_rand::traits::{ForkableInnerSeed, ForkableRng};
 
     let seed = [2; 8];
 

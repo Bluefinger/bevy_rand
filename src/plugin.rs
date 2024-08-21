@@ -1,5 +1,12 @@
-use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
-use bevy::prelude::{App, Plugin};
+use std::marker::PhantomData;
+
+use crate::{
+    observers::{LinkRngSourceToTarget, SeedFromGlobal},
+    component::EntropyComponent,
+    resource::GlobalEntropy,
+    seed::RngSeed,
+};
+use bevy::prelude::{App, Component, Plugin};
 use bevy_prng::{EntropySeed, SeedableEntropySource};
 use rand_core::SeedableRng;
 
@@ -75,6 +82,29 @@ where
             app.init_resource::<GlobalEntropy<R>>();
         }
 
-        app.world_mut().register_component_hooks::<RngSeed<R>>();
+        app.observe(SeedFromGlobal::<R>::seed_from_global)
+            .world_mut()
+            .register_component_hooks::<RngSeed<R>>();
+    }
+}
+
+pub struct ObserveEntropySources<Target: Component, Rng: SeedableEntropySource + 'static> {
+    rng: PhantomData<Rng>,
+    target: PhantomData<Target>,
+}
+
+impl<Target: Component, Rng: SeedableEntropySource + 'static> ObserveEntropySources<Target, Rng> {
+    pub fn new() -> Self {
+        Self { rng: PhantomData, target: PhantomData }
+    }
+}
+
+impl<Target: Component, Rng: SeedableEntropySource + 'static> Plugin
+    for ObserveEntropySources<Target, Rng>
+where
+    Rng::Seed: Send + Sync + Clone,
+{
+    fn build(&self, app: &mut App) {
+        LinkRngSourceToTarget::<Target, Rng>::initialize(app);
     }
 }
