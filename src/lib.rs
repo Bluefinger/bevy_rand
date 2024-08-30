@@ -20,5 +20,6 @@ mod thread_local_entropy;
 pub mod traits;
 #[cfg(doc)]
 pub mod tutorial;
-/// Utility commands
+#[cfg(feature = "experimental")]
+/// Utility observers for handling seeding between parent/child entropy sources
 pub mod observers;
