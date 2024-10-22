@@ -1,8 +1,6 @@
 #[cfg(feature = "experimental")]
 use std::marker::PhantomData;
 
-#[cfg(feature = "experimental")]
-use crate::observers::{LinkRngSourceToTarget, SeedFromGlobal};
 use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
 #[cfg(feature = "experimental")]
 use bevy::prelude::Component;
@@ -81,22 +79,24 @@ where
         } else {
             app.init_resource::<GlobalEntropy<R>>();
         }
-
         #[cfg(feature = "experimental")]
-        app.observe(SeedFromGlobal::<R>::seed_from_global);
+        app.add_observer(crate::observers::seed_from_global::<R>);
         app.world_mut().register_component_hooks::<RngSeed<R>>();
     }
 }
 
+/// Plugin for setting up linked RNG sources
 #[cfg(feature = "experimental")]
-pub struct ObserveEntropySources<Target: Component, Rng: SeedableEntropySource + 'static> {
+pub struct LinkedEntropySources<Target: Component, Rng: SeedableEntropySource + 'static> {
     rng: PhantomData<Rng>,
     target: PhantomData<Target>,
 }
 
 #[cfg(feature = "experimental")]
-impl<Target: Component, Rng: SeedableEntropySource + 'static> ObserveEntropySources<Target, Rng> {
-    pub fn new() -> Self {
+impl<Target: Component, Rng: SeedableEntropySource + 'static> Default
+    for LinkedEntropySources<Target, Rng>
+{
+    fn default() -> Self {
         Self {
             rng: PhantomData,
             target: PhantomData,
@@ -106,11 +106,13 @@ impl<Target: Component, Rng: SeedableEntropySource + 'static> ObserveEntropySour
 
 #[cfg(feature = "experimental")]
 impl<Target: Component, Rng: SeedableEntropySource + 'static> Plugin
-    for ObserveEntropySources<Target, Rng>
+    for LinkedEntropySources<Target, Rng>
 where
     Rng::Seed: Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
-        LinkRngSourceToTarget::<Target, Rng>::initialize(app);
+        app.add_observer(crate::observers::seed_from_parent::<Rng>)
+            .add_observer(crate::observers::seed_children::<Target, Rng>)
+            .add_observer(crate::observers::link_targets::<Target, Rng>);
     }
 }

@@ -301,7 +301,7 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = value.take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
+        let mut dynamic = value.try_take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
 
         // The two instances should be the same
         assert_eq!(
@@ -351,7 +351,7 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = value.take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
+        let mut dynamic = value.try_take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
 
         // The two instances should be the same
         assert_eq!(
