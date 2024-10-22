@@ -22,8 +22,8 @@ mod xoshiro;
 use std::fmt::Debug;
 
 use bevy::{
-    prelude::{FromReflect, Reflect},
-    reflect::{GetTypeRegistration, TypePath, Typed},
+    prelude::FromReflect,
+    reflect::{Reflectable, Typed},
 };
 use rand_core::{RngCore, SeedableRng};
 #[cfg(feature = "serialize")]
@@ -49,11 +49,8 @@ pub trait SeedableEntropySource:
     + PartialEq
     + Sync
     + Send
-    + Reflect
-    + TypePath
     + FromReflect
-    + GetTypeRegistration
-    + Typed
+    + Reflectable
     + Serialize
     + for<'a> Deserialize<'a>
     + private::SealedSeedable
@@ -71,10 +68,8 @@ pub trait EntropySeed:
     + Clone
     + Sync
     + Send
-    + Reflect
-    + TypePath
+    + Reflectable
     + FromReflect
-    + GetTypeRegistration
     + Serialize
     + for<'a> Deserialize<'a>
 {
@@ -89,10 +84,8 @@ impl<
             + Clone
             + Sync
             + Send
-            + Reflect
-            + TypePath
+            + Reflectable
             + FromReflect
-            + GetTypeRegistration
             + Serialize
             + for<'a> Deserialize<'a>,
     > EntropySeed for T
@@ -109,11 +102,8 @@ pub trait SeedableEntropySource:
     + Debug
     + PartialEq
     + AsMut<[u8]>
-    + Reflect
-    + TypePath
+    + Reflectable
     + FromReflect
-    + GetTypeRegistration
-    + Typed
     + Sync
     + Send
     + private::SealedSeedable
