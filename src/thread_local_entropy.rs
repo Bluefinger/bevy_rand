@@ -104,19 +104,14 @@ mod tests {
 
     #[test]
     fn unique_source_per_thread() {
-        use std::sync::mpsc::channel;
-
         let mut bytes1: Vec<u8> = vec![0u8; 128];
         let mut bytes2: Vec<u8> = vec![0u8; 128];
 
         let b1 = bytes1.as_mut();
         let b2 = bytes2.as_mut();
 
-        let (sender, receiver) = channel();
-        let sender2 = sender.clone();
-
-        std::thread::scope(|s| {
-            s.spawn(move || {
+        let (a, b) = std::thread::scope(|s| {
+            let a = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
                 let mut rng = ThreadLocalEntropy::new();
@@ -124,11 +119,9 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
 
-                let source = rng.access_local_source(|rng| rng.clone());
-
-                sender.send(source).unwrap();
+                rng.access_local_source(|rng| rng.clone())
             });
-            s.spawn(move || {
+            let b = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
                 let mut rng = ThreadLocalEntropy::new();
@@ -136,15 +129,14 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
 
-                let source = rng.access_local_source(|rng| rng.clone());
-
-                sender2.send(source).unwrap();
+                rng.access_local_source(|rng| rng.clone())
             });
+
+            (a.join(), b.join())
         });
 
-        // Wait for the threads to execute and resolve.
-        let a = receiver.recv().unwrap();
-        let b = receiver.recv().unwrap();
+        let a = a.unwrap();
+        let b = b.unwrap();
 
         // The references to the thread local RNG sources will not be
         // the same, as they each were initialised with different random

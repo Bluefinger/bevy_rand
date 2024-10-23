@@ -2,17 +2,18 @@ macro_rules! newtype_prng {
     ($newtype:tt, $rng:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
         #[derive(Debug, Clone, PartialEq, Reflect)]
+        #[reflect(opaque)]
         #[cfg_attr(
             feature = "serialize",
             derive(::serde_derive::Serialize, ::serde_derive::Deserialize)
         )]
         #[cfg_attr(
             all(feature = "serialize"),
-            reflect_value(Debug, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(Debug, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize")),
-            reflect_value(Debug, PartialEq, FromReflect)
+            reflect(Debug, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[type_path = "bevy_prng"]
@@ -56,6 +57,11 @@ macro_rules! newtype_prng {
             #[inline]
             fn from_seed(seed: Self::Seed) -> Self {
                 Self::new(<$rng>::from_seed(seed))
+            }
+
+            #[inline]
+            fn from_rng<R: RngCore>(source: R) -> Result<Self, ::rand_core::Error> {
+                Ok(Self::new(<$rng>::from_rng(source)?))
             }
         }
 

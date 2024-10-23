@@ -27,7 +27,8 @@ use bevy_prng::{ChaCha8Rng, WyRand};
 When you've selected and imported the PRNG algorithm you want to use, you then need to enable it by adding the `EntropyPlugin` to your app. This then makes it available for use with `GlobalEntropy` and `EntropyComponent`, as well as registering the types for reflection.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
@@ -42,7 +43,8 @@ fn main() {
 By default, the plugin will instantiate the `GlobalEntropy` resource with a random seed from OS sources. If you want to initialise the plugin and `GlobalEntropy` with a set seed or from a different source, use [`crate::prelude::EntropyPlugin::with_seed`] instead.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;

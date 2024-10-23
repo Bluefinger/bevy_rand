@@ -3,7 +3,7 @@
 In order to move beyond the restrictions placed by `GlobalEntropy` and achieve determinism *with parallelism*, where the RNG source lives has to go from a global source to one owned by the entities themselves. `EntropyComponent` enables us to attach a PRNG to any given entity, and thus sidesteps not only forcing systems to run serially to each other, but also avoids the problem of queries not being stable in ordering. In fact, as ordering is no longer an issue, parallel iteration of queries is made possible as we avoid borrowing issues if each entity we queried owns its own RNG source.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyComponent;
 
@@ -22,7 +22,7 @@ fn setup_source(mut commands: Commands) {
 In the above example, we are creating an entity with a `Source` marker component and attaching an `EntropyComponent` to it with the `WyRand` algorithm and a randomised seed. To then access this source, we simply query `Query<&mut EntropyComponent<WyRand>, With<Source>>`. In this case, we are creating a single entity with an RNG source, but there's no reason why many more can't have an RNG source attached to them.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyComponent;
 
@@ -49,7 +49,7 @@ Forking is the process of generating a new seed from an RNG source and creating 
 Because PRNG algorithms are deterministic, forking is a deterministic process, and it allows us to have one seed state create many "random" states while being hard to predict. `bevy_rand` makes it super easy to fork new `EntropyComponent`s, allowing you to source new RNGs from `GlobalEntropy` or even other `EntropyComponent`s!
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::{EntropyComponent, GlobalEntropy, ForkableRng};
 
@@ -68,7 +68,7 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8
 We can even fork to different PRNG algorithms.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::prelude::{EntropyComponent, GlobalEntropy, ForkableAsRng};
 
@@ -87,7 +87,7 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8
 So we created a `Source` entity with an RNG source, let's use it to spawn more entities with RNG sources!
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 
