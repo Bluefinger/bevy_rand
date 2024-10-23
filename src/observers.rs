@@ -12,6 +12,7 @@ use bevy_prng::SeedableEntropySource;
 use crate::{
     prelude::{EntropyComponent, ForkableSeed, GlobalEntropy},
     seed::RngSeed,
+    traits::SeedSource,
 };
 
 /// Component to denote a source has linked children entities
@@ -62,6 +63,21 @@ impl<Rng: SeedableEntropySource> Default for SeedFromParent<Rng> {
     }
 }
 
+/// Observer event for triggering an entity to use a new seed value from the
+/// the event.
+#[derive(Debug, Event)]
+pub struct ReseedRng<Rng: SeedableEntropySource>(Rng::Seed);
+
+impl<Rng: SeedableEntropySource> ReseedRng<Rng>
+where
+    Rng::Seed: Send + Sync + Clone,
+{
+    /// Create a new reseed event with a specified seed value.
+    pub fn new(seed: Rng::Seed) -> Self {
+        Self(seed)
+    }
+}
+
 /// Observer event for linking a source Rng to one or many target Rngs. This then creates the
 /// association needed so that when the source Rng's seed is changed, it propagates new seeds to
 /// all linked Rngs.
@@ -83,6 +99,20 @@ where
             source: PhantomData,
             target: PhantomData,
         }
+    }
+}
+
+/// Observer system for reseeding a target RNG on an entity with a provided seed value.
+pub fn reseed<Rng: SeedableEntropySource>(trigger: Trigger<ReseedRng<Rng>>, mut commands: Commands)
+where
+    Rng::Seed: Sync + Send + Clone,
+{
+    let target = trigger.entity();
+
+    if target != Entity::PLACEHOLDER {
+        commands
+            .entity(target)
+            .insert(RngSeed::<Rng>::from_seed(trigger.0.clone()));
     }
 }
 

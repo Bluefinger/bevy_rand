@@ -81,7 +81,8 @@ where
             app.init_resource::<GlobalEntropy<R>>();
         }
         #[cfg(feature = "experimental")]
-        app.add_observer(crate::observers::seed_from_global::<R>);
+        app.add_observer(crate::observers::seed_from_global::<R>)
+            .add_observer(crate::observers::reseed::<R>);
         app.world_mut().register_component_hooks::<RngSeed<R>>();
     }
 }

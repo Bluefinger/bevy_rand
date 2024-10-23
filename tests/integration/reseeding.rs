@@ -130,23 +130,14 @@ fn component_fork_as_seed() {
 }
 
 #[test]
+#[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn observer_global_reseeding() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
-    use bevy_ecs::prelude::{Entity, Event, Trigger, With};
-    use bevy_rand::{seed::RngSeed, traits::ForkableInnerSeed};
+    use bevy_ecs::prelude::{Entity, With};
+    use bevy_rand::{observers::ReseedRng, seed::RngSeed, traits::ForkableInnerSeed};
 
     let seed = [2; 8];
-
-    #[derive(Event)]
-    struct Reseed([u8; 8]);
-
-    fn reseed(trigger: Trigger<Reseed>, mut commands: Commands) {
-        if let Some(mut entity) = commands.get_entity(trigger.entity()) {
-            let seed = trigger.event();
-            entity.insert(RngSeed::<WyRand>::from_seed(seed.0));
-        }
-    }
 
     let mut app = App::new();
 
@@ -180,7 +171,7 @@ fn observer_global_reseeding() {
              query: Query<Entity, With<EntropyComponent<WyRand>>>,
              mut source: ResMut<GlobalEntropy<WyRand>>| {
                 for e in &query {
-                    commands.trigger_targets(Reseed(source.fork_inner_seed()), e);
+                    commands.trigger_targets(ReseedRng::<WyRand>::new(source.fork_inner_seed()), e);
                 }
             },
         )
@@ -198,8 +189,7 @@ fn observer_global_reseeding() {
                 .into_iter()
                 .zip(seeds.map(u64::from_ne_bytes))
                 .for_each(|(expected, actual)| assert_ne!(expected, actual));
-        })
-        .add_observer(reseed);
+        });
 
     app.run();
 }
