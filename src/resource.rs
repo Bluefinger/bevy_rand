@@ -9,8 +9,8 @@ use crate::{
     },
 };
 use bevy_ecs::prelude::{ReflectFromWorld, ReflectResource, Resource};
-use bevy_reflect::{Reflect, ReflectFromReflect};
 use bevy_prng::SeedableEntropySource;
+use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -211,8 +211,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bevy_reflect::TypePath;
     use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
+    use bevy_reflect::TypePath;
 
     use super::*;
 
