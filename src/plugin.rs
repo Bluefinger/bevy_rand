@@ -2,9 +2,9 @@
 use std::marker::PhantomData;
 
 use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
+use bevy_app::{App, Plugin};
 #[cfg(feature = "experimental")]
 use bevy_ecs::prelude::Component;
-use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, SeedableEntropySource};
 use rand_core::SeedableRng;
 
@@ -88,32 +88,38 @@ where
 
 /// Plugin for setting up linked RNG sources
 #[cfg(feature = "experimental")]
-pub struct LinkedEntropySources<Target: Component, Rng: SeedableEntropySource + 'static> {
+pub struct LinkedEntropySources<
+    Source: Component,
+    Target: Component,
+    Rng: SeedableEntropySource + 'static,
+> {
     rng: PhantomData<Rng>,
+    source: PhantomData<Source>,
     target: PhantomData<Target>,
 }
 
 #[cfg(feature = "experimental")]
-impl<Target: Component, Rng: SeedableEntropySource + 'static> Default
-    for LinkedEntropySources<Target, Rng>
+impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Default
+    for LinkedEntropySources<Source, Target, Rng>
 {
     fn default() -> Self {
         Self {
             rng: PhantomData,
+            source: PhantomData,
             target: PhantomData,
         }
     }
 }
 
 #[cfg(feature = "experimental")]
-impl<Target: Component, Rng: SeedableEntropySource + 'static> Plugin
-    for LinkedEntropySources<Target, Rng>
+impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Plugin
+    for LinkedEntropySources<Source, Target, Rng>
 where
     Rng::Seed: Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
         app.add_observer(crate::observers::seed_from_parent::<Rng>)
-            .add_observer(crate::observers::seed_children::<Target, Rng>)
-            .add_observer(crate::observers::link_targets::<Target, Rng>);
+            .add_observer(crate::observers::seed_children::<Source, Target, Rng>)
+            .add_observer(crate::observers::link_targets::<Source, Target, Rng>);
     }
 }

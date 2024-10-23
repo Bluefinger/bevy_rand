@@ -226,13 +226,13 @@ fn generic_observer_reseeding_from_parent() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        LinkedEntropySources::<Target, WyRand>::default(),
+        LinkedEntropySources::<Source, Target, WyRand>::default(),
     ))
     .add_systems(Startup, |mut commands: Commands| {
         let source = commands.spawn(Source).id();
         commands.spawn(Target);
 
-        commands.trigger_targets(LinkRngSourceToTarget::<Target, WyRand>::default(), source);
+        commands.trigger(LinkRngSourceToTarget::<Source, Target, WyRand>::default());
         commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), source);
     })
     .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Target>>| {
@@ -290,13 +290,13 @@ fn generic_observer_reseeding_children() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        LinkedEntropySources::<Target, WyRand>::default(),
+        LinkedEntropySources::<Source, Target, WyRand>::default(),
     ))
     .add_systems(Startup, |mut commands: Commands| {
         commands.spawn_batch(vec![Target; 5]);
         let source = commands.spawn(Source).id();
 
-        commands.trigger_targets(LinkRngSourceToTarget::<Target, WyRand>::default(), source);
+        commands.trigger(LinkRngSourceToTarget::<Source, Target, WyRand>::default());
         commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), source);
     })
     .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Target>>| {

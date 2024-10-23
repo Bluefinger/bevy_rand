@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
 use bevy_ecs::{component::StorageType, prelude::Component};
-use bevy_reflect::Reflect;
 use bevy_prng::SeedableEntropySource;
+use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
 
 use crate::{component::EntropyComponent, traits::SeedSource};
@@ -74,11 +74,11 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn reflection_serialization_round_trip_works() {
+        use bevy_prng::WyRand;
         use bevy_reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
         };
-        use bevy_prng::WyRand;
         use ron::to_string;
         use serde::de::DeserializeSeed;
 
