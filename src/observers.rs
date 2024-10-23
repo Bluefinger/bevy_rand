@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy::prelude::{
+use bevy_ecs::prelude::{
     Commands, Component, Entity, EntityWorldMut, Event, OnInsert, Query, ResMut, Trigger, With,
 };
 

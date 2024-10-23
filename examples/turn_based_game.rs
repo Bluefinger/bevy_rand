@@ -1,6 +1,7 @@
 #![allow(clippy::type_complexity)]
 
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::prelude::*;
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::{EntropyComponent, EntropyPlugin, ForkableRng, GlobalEntropy};
 use rand::prelude::{IteratorRandom, Rng};

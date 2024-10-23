@@ -3,7 +3,7 @@
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
@@ -26,7 +26,7 @@ When using `GlobalEntropy`, the way to ensure deterministic output/usage with th
 An example of a guaranteed deterministic system is perhaps spawning new entities with a randomised component value:
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
@@ -52,7 +52,7 @@ The above system will iterate a set number of times, and will yield 10 randomis 
 However, iterating over queries will **not** yield deterministic output, as queries are not guaranteed to iterate over collected entities in the same order every time the system is ran. Therefore, the below example will not have deterministic output.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
