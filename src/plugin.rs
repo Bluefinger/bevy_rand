@@ -3,8 +3,8 @@ use std::marker::PhantomData;
 
 use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
 #[cfg(feature = "experimental")]
-use bevy::prelude::Component;
-use bevy::prelude::{App, Plugin};
+use bevy_ecs::prelude::Component;
+use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, SeedableEntropySource};
 use rand_core::SeedableRng;
 
@@ -13,7 +13,8 @@ use rand_core::SeedableRng;
 /// entropy components.
 ///
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_app::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::{ChaCha8Rng, WyRand};
 /// use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 /// use rand_core::RngCore;

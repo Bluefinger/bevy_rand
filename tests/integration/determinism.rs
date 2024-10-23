@@ -1,4 +1,5 @@
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 use bevy_rand::prelude::{
     EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy,
@@ -107,7 +108,7 @@ fn test_parallel_determinism() {
 
     #[cfg(not(target_arch = "wasm32"))]
     app.edit_schedule(Update, |schedule| {
-        use bevy::ecs::schedule::ExecutorKind;
+        use bevy_ecs::schedule::ExecutorKind;
 
         // Ensure the Update schedule is Multithreaded on non-WASM platforms
         schedule.set_executor_kind(ExecutorKind::MultiThreaded);

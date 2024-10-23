@@ -8,7 +8,8 @@ use crate::{
         ForkableRng, ForkableSeed,
     },
 };
-use bevy::prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource};
+use bevy_ecs::prelude::{ReflectFromWorld, ReflectResource, Resource};
+use bevy_reflect::{Reflect, ReflectFromReflect};
 use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
@@ -16,7 +17,7 @@ use rand_core::{RngCore, SeedableRng};
 use crate::thread_local_entropy::ThreadLocalEntropy;
 
 #[cfg(feature = "serialize")]
-use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
+use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
@@ -28,7 +29,7 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::ChaCha8Rng;
 /// use bevy_rand::prelude::GlobalEntropy;
 /// use rand_core::RngCore;
@@ -210,7 +211,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::TypePath;
+    use bevy_reflect::TypePath;
     use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 
     use super::*;
@@ -271,7 +272,7 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_untyped_serialization() {
-        use bevy::reflect::{
+        use bevy_reflect::{
             serde::{ReflectDeserializer, ReflectSerializer},
             FromReflect, TypeRegistry,
         };
@@ -319,7 +320,7 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_typed_serialization() {
-        use bevy::reflect::{
+        use bevy_reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
         };

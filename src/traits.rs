@@ -11,7 +11,7 @@ pub trait ForkableRng: EcsEntropySource {
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method preserves the RNG algorithm between original and forked instances.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
     ///
@@ -43,7 +43,7 @@ pub trait ForkableAsRng: EcsEntropySource {
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
@@ -73,7 +73,7 @@ pub trait ForkableInnerRng: EcsEntropySource {
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method yields the inner PRNG instance directly as a forked instance.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerRng};
     /// use bevy_prng::ChaCha8Rng;
     /// use rand_core::RngCore;
@@ -109,7 +109,7 @@ where
     /// Fork a new seed from the original entropy source.
     /// This method preserves the RNG algorithm between original instance and forked seed.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
     ///
@@ -147,7 +147,7 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
     /// Fork a new seed from the original entropy source.
     /// This method allows one to specify the RNG algorithm to be used for the forked seed.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsSeed};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
@@ -187,7 +187,7 @@ where
     /// Fork a new seed from the original entropy source.
     /// This method preserves the RNG algorithm between original instance and forked seed.
     /// ```
-    /// use bevy::prelude::*;
+    /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
     /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerSeed, SeedSource, RngSeed};
     ///

@@ -3,14 +3,11 @@ use crate::{
     SeedableEntropySource,
 };
 
-use bevy::{
-    prelude::{Reflect, ReflectDefault, ReflectFromReflect},
-    reflect::reflect_remote,
-};
+use bevy_reflect::{reflect_remote, std_traits::ReflectDefault, Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "serialize")]
-use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
+use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
 /// Remote reflected version of [`rand_xoshiro::Seed512`], needed to support
 /// proper reflection for the 512 bit variants of the Xoshiro PRNG.

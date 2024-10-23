@@ -24,7 +24,7 @@ serialize = [
 ]
 
 [dependencies]
-bevy.workspace = true
+bevy_reflect.workspace = true
 rand_core.workspace = true
 serde = { workspace = true, optional = true }
 serde_derive = { workspace = true, optional = true }

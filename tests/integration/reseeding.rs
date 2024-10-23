@@ -1,7 +1,5 @@
-use bevy::{
-    app::{App, PreStartup, Update},
-    prelude::{Commands, Query, ResMut},
-};
+use bevy_app::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
     plugin::EntropyPlugin,
@@ -134,7 +132,8 @@ fn component_fork_as_seed() {
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn observer_global_reseeding() {
-    use bevy::prelude::{Entity, Event, PostUpdate, PreUpdate, Startup, Trigger, With};
+    use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
+    use bevy_ecs::prelude::{Entity, Event, Trigger, With};
     use bevy_rand::{seed::RngSeed, traits::ForkableInnerSeed};
 
     let seed = [2; 8];
@@ -209,7 +208,8 @@ fn observer_global_reseeding() {
 #[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn generic_observer_reseeding_from_parent() {
-    use bevy::prelude::{Component, Entity, PostUpdate, PreUpdate, Startup, With};
+    use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
+    use bevy_ecs::prelude::{Entity, With};
     use bevy_rand::{
         observers::{LinkRngSourceToTarget, SeedFromGlobal, SeedFromParent},
         plugin::LinkedEntropySources,
@@ -272,7 +272,8 @@ fn generic_observer_reseeding_from_parent() {
 #[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 fn generic_observer_reseeding_children() {
-    use bevy::prelude::{Component, Entity, Last, PostUpdate, PreUpdate, Startup, With, Without};
+    use bevy_app::prelude::{Last, PostUpdate, PreUpdate, Startup};
+    use bevy_ecs::prelude::{Component, Entity, With, Without};
     use bevy_rand::{
         observers::{LinkRngSourceToTarget, SeedFromGlobal},
         plugin::LinkedEntropySources,

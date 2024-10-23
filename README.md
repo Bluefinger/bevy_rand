@@ -37,7 +37,8 @@ The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cas
 Before a PRNG can be used via `GlobalEntropy` or `EntropyComponent`, it must be registered via the plugin.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
+use bevy_app::App;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
@@ -54,7 +55,7 @@ fn main() {
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
-use bevy::prelude::ResMut;
+use bevy_ecs::prelude::ResMut;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
@@ -69,7 +70,7 @@ fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
 For seeding `EntropyComponent`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `EntropyComponent` instances.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
 
@@ -88,7 +89,7 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>
 `EntropyComponent`s can be seeded/forked from other `EntropyComponent`s as well.
 
 ```rust
-use bevy::prelude::*;
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 
