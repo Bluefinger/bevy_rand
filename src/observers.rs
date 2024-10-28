@@ -136,10 +136,10 @@ pub fn seed_from_parent<Rng: SeedableEntropySource>(
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    let entity = trigger.entity();
+    let target = trigger.entity();
 
-    if entity != Entity::PLACEHOLDER {
-        commands.entity(entity).queue(|mut entity: EntityWorldMut| {
+    if target != Entity::PLACEHOLDER {
+        commands.entity(target).queue(|mut entity: EntityWorldMut| {
             let Some(parent) = entity.get::<RngParent<Rng>>().map(|parent| parent.entity()) else {
                 return;
             };
@@ -179,7 +179,9 @@ pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropyS
     }
 }
 
-/// Observer System for handling linking a source Rng with all target entities.
+/// Observer System for handling linking a source Rng with all target entities. Highly recommended
+/// that the Source Rng is unique, or has a marker component that designates it as unique, otherwise
+/// this observer will pick whichever get queried first during linking.
 pub fn link_targets<Source: Component, Target: Component, Rng: SeedableEntropySource>(
     _trigger: Trigger<LinkRngSourceToTarget<Source, Target, Rng>>,
     q_source: Query<Entity, With<Source>>,
@@ -194,15 +196,34 @@ pub fn link_targets<Source: Component, Target: Component, Rng: SeedableEntropySo
     };
 
     if let Some(parent) = source {
-        let targets: Vec<_> = q_target
-            .iter()
-            .map(|target| (target, RngParent::<Rng>::new(parent)))
-            .collect();
+        let mut targets = q_target.iter();
 
-        commands.insert_batch(targets);
+        let assigned = match targets.size_hint().0 {
+            0 => false,
+            1 => {
+                let target = targets.next().unwrap();
 
-        commands
-            .entity(parent)
-            .insert(RngChildren::<Rng>::default());
+                commands
+                    .entity(target)
+                    .insert(RngParent::<Rng>::new(parent));
+
+                true
+            }
+            _ => {
+                let targets: Vec<_> = targets
+                    .map(|target| (target, RngParent::<Rng>::new(parent)))
+                    .collect();
+
+                commands.insert_batch(targets);
+
+                true
+            }
+        };
+
+        if assigned {
+            commands
+                .entity(parent)
+                .insert(RngChildren::<Rng>::default());
+        }
     }
 }
