@@ -199,7 +199,7 @@ fn observer_global_reseeding() {
                 .zip(seeds.map(u64::from_ne_bytes))
                 .for_each(|(expected, actual)| assert_ne!(expected, actual));
         })
-        .observe(reseed);
+        .add_observer(reseed);
 
     app.run();
 }
@@ -278,7 +278,7 @@ fn observer_children_reseeding() {
 
                 let mut source = commands.spawn(seed);
 
-                source.add(|mut entity: EntityWorldMut| {
+                source.queue(|mut entity: EntityWorldMut| {
                     // FORK! Quicker than allocating a new Vec of components to spawn.
                     let mut rng = entity
                         .get_mut::<EntropyComponent<WyRand>>()
@@ -361,8 +361,8 @@ fn observer_children_reseeding() {
                 assert_eq!(children.iter().size_hint().0, 5);
             },
         )
-        .observe(reseed)
-        .observe(reseed_children);
+        .add_observer(reseed)
+        .add_observer(reseed_children);
 
     app.run();
 }
