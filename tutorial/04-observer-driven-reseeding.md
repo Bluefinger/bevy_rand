@@ -4,7 +4,7 @@ The following feature is _experimental_ so to enable it, you'll need to edit you
 
 By default, when the `experimental` feature is enabled, you'll be able to trigger a reseeding for a given entity either by pulling from a global source, or by providing a set seed value. This does not require any specific setup, and can simply be triggered by emitting the event on the entity needing to be reseeded. ALl observer events require providing a generic for the RNG algorithm to be targetted, as an entity could have multiple RNG sources attached to it.
 
-```rust
+```rust ignore
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::observers::SeedFromGlobal;
@@ -21,7 +21,7 @@ fn reseed_target_entities_from_global(mut commands: Commands, mut q_targets: Que
 
 Alternatively, one can provide a set seed to reseed all target entities with:
 
-```rust
+```rust ignore
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::observers::ReseedRng;
@@ -42,7 +42,7 @@ With these observers, you can initialise entropy components on all targetted ent
 
 Additionally, you can link entities to draw their seeds from other source entities instead of the global resources. So one `Source` entity can then seed many `Target` entities, and whenever the `Source` entity is updated with a new seed value, it then automatically pushes new seeds to its linked targets. Note: this is NOT a `bevy_hierarchy` relationship, and while the `Source` will have "child" entities, removing/despawning the source entity will *not* despawn the children entities. They will simply no longer have a valid "link". A new link can be established by triggering another "link" event.
 
-```rust
+```rust ignore
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::observers::{LinkRngSourceToTarget, SeedFromGlobal};
@@ -71,7 +71,7 @@ fn initial_setup(mut commands: Commands) {
 
 Once the link has been created, child entities can also pull a new seed from its parent source. So if you want to reseed *one* entity from its parent source, but not all of the entities that have the same source, you can use the `SeedFromParent` observer event to achieve this.
 
-```rust
+```rust ignore
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::observers::SeedFromParent;

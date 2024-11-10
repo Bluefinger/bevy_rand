@@ -5,8 +5,7 @@ use bevy_rand::{
     plugin::EntropyPlugin,
     prelude::EntropyComponent,
     resource::GlobalEntropy,
-    seed::RngSeed,
-    traits::{ForkableAsSeed, ForkableSeed, SeedSource},
+    traits::{ForkableAsSeed, ForkableSeed},
 };
 use rand_core::{RngCore, SeedableRng};
 
@@ -135,7 +134,7 @@ fn component_fork_as_seed() {
 fn observer_global_reseeding() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
     use bevy_ecs::prelude::{Entity, With};
-    use bevy_rand::{observers::ReseedRng, seed::RngSeed, traits::ForkableInnerSeed};
+    use bevy_rand::{observers::ReseedRng, seed::RngSeed, traits::{ForkableInnerSeed, SeedSource}};
 
     let seed = [2; 8];
 
@@ -203,6 +202,8 @@ fn generic_observer_reseeding_from_parent() {
     use bevy_rand::{
         observers::{LinkRngSourceToTarget, SeedFromGlobal, SeedFromParent},
         plugin::LinkedEntropySources,
+        seed::RngSeed,
+        traits::SeedSource,
     };
 
     let seed = [2u8; 8];
@@ -267,6 +268,8 @@ fn generic_observer_reseeding_children() {
     use bevy_rand::{
         observers::{LinkRngSourceToTarget, SeedFromGlobal},
         plugin::LinkedEntropySources,
+        seed::RngSeed,
+        traits::SeedSource,
     };
 
     let seed = [2u8; 8];
