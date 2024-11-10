@@ -1,8 +1,5 @@
 use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
-use bevy::{
-    prelude::{App, Plugin},
-    reflect::Typed,
-};
+use bevy::prelude::{App, Plugin};
 use bevy_prng::{EntropySeed, SeedableEntropySource};
 use rand_core::SeedableRng;
 
@@ -63,9 +60,9 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + Typed + 'static> Plugin for EntropyPlugin<R>
+impl<R: SeedableEntropySource + 'static> Plugin for EntropyPlugin<R>
 where
-    R::Seed: EntropySeed + Typed,
+    R::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
         app.register_type::<GlobalEntropy<R>>()

@@ -8,10 +8,7 @@ use crate::{
         ForkableRng, ForkableSeed,
     },
 };
-use bevy::{
-    prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource},
-    reflect::Typed,
-};
+use bevy::prelude::{Reflect, ReflectFromReflect, ReflectFromWorld, ReflectResource, Resource};
 use bevy_prng::SeedableEntropySource;
 use rand_core::{RngCore, SeedableRng};
 
@@ -65,8 +62,8 @@ use serde::{Deserialize, Serialize};
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>, R::Seed: for<'a> Deserialize<'a>"))
 )]
-#[cfg_attr(feature = "serialize", reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone + Serialize + Typed + for<'a> Deserialize<'a>))]
-#[cfg_attr(not(feature = "serialize"), reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone + Typed))]
+#[cfg_attr(feature = "serialize", reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone + Serialize + for<'a> Deserialize<'a>))]
+#[cfg_attr(not(feature = "serialize"), reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone))]
 pub struct GlobalEntropy<R: SeedableEntropySource + 'static> {
     seed: R::Seed,
     rng: R,
