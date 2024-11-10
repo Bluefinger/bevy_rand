@@ -122,6 +122,7 @@ fn setup_npc_from_source(
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
+- **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this will expose utilities for making use of observers for reseeding sources.
 
 ## Supported Versions & MSRV
 
