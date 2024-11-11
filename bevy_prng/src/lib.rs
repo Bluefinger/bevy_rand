@@ -21,10 +21,7 @@ mod xoshiro;
 
 use std::fmt::Debug;
 
-use bevy::{
-    prelude::FromReflect,
-    reflect::{Reflectable, Typed},
-};
+use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
 #[cfg(feature = "serialize")]
 use serde::{Deserialize, Serialize};
