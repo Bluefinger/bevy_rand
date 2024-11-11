@@ -76,6 +76,7 @@ macro_rules! newtype_prng {
     };
 }
 
+#[cfg(feature = "rand_xoshiro")]
 macro_rules! newtype_prng_remote {
     ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
@@ -154,4 +155,5 @@ macro_rules! newtype_prng_remote {
 }
 
 pub(crate) use newtype_prng;
+#[cfg(feature = "rand_xoshiro")]
 pub(crate) use newtype_prng_remote;
