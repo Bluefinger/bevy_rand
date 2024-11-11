@@ -119,7 +119,7 @@ fn setup_npc_from_source(
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also reexports `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth without the need to pull in `rand_xoshiro` explicitly.
+- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 
 ## Supported Versions & MSRV
