@@ -23,7 +23,7 @@ use std::fmt::Debug;
 
 use bevy::{
     prelude::{FromReflect, Reflect},
-    reflect::{GetTypeRegistration, TypePath},
+    reflect::{GetTypeRegistration, TypePath, Typed},
 };
 use rand_core::{RngCore, SeedableRng};
 #[cfg(feature = "serialize")]
@@ -33,9 +33,6 @@ use serde::{Deserialize, Serialize};
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
-#[cfg(feature = "rand_xoshiro")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]
-pub use rand_xoshiro::Seed512;
 #[cfg(feature = "wyrand")]
 pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]
@@ -46,7 +43,7 @@ pub use xoshiro::*;
 #[cfg(feature = "serialize")]
 pub trait SeedableEntropySource:
     RngCore
-    + SeedableRng
+    + SeedableRng<Seed: Typed>
     + Clone
     + Debug
     + PartialEq
@@ -56,6 +53,7 @@ pub trait SeedableEntropySource:
     + TypePath
     + FromReflect
     + GetTypeRegistration
+    + Typed
     + Serialize
     + for<'a> Deserialize<'a>
     + private::SealedSeedable
@@ -106,7 +104,7 @@ impl<
 #[cfg(not(feature = "serialize"))]
 pub trait SeedableEntropySource:
     RngCore
-    + SeedableRng
+    + SeedableRng<Seed: Typed>
     + Clone
     + Debug
     + PartialEq
@@ -115,6 +113,7 @@ pub trait SeedableEntropySource:
     + TypePath
     + FromReflect
     + GetTypeRegistration
+    + Typed
     + Sync
     + Send
     + private::SealedSeedable

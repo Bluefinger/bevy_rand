@@ -23,5 +23,5 @@ pub use bevy_prng::{Pcg32, Pcg64, Pcg64Mcg};
 pub use bevy_prng::{
     Xoroshiro128Plus, Xoroshiro128PlusPlus, Xoroshiro128StarStar, Xoroshiro64Star,
     Xoroshiro64StarStar, Xoshiro128Plus, Xoshiro128PlusPlus, Xoshiro128StarStar, Xoshiro256Plus,
-    Xoshiro256PlusPlus, Xoshiro256StarStar, Xoshiro512Plus, Xoshiro512PlusPlus, Xoshiro512StarStar,
+    Xoshiro256PlusPlus, Xoshiro256StarStar,
 };

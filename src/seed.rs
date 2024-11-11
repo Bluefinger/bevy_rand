@@ -103,9 +103,9 @@ mod tests {
 
         assert!(value.is_dynamic());
         assert!(value.represents::<RngSeed<WyRand>>());
-        assert!(!value.is::<RngSeed<WyRand>>());
+        assert!(!value.try_downcast_ref::<RngSeed<WyRand>>().is_some());
 
-        let recreated = RngSeed::<WyRand>::from_reflect(value.as_reflect()).unwrap();
+        let recreated = RngSeed::<WyRand>::from_reflect(value.as_ref()).unwrap();
 
         assert_eq!(val.clone_seed(), recreated.clone_seed());
     }

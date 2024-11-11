@@ -273,7 +273,7 @@ mod tests {
     fn rng_untyped_serialization() {
         use bevy::reflect::{
             serde::{ReflectDeserializer, ReflectSerializer},
-            TypeRegistry,
+            FromReflect, TypeRegistry,
         };
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;
@@ -301,7 +301,7 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = value.take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
+        let mut dynamic = GlobalEntropy::<ChaCha8Rng>::take_from_reflect(value).unwrap();
 
         // The two instances should be the same
         assert_eq!(
@@ -321,7 +321,7 @@ mod tests {
     fn rng_typed_serialization() {
         use bevy::reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
-            GetTypeRegistration, TypeRegistry,
+            FromReflect, GetTypeRegistration, TypeRegistry,
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;
@@ -351,7 +351,7 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = value.take::<GlobalEntropy<ChaCha8Rng>>().unwrap();
+        let mut dynamic = GlobalEntropy::<ChaCha8Rng>::take_from_reflect(value).unwrap();
 
         // The two instances should be the same
         assert_eq!(

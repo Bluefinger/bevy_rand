@@ -7,27 +7,6 @@ use rand_core::{RngCore, SeedableRng};
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
 
 newtype_prng!(
-    Xoshiro512StarStar,
-    ::rand_xoshiro::Xoshiro512StarStar,
-    "A newtyped [`rand_xoshiro::Xoshiro512StarStar`] RNG",
-    "rand_xoshiro"
-);
-
-newtype_prng!(
-    Xoshiro512PlusPlus,
-    ::rand_xoshiro::Xoshiro512PlusPlus,
-    "A newtyped [`rand_xoshiro::Xoshiro512PlusPlus`] RNG",
-    "rand_xoshiro"
-);
-
-newtype_prng!(
-    Xoshiro512Plus,
-    ::rand_xoshiro::Xoshiro512Plus,
-    "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
-    "rand_xoshiro"
-);
-
-newtype_prng!(
     Xoshiro256StarStar,
     ::rand_xoshiro::Xoshiro256StarStar,
     "A newtyped [`rand_xoshiro::Xoshiro256StarStar`] RNG",

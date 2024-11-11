@@ -61,7 +61,7 @@ fn main() {
 The current set of PRNG algorithms that are supported out of the box in `bevy_prng` are as follows:
 
 - `wyrand`: This provides newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
-- `rand_xoshiro`: This provides newtyped `Xoshiro*` structs from `rand_xoshiro`. It also reexports `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth without the need to pull in `rand_xoshiro` explicitly.
+- `rand_xoshiro`: This provides newtyped `Xoshiro*` structs from `rand_xoshiro`.
 - `rand_pcg`: This provides newtyped `Pcg*` structs from `rand_pcg`.
 - `rand_chacha`: This provides newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 

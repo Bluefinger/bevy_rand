@@ -8,11 +8,11 @@ macro_rules! newtype_prng {
         )]
         #[cfg_attr(
             all(feature = "serialize"),
-            reflect_value(Debug, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(opaque, Debug, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize")),
-            reflect_value(Debug, PartialEq, FromReflect)
+            reflect(opaque, Debug, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[type_path = "bevy_prng"]
