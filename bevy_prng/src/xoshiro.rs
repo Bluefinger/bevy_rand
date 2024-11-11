@@ -1,10 +1,53 @@
-use crate::{newtype::newtype_prng, SeedableEntropySource};
+use crate::{
+    newtype::{newtype_prng, newtype_prng_remote},
+    SeedableEntropySource,
+};
 
-use bevy::prelude::{Reflect, ReflectFromReflect};
+use bevy::{
+    prelude::{Reflect, ReflectDefault, ReflectFromReflect},
+    reflect::reflect_remote,
+};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "serialize")]
 use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
+
+/// Remote reflected version of [`rand_xoshiro::Seed512`], needed to support
+/// proper reflection for the 512 bit variants of the Xoshiro PRNG.
+#[reflect_remote(::rand_xoshiro::Seed512)]
+#[derive(Debug, Default, Clone)]
+#[reflect(Debug, Default)]
+pub struct Seed512(pub [u8; 64]);
+
+impl AsMut<[u8]> for Seed512 {
+    fn as_mut(&mut self) -> &mut [u8] {
+        self.0.as_mut()
+    }
+}
+
+newtype_prng_remote!(
+    Xoshiro512StarStar,
+    ::rand_xoshiro::Xoshiro512StarStar,
+    Seed512,
+    "A newtyped [`rand_xoshiro::Xoshiro512StarStar`] RNG",
+    "rand_xoshiro"
+);
+
+newtype_prng_remote!(
+    Xoshiro512PlusPlus,
+    ::rand_xoshiro::Xoshiro512PlusPlus,
+    Seed512,
+    "A newtyped [`rand_xoshiro::Xoshiro512PlusPlus`] RNG",
+    "rand_xoshiro"
+);
+
+newtype_prng_remote!(
+    Xoshiro512Plus,
+    ::rand_xoshiro::Xoshiro512Plus,
+    Seed512,
+    "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
+    "rand_xoshiro"
+);
 
 newtype_prng!(
     Xoshiro256StarStar,

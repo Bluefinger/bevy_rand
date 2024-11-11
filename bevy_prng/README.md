@@ -15,7 +15,7 @@ By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you
 
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`.
+- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 
 In addition to these feature flags to enable various supported algorithms, there's also **`serialize`** flag to provide `serde` support for `Serialize`/`Deserialize`, which is enabled by default.
@@ -44,17 +44,19 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 `bevy_prng` uses the same MSRV as `bevy`.
 
-| `bevy` | `bevy_prng` |
-| ------ | ----------- |
-| v0.13  | v0.5        |
-| v0.12  | v0.2        |
-| v0.11  | v0.1        |
+| `bevy` | `bevy_prng`  |
+| ------ | ------------ |
+| v0.15  | v0.8         |
+| v0.14  | v0.7 -> v0.8 |
+| v0.13  | v0.5 -> v0.6 |
+| v0.12  | v0.2         |
+| v0.11  | v0.1         |
 
 The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as follows:
 
 | `bevy_prng`  | `rand_core` | `rand` |
 | ------------ | ----------- | ------ |
-| v0.1 -> v0.5 | v0.6        | v0.8   |
+| v0.1 -> v0.8 | v0.6        | v0.8   |
 
 ## License
 
