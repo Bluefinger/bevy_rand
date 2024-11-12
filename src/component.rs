@@ -7,15 +7,16 @@ use crate::{
         ForkableRng, ForkableSeed,
     },
 };
-use bevy::prelude::{Component, Reflect, ReflectComponent, ReflectFromReflect};
+use bevy_ecs::prelude::{Component, ReflectComponent};
 use bevy_prng::SeedableEntropySource;
+use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "thread_local_entropy")]
 use crate::thread_local_entropy::ThreadLocalEntropy;
 
 #[cfg(feature = "serialize")]
-use bevy::prelude::{ReflectDeserialize, ReflectSerialize};
+use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
 use serde::Deserialize;
@@ -33,7 +34,7 @@ use serde::Deserialize;
 ///
 /// Randomised Component:
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::WyRand;
 /// use bevy_rand::prelude::EntropyComponent;
 ///
@@ -51,7 +52,7 @@ use serde::Deserialize;
 ///
 /// Seeded from a resource:
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::ChaCha8Rng;
 /// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
 ///
@@ -69,7 +70,7 @@ use serde::Deserialize;
 ///
 /// Seeded from a component:
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::WyRand;
 /// use bevy_rand::prelude::{EntropyComponent, ForkableRng};
 ///
@@ -233,8 +234,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::TypePath;
     use bevy_prng::{ChaCha12Rng, ChaCha8Rng};
+    use bevy_reflect::TypePath;
 
     use super::*;
 
@@ -293,7 +294,7 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_untyped_serialization() {
-        use bevy::reflect::{
+        use bevy_reflect::{
             serde::{ReflectDeserializer, ReflectSerializer},
             FromReflect, TypeRegistry,
         };
@@ -341,7 +342,7 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn rng_typed_serialization() {
-        use bevy::reflect::{
+        use bevy_reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
         };

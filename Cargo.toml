@@ -11,7 +11,9 @@ version = "0.8.0"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
-bevy = { version = "0.15.0-rc.3", default-features = false }
+bevy_app = { version = "0.15.0-rc.3" }
+bevy_ecs = { version = "0.15.0-rc.3" }
+bevy_reflect = { version = "0.15.0-rc.3", default-features = false }
 serde = "1"
 serde_derive = "1"
 rand_core = { version = "0.6", features = ["std"] }
@@ -35,6 +37,7 @@ rust-version = { workspace = true }
 
 [features]
 default = ["serialize", "thread_local_entropy"]
+experimental = []
 thread_local_entropy = ["dep:rand_chacha"]
 serialize = ["dep:serde", "dep:serde_derive", "rand_core/serde1"]
 rand_chacha = ["bevy_prng/rand_chacha"]
@@ -43,8 +46,9 @@ rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
 
 [dependencies]
-# bevy
-bevy.workspace = true
+bevy_app.workspace = true
+bevy_ecs.workspace = true
+bevy_reflect.workspace = true
 bevy_prng = { path = "bevy_prng", version = "0.8" }
 
 # others

@@ -1,5 +1,10 @@
+#[cfg(feature = "experimental")]
+use std::marker::PhantomData;
+
 use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
-use bevy::prelude::{App, Plugin};
+use bevy_app::{App, Plugin};
+#[cfg(feature = "experimental")]
+use bevy_ecs::prelude::Component;
 use bevy_prng::{EntropySeed, SeedableEntropySource};
 use rand_core::SeedableRng;
 
@@ -8,7 +13,8 @@ use rand_core::SeedableRng;
 /// entropy components.
 ///
 /// ```
-/// use bevy::prelude::*;
+/// use bevy_app::prelude::*;
+/// use bevy_ecs::prelude::*;
 /// use bevy_prng::{ChaCha8Rng, WyRand};
 /// use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
 /// use rand_core::RngCore;
@@ -74,7 +80,47 @@ where
         } else {
             app.init_resource::<GlobalEntropy<R>>();
         }
-
+        #[cfg(feature = "experimental")]
+        app.add_observer(crate::observers::seed_from_global::<R>)
+            .add_observer(crate::observers::reseed::<R>);
         app.world_mut().register_component_hooks::<RngSeed<R>>();
+    }
+}
+
+/// Plugin for setting up linked RNG sources
+#[cfg(feature = "experimental")]
+pub struct LinkedEntropySources<
+    Source: Component,
+    Target: Component,
+    Rng: SeedableEntropySource + 'static,
+> {
+    rng: PhantomData<Rng>,
+    source: PhantomData<Source>,
+    target: PhantomData<Target>,
+}
+
+#[cfg(feature = "experimental")]
+impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Default
+    for LinkedEntropySources<Source, Target, Rng>
+{
+    fn default() -> Self {
+        Self {
+            rng: PhantomData,
+            source: PhantomData,
+            target: PhantomData,
+        }
+    }
+}
+
+#[cfg(feature = "experimental")]
+impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Plugin
+    for LinkedEntropySources<Source, Target, Rng>
+where
+    Rng::Seed: Send + Sync + Clone,
+{
+    fn build(&self, app: &mut App) {
+        app.add_observer(crate::observers::seed_from_parent::<Rng>)
+            .add_observer(crate::observers::seed_children::<Source, Target, Rng>)
+            .add_observer(crate::observers::link_targets::<Source, Target, Rng>);
     }
 }

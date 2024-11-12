@@ -1,7 +1,8 @@
 use std::marker::PhantomData;
 
-use bevy::{ecs::component::StorageType, prelude::Component, reflect::Reflect};
+use bevy_ecs::{component::StorageType, prelude::Component};
 use bevy_prng::SeedableEntropySource;
+use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
 
 use crate::{component::EntropyComponent, traits::SeedSource};
@@ -48,7 +49,7 @@ where
 {
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
-    fn register_component_hooks(hooks: &mut bevy::ecs::component::ComponentHooks) {
+    fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
         hooks
             .on_insert(|mut world, entity, _| {
                 let seed = world.get::<RngSeed<R>>(entity).unwrap().seed.clone();
@@ -73,11 +74,11 @@ mod tests {
     #[cfg(feature = "serialize")]
     #[test]
     fn reflection_serialization_round_trip_works() {
-        use bevy::reflect::{
+        use bevy_prng::WyRand;
+        use bevy_reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
         };
-        use bevy_prng::WyRand;
         use ron::to_string;
         use serde::de::DeserializeSeed;
 
