@@ -43,7 +43,7 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
 
-fn main() {
+fn example_main() {
     App::new()
         .add_plugins(EntropyPlugin::<WyRand>::default())
         .run();
