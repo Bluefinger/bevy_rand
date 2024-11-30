@@ -11,9 +11,9 @@ version = "0.8.0"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
-bevy_app = { version = "0.15.0-rc.3" }
-bevy_ecs = { version = "0.15.0-rc.3" }
-bevy_reflect = { version = "0.15.0-rc.3", default-features = false }
+bevy_app = { version = "0.15.0" }
+bevy_ecs = { version = "0.15.0" }
+bevy_reflect = { version = "0.15.0", default-features = false }
 serde = "1"
 serde_derive = "1"
 rand_core = { version = "0.6", features = ["std"] }
