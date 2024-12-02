@@ -2,9 +2,10 @@ use std::marker::PhantomData;
 
 use bevy_ecs::{
     prelude::{
-        Commands, Component, Entity, EntityWorldMut, Event, OnInsert, Query, ResMut, Trigger, With,
+        Commands, Component, Entity, EntityWorldMut, Event, OnInsert, ResMut, Trigger, With,
     },
-    query::QuerySingleError,
+    query::Without,
+    system::{Populated, Single},
 };
 
 use bevy_prng::SeedableEntropySource;
@@ -159,23 +160,25 @@ pub fn seed_from_parent<Rng: SeedableEntropySource>(
 /// Observer System for handling seed propagation from source Rng to all child entities.
 pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropySource>(
     trigger: Trigger<OnInsert, EntropyComponent<Rng>>,
-    mut q_source: Query<&mut EntropyComponent<Rng>, (With<Source>, With<RngChildren<Rng>>)>,
-    q_target: Query<Entity, With<Target>>,
+    q_source: Single<
+        (Entity, &mut EntropyComponent<Rng>),
+        (With<Source>, With<RngChildren<Rng>>, Without<Target>),
+    >,
+    q_target: Populated<Entity, (With<Target>, With<RngParent<Rng>>, Without<Source>)>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    let source = trigger.entity();
+    let (source, mut rng) = q_source.into_inner();
+    // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
+    // will keep triggering and cause a stack overflow.
+    if source == trigger.entity() {
+        let batch: Vec<(Entity, RngSeed<Rng>)> = q_target
+            .iter()
+            .map(|target| (target, rng.fork_seed()))
+            .collect();
 
-    if source != Entity::PLACEHOLDER {
-        if let Ok(mut rng) = q_source.get_mut(source) {
-            let batch: Vec<(Entity, RngSeed<Rng>)> = q_target
-                .iter()
-                .map(|target| (target, rng.fork_seed()))
-                .collect();
-
-            commands.insert_batch(batch);
-        }
+        commands.insert_batch(batch);
     }
 }
 
@@ -184,46 +187,29 @@ pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropyS
 /// this observer will pick whichever get queried first during linking.
 pub fn link_targets<Source: Component, Target: Component, Rng: SeedableEntropySource>(
     _trigger: Trigger<LinkRngSourceToTarget<Source, Target, Rng>>,
-    q_source: Query<Entity, With<Source>>,
-    q_target: Query<Entity, With<Target>>,
+    q_source: Single<Entity, (With<Source>, Without<Target>)>,
+    q_target: Populated<Entity, (With<Target>, Without<Source>)>,
     mut commands: Commands,
 ) {
-    let source = match q_source.get_single() {
-        Ok(parent) => Some(parent),
-        // If we somehow have more than one source, just use the first one and stick with that.
-        Err(QuerySingleError::MultipleEntities(_)) => q_source.iter().next(),
-        Err(QuerySingleError::NoEntities(_)) => None,
-    };
+    let parent = q_source.into_inner();
 
-    if let Some(parent) = source {
-        let mut targets = q_target.iter();
+    let mut targets = q_target.iter();
 
-        let assigned = match targets.size_hint().0 {
-            0 => false,
-            1 => {
-                let target = targets.next().unwrap();
+    if targets.size_hint().0 == 1 {
+        let target = targets.next().unwrap();
 
-                commands
-                    .entity(target)
-                    .insert(RngParent::<Rng>::new(parent));
+        commands
+            .entity(target)
+            .insert(RngParent::<Rng>::new(parent));
+    } else {
+        let targets: Vec<_> = targets
+            .map(|target| (target, RngParent::<Rng>::new(parent)))
+            .collect();
 
-                true
-            }
-            _ => {
-                let targets: Vec<_> = targets
-                    .map(|target| (target, RngParent::<Rng>::new(parent)))
-                    .collect();
-
-                commands.insert_batch(targets);
-
-                true
-            }
-        };
-
-        if assigned {
-            commands
-                .entity(parent)
-                .insert(RngChildren::<Rng>::default());
-        }
+        commands.insert_batch(targets);
     }
+
+    commands
+        .entity(parent)
+        .insert(RngChildren::<Rng>::default());
 }

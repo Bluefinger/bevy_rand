@@ -52,7 +52,10 @@ where
     fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
         hooks
             .on_insert(|mut world, entity, _| {
-                let seed = world.get::<RngSeed<R>>(entity).unwrap().seed.clone();
+                let seed = world
+                    .get::<RngSeed<R>>(entity)
+                    .map(|seed| seed.clone_seed())
+                    .unwrap();
                 world
                     .commands()
                     .entity(entity)
