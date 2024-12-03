@@ -1,9 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy_ecs::{
-    prelude::{
-        Commands, Component, Entity, EntityWorldMut, Event, OnInsert, ResMut, Trigger, With,
-    },
+    prelude::{Commands, Component, Entity, Event, OnInsert, ResMut, Trigger, With},
     query::Without,
     system::{Populated, Single},
 };
@@ -130,34 +128,28 @@ pub fn seed_from_global<Rng: SeedableEntropySource>(
     }
 }
 
-/// Observer System for pulling in a new seed for the current entity from its parent Rng source.
+/// Observer System for pulling in a new seed for the current entity from its parent Rng source. This
+/// observer system will only run if there are parent entities to have seeds pulled from.
 pub fn seed_from_parent<Rng: SeedableEntropySource>(
     trigger: Trigger<SeedFromParent<Rng>>,
+    q_linked: Populated<&RngParent<Rng>>,
+    mut q_parents: Populated<&mut EntropyComponent<Rng>, With<RngChildren<Rng>>>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
     let target = trigger.entity();
 
-    if target != Entity::PLACEHOLDER {
-        commands.entity(target).queue(|mut entity: EntityWorldMut| {
-            let Some(parent) = entity.get::<RngParent<Rng>>().map(|parent| parent.entity()) else {
-                return;
-            };
-            entity
-                .world_scope(|world| {
-                    world.get_entity_mut(parent).ok().and_then(|mut parent| {
-                        parent
-                            .get_mut::<EntropyComponent<Rng>>()
-                            .map(|mut rng| rng.fork_seed())
-                    })
-                })
-                .map(|seed| entity.insert(seed));
-        });
+    if let Ok(mut rng) = q_linked
+        .get(target)
+        .and_then(|parent| q_parents.get_mut(parent.entity()))
+    {
+        commands.entity(target).insert(rng.fork_seed());
     }
 }
 
-/// Observer System for handling seed propagation from source Rng to all child entities.
+/// Observer System for handling seed propagation from source Rng to all child entities. This observer
+/// will only run if there is a single source entity and also if there are target entities to seed.
 pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropySource>(
     trigger: Trigger<OnInsert, EntropyComponent<Rng>>,
     q_source: Single<
@@ -182,9 +174,9 @@ pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropyS
     }
 }
 
-/// Observer System for handling linking a source Rng with all target entities. Highly recommended
-/// that the Source Rng is unique, or has a marker component that designates it as unique, otherwise
-/// this observer will pick whichever get queried first during linking.
+/// Observer System for handling linking a source Rng with all target entities. This observer will only
+/// run if there is a single source entity and if there are target entities to link with. If these assumptions
+/// are not met, the observer system will not run.
 pub fn link_targets<Source: Component, Target: Component, Rng: SeedableEntropySource>(
     _trigger: Trigger<LinkRngSourceToTarget<Source, Target, Rng>>,
     q_source: Single<Entity, (With<Source>, Without<Target>)>,
