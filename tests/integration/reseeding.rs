@@ -134,7 +134,11 @@ fn component_fork_as_seed() {
 fn observer_global_reseeding() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
     use bevy_ecs::prelude::{Entity, With};
-    use bevy_rand::{observers::ReseedRng, seed::RngSeed, traits::{ForkableInnerSeed, SeedSource}};
+    use bevy_rand::{
+        observers::ReseedRng,
+        seed::RngSeed,
+        traits::{ForkableInnerSeed, SeedSource},
+    };
 
     let seed = [2; 8];
 
