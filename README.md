@@ -132,7 +132,7 @@ fn setup_npc_from_source(
 
 | `bevy` | `bevy_rand`  |
 | ------ | ------------ |
-| v0.15  | v0.8         |
+| v0.15  | v0.8 - v0.9  |
 | v0.14  | v0.7         |
 | v0.13  | v0.5 - v0.6  |
 | v0.12  | v0.4         |
@@ -143,7 +143,7 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 | `bevy_rand`  | `rand_core` | `rand` |
 | ------------ | ----------- | ------ |
-| v0.1 -> v0.8 | v0.6        | v0.8   |
+| v0.1 -> v0.9 | v0.6        | v0.8   |
 
 ## Migrations
 
