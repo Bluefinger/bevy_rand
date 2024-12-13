@@ -106,7 +106,7 @@ pub fn reseed<Rng: SeedableEntropySource>(trigger: Trigger<ReseedRng<Rng>>, mut 
 where
     Rng::Seed: Sync + Send + Clone,
 {
-    let target = trigger.entity();
+    let target = trigger.target();
 
     if target != Entity::PLACEHOLDER {
         commands
@@ -123,7 +123,7 @@ pub fn seed_from_global<Rng: SeedableEntropySource>(
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    if let Some(mut entity) = commands.get_entity(trigger.entity()) {
+    if let Some(mut entity) = commands.get_entity(trigger.target()) {
         entity.insert(source.fork_seed());
     }
 }
@@ -138,7 +138,7 @@ pub fn seed_from_parent<Rng: SeedableEntropySource>(
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    let target = trigger.entity();
+    let target = trigger.target();
 
     if let Ok(mut rng) = q_linked
         .get(target)
@@ -164,7 +164,7 @@ pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropyS
     let (source, mut rng) = q_source.into_inner();
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
-    if source == trigger.entity() {
+    if source == trigger.target() {
         let batch: Vec<(Entity, RngSeed<Rng>)> = q_target
             .iter()
             .map(|target| (target, rng.fork_seed()))
