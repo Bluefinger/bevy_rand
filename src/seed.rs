@@ -1,6 +1,6 @@
 use std::marker::PhantomData;
 
-use bevy_ecs::{component::StorageType, prelude::Component};
+use bevy_ecs::{component::{Immutable, StorageType}, prelude::Component};
 use bevy_prng::SeedableEntropySource;
 use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
@@ -48,6 +48,7 @@ where
     R::Seed: Sync + Send + Clone,
 {
     const STORAGE_TYPE: StorageType = StorageType::Table;
+    type Mutability = Immutable;
 
     fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
         hooks
