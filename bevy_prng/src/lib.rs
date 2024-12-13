@@ -38,7 +38,7 @@ pub use xoshiro::*;
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(feature = "serialize")]
-pub trait SeedableEntropySource:
+pub trait EntropySource:
     RngCore
     + SeedableRng<Seed: Typed>
     + Clone
@@ -54,7 +54,7 @@ pub trait SeedableEntropySource:
 {
 }
 
-/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will
+/// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 #[cfg(feature = "serialize")]
 pub trait EntropySeed:
@@ -92,7 +92,7 @@ impl<
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(not(feature = "serialize"))]
-pub trait SeedableEntropySource:
+pub trait EntropySource:
     RngCore
     + SeedableRng<Seed: Typed>
     + Clone
@@ -108,7 +108,7 @@ pub trait SeedableEntropySource:
 }
 
 #[cfg(not(feature = "serialize"))]
-/// Marker trait for a suitable seed for [`SeedableEntropySource`]. This is an auto trait which will
+/// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 pub trait EntropySeed:
     Debug
@@ -145,5 +145,5 @@ impl<
 mod private {
     pub trait SealedSeedable {}
 
-    impl<T: super::SeedableEntropySource> SealedSeedable for T {}
+    impl<T: super::EntropySource> SealedSeedable for T {}
 }

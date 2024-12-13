@@ -3,12 +3,12 @@ use std::fmt::Debug;
 use crate::{
     seed::RngSeed,
     traits::{
-        EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
+        EcsEntropy, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
         ForkableRng, ForkableSeed,
     },
 };
 use bevy_ecs::prelude::{Component, ReflectComponent};
-use bevy_prng::SeedableEntropySource;
+use bevy_prng::EntropySource;
 use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};
 
@@ -21,12 +21,12 @@ use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 #[cfg(feature = "serialize")]
 use serde::Deserialize;
 
-/// An [`EntropyComponent`] that wraps a random number generator that implements
+/// An [`Entropy`] that wraps a random number generator that implements
 /// [`RngCore`] & [`SeedableRng`].
 ///
-/// ## Creating new [`EntropyComponent`]s.
+/// ## Creating new [`Entropy`]s.
 ///
-/// You can creates a new [`EntropyComponent`] directly from anything that implements
+/// You can creates a new [`Entropy`] directly from anything that implements
 /// [`RngCore`] or provides a mut reference to [`RngCore`], such as [`ResMut`] or a
 /// [`Component`], or from a [`RngCore`] source directly.
 ///
@@ -36,7 +36,7 @@ use serde::Deserialize;
 /// ```
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::WyRand;
-/// use bevy_rand::prelude::EntropyComponent;
+/// use bevy_rand::prelude::Entropy;
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -45,7 +45,7 @@ use serde::Deserialize;
 ///     commands
 ///         .spawn((
 ///             Source,
-///             EntropyComponent::<WyRand>::default(),
+///             Entropy::<WyRand>::default(),
 ///         ));
 /// }
 /// ```
@@ -72,7 +72,7 @@ use serde::Deserialize;
 /// ```
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::WyRand;
-/// use bevy_rand::prelude::{EntropyComponent, ForkableRng};
+/// use bevy_rand::prelude::{Entropy, ForkableRng};
 ///
 /// #[derive(Component)]
 /// struct Npc;
@@ -81,7 +81,7 @@ use serde::Deserialize;
 ///
 /// fn setup_npc_from_source(
 ///    mut commands: Commands,
-///    mut q_source: Query<&mut EntropyComponent<WyRand>, (With<Source>, Without<Npc>)>,
+///    mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 /// ) {
 ///    let mut source = q_source.single_mut();
 ///
@@ -111,9 +111,9 @@ use serde::Deserialize;
     all(not(feature = "serialize")),
     reflect(Debug, PartialEq, Component, FromReflect)
 )]
-pub struct EntropyComponent<R: SeedableEntropySource + 'static>(R);
+pub struct Entropy<R: EntropySource + 'static>(R);
 
-impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
+impl<R: EntropySource + 'static> Entropy<R> {
     /// Create a new component from an `RngCore` instance.
     #[inline]
     #[must_use]
@@ -128,14 +128,14 @@ impl<R: SeedableEntropySource + 'static> EntropyComponent<R> {
     }
 }
 
-impl<R: SeedableEntropySource + 'static> Default for EntropyComponent<R> {
+impl<R: EntropySource + 'static> Default for Entropy<R> {
     #[inline]
     fn default() -> Self {
         Self::from_entropy()
     }
 }
 
-impl<R: SeedableEntropySource + 'static> RngCore for EntropyComponent<R> {
+impl<R: EntropySource + 'static> RngCore for Entropy<R> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
         self.0.next_u32()
@@ -157,7 +157,7 @@ impl<R: SeedableEntropySource + 'static> RngCore for EntropyComponent<R> {
     }
 }
 
-impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
+impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     type Seed = R::Seed;
 
     #[inline]
@@ -186,47 +186,54 @@ impl<R: SeedableEntropySource + 'static> SeedableRng for EntropyComponent<R> {
     }
 }
 
-impl<R: SeedableEntropySource + 'static> EcsEntropySource for EntropyComponent<R> {}
+impl<R: EntropySource + 'static> EcsEntropy for Entropy<R> {}
 
-impl<R> ForkableRng for EntropyComponent<R>
+impl<R> ForkableRng for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
 {
-    type Output = EntropyComponent<R>;
+    type Output = Entropy<R>;
 }
 
-impl<R> ForkableAsRng for EntropyComponent<R>
+impl<R> ForkableAsRng for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
 {
-    type Output<T> = EntropyComponent<T> where T: SeedableEntropySource;
+    type Output<T>
+        = Entropy<T>
+    where
+        T: EntropySource;
 }
 
-impl<R> ForkableInnerRng for EntropyComponent<R>
+impl<R> ForkableInnerRng for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
 {
     type Output = R;
 }
 
-impl<R> ForkableSeed<R> for EntropyComponent<R>
+impl<R> ForkableSeed<R> for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Send + Sync + Clone,
 {
     type Output = RngSeed<R>;
 }
 
-impl<R> ForkableAsSeed<R> for EntropyComponent<R>
+impl<R> ForkableAsSeed<R> for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
 {
-    type Output<T> = RngSeed<T> where T: SeedableEntropySource, T::Seed: Send + Sync + Clone;
+    type Output<T>
+        = RngSeed<T>
+    where
+        T: EntropySource,
+        T::Seed: Send + Sync + Clone;
 }
 
-impl<R> ForkableInnerSeed<R> for EntropyComponent<R>
+impl<R> ForkableInnerSeed<R> for Entropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
 {
     type Output = R::Seed;
@@ -241,34 +248,28 @@ mod tests {
 
     #[test]
     fn forking() {
-        let mut rng1 = EntropyComponent::<ChaCha8Rng>::default();
+        let mut rng1 = Entropy::<ChaCha8Rng>::default();
 
         let rng2 = rng1.fork_rng();
 
-        assert_ne!(
-            rng1, rng2,
-            "forked EntropyComponents should not match each other"
-        );
+        assert_ne!(rng1, rng2, "forked Entropys should not match each other");
     }
 
     #[test]
     fn forking_as() {
-        let mut rng1 = EntropyComponent::<ChaCha12Rng>::default();
+        let mut rng1 = Entropy::<ChaCha12Rng>::default();
 
         let rng2 = rng1.fork_as::<ChaCha8Rng>();
 
         let rng1 = format!("{:?}", rng1);
         let rng2 = format!("{:?}", rng2);
 
-        assert_ne!(
-            &rng1, &rng2,
-            "forked EntropyComponents should not match each other"
-        );
+        assert_ne!(&rng1, &rng2, "forked Entropys should not match each other");
     }
 
     #[test]
     fn forking_inner() {
-        let mut rng1 = EntropyComponent::<ChaCha8Rng>::default();
+        let mut rng1 = Entropy::<ChaCha8Rng>::default();
 
         let rng2 = rng1.fork_inner();
 
@@ -281,13 +282,13 @@ mod tests {
     #[test]
     fn type_paths() {
         assert_eq!(
-            "bevy_rand::component::EntropyComponent<bevy_prng::ChaCha8Rng>",
-            EntropyComponent::<ChaCha8Rng>::type_path()
+            "bevy_rand::component::Entropy<bevy_prng::ChaCha8Rng>",
+            Entropy::<ChaCha8Rng>::type_path()
         );
 
         assert_eq!(
-            "EntropyComponent<ChaCha8Rng>",
-            EntropyComponent::<ChaCha8Rng>::short_type_path()
+            "Entropy<ChaCha8Rng>",
+            Entropy::<ChaCha8Rng>::short_type_path()
         );
     }
 
@@ -302,9 +303,9 @@ mod tests {
         use serde::de::DeserializeSeed;
 
         let mut registry = TypeRegistry::default();
-        registry.register::<EntropyComponent<ChaCha8Rng>>();
+        registry.register::<Entropy<ChaCha8Rng>>();
 
-        let mut val: EntropyComponent<ChaCha8Rng> = EntropyComponent::from_seed([7; 32]);
+        let mut val: Entropy<ChaCha8Rng> = Entropy::from_seed([7; 32]);
 
         // Modify the state of the RNG instance
         val.next_u32();
@@ -315,7 +316,7 @@ mod tests {
 
         assert_eq!(
             &serialized,
-            "{\"bevy_rand::component::EntropyComponent<bevy_prng::ChaCha8Rng>\":(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
+            "{\"bevy_rand::component::Entropy<bevy_prng::ChaCha8Rng>\":(((seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:1)))}"
         );
 
         let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
@@ -324,18 +325,18 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = EntropyComponent::<ChaCha8Rng>::take_from_reflect(value).unwrap();
+        let mut dynamic = Entropy::<ChaCha8Rng>::take_from_reflect(value).unwrap();
 
         // The two instances should be the same
         assert_eq!(
             val, dynamic,
-            "The deserialized EntropyComponent should equal the original"
+            "The deserialized Entropy should equal the original"
         );
         // They should output the same numbers, as no state is lost between serialization and deserialization.
         assert_eq!(
             val.next_u32(),
             dynamic.next_u32(),
-            "The deserialized EntropyComponent should have the same output as original"
+            "The deserialized Entropy should have the same output as original"
         );
     }
 
@@ -350,11 +351,11 @@ mod tests {
         use serde::de::DeserializeSeed;
 
         let mut registry = TypeRegistry::default();
-        registry.register::<EntropyComponent<ChaCha8Rng>>();
+        registry.register::<Entropy<ChaCha8Rng>>();
 
-        let registered_type = EntropyComponent::<ChaCha8Rng>::get_type_registration();
+        let registered_type = Entropy::<ChaCha8Rng>::get_type_registration();
 
-        let mut val = EntropyComponent::<ChaCha8Rng>::from_seed([7; 32]);
+        let mut val = Entropy::<ChaCha8Rng>::from_seed([7; 32]);
 
         // Modify the state of the RNG instance
         val.next_u32();
@@ -374,18 +375,18 @@ mod tests {
 
         let value = de.deserialize(&mut deserializer).unwrap();
 
-        let mut dynamic = EntropyComponent::<ChaCha8Rng>::take_from_reflect(value).unwrap();
+        let mut dynamic = Entropy::<ChaCha8Rng>::take_from_reflect(value).unwrap();
 
         // The two instances should be the same
         assert_eq!(
             val, dynamic,
-            "The deserialized EntropyComponent should equal the original"
+            "The deserialized Entropy should equal the original"
         );
         // They should output the same numbers, as no state is lost between serialization and deserialization.
         assert_eq!(
             val.next_u32(),
             dynamic.next_u32(),
-            "The deserialized EntropyComponent should have the same output as original"
+            "The deserialized Entropy should have the same output as original"
         );
     }
 }

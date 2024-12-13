@@ -1,9 +1,7 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
-use bevy_rand::prelude::{
-    EntropyComponent, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy,
-};
+use bevy_rand::prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy};
 use rand::prelude::Rng;
 
 use rand_core::RngCore;
@@ -26,7 +24,7 @@ struct SourceD;
 #[derive(Component)]
 struct SourceE;
 
-fn random_output_a(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<SourceA>>) {
+fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>) {
     let mut rng = q_source.single_mut();
 
     assert_eq!(
@@ -36,13 +34,13 @@ fn random_output_a(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<S
     );
 }
 
-fn random_output_b(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<SourceB>>) {
+fn random_output_b(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceB>>) {
     let mut rng = q_source.single_mut();
 
     assert!(rng.gen_bool(0.5), "SourceB does not match expected output");
 }
 
-fn random_output_c(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<SourceC>>) {
+fn random_output_c(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceC>>) {
     let mut rng = q_source.single_mut();
 
     assert_eq!(
@@ -52,7 +50,7 @@ fn random_output_c(mut q_source: Query<&mut EntropyComponent<ChaCha8Rng>, With<S
     );
 }
 
-fn random_output_d(mut q_source: Query<&mut EntropyComponent<ChaCha12Rng>, With<SourceD>>) {
+fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>) {
     let mut rng = q_source.single_mut();
 
     assert_eq!(
@@ -62,7 +60,7 @@ fn random_output_d(mut q_source: Query<&mut EntropyComponent<ChaCha12Rng>, With<
     );
 }
 
-fn random_output_e(mut q_source: Query<&mut EntropyComponent<WyRand>, With<SourceE>>) {
+fn random_output_e(mut q_source: Query<&mut Entropy<WyRand>, With<SourceE>>) {
     let mut rng = q_source.single_mut();
 
     let mut bytes = [0u8; 8];

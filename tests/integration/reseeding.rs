@@ -3,7 +3,7 @@ use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
     plugin::EntropyPlugin,
-    prelude::EntropyComponent,
+    prelude::Entropy,
     resource::GlobalEntropy,
     traits::{ForkableAsSeed, ForkableSeed},
 };
@@ -71,21 +71,18 @@ fn component_fork_seed() {
                 }
             },
         )
-        .add_systems(
-            Update,
-            |mut q_rng: Query<&mut EntropyComponent<ChaCha8Rng>>| {
-                let rngs = q_rng.iter_mut();
+        .add_systems(Update, |mut q_rng: Query<&mut Entropy<ChaCha8Rng>>| {
+            let rngs = q_rng.iter_mut();
 
-                assert_eq!(rngs.size_hint().0, 5);
+            assert_eq!(rngs.size_hint().0, 5);
 
-                let values: Vec<_> = rngs.map(|mut rng| rng.next_u32()).collect();
+            let values: Vec<_> = rngs.map(|mut rng| rng.next_u32()).collect();
 
-                assert_eq!(
-                    &values,
-                    &[3315785188, 1951699392, 911252207, 791343233, 1599472206]
-                );
-            },
-        );
+            assert_eq!(
+                &values,
+                &[3315785188, 1951699392, 911252207, 791343233, 1599472206]
+            );
+        });
 
     app.update();
 }
@@ -106,7 +103,7 @@ fn component_fork_as_seed() {
                 }
             },
         )
-        .add_systems(Update, |mut q_rng: Query<&mut EntropyComponent<WyRand>>| {
+        .add_systems(Update, |mut q_rng: Query<&mut Entropy<WyRand>>| {
             let rngs = q_rng.iter_mut();
 
             assert_eq!(rngs.size_hint().0, 5);
@@ -171,7 +168,7 @@ fn observer_global_reseeding() {
         .add_systems(
             Update,
             |mut commands: Commands,
-             query: Query<Entity, With<EntropyComponent<WyRand>>>,
+             query: Query<Entity, With<Entropy<WyRand>>>,
              mut source: ResMut<GlobalEntropy<WyRand>>| {
                 for e in &query {
                     commands.trigger_targets(ReseedRng::<WyRand>::new(source.fork_inner_seed()), e);

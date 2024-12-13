@@ -1,11 +1,11 @@
 #[cfg(feature = "experimental")]
 use std::marker::PhantomData;
 
-use crate::{component::EntropyComponent, resource::GlobalEntropy, seed::RngSeed};
+use crate::{component::Entropy, resource::GlobalEntropy, seed::RngSeed};
 use bevy_app::{App, Plugin};
 #[cfg(feature = "experimental")]
 use bevy_ecs::prelude::Component;
-use bevy_prng::{EntropySeed, SeedableEntropySource};
+use bevy_prng::{EntropySeed, EntropySource};
 use rand_core::SeedableRng;
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
@@ -33,11 +33,11 @@ use rand_core::SeedableRng;
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
-pub struct EntropyPlugin<R: SeedableEntropySource + 'static> {
+pub struct EntropyPlugin<R: EntropySource + 'static> {
     seed: Option<R::Seed>,
 }
 
-impl<R: SeedableEntropySource + 'static> EntropyPlugin<R>
+impl<R: EntropySource + 'static> EntropyPlugin<R>
 where
     R::Seed: Send + Sync + Clone,
 {
@@ -57,7 +57,7 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + 'static> Default for EntropyPlugin<R>
+impl<R: EntropySource + 'static> Default for EntropyPlugin<R>
 where
     R::Seed: Send + Sync + Clone,
 {
@@ -66,13 +66,13 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + 'static> Plugin for EntropyPlugin<R>
+impl<R: EntropySource + 'static> Plugin for EntropyPlugin<R>
 where
     R::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
         app.register_type::<GlobalEntropy<R>>()
-            .register_type::<EntropyComponent<R>>()
+            .register_type::<Entropy<R>>()
             .register_type::<R::Seed>();
 
         if let Some(seed) = self.seed.as_ref() {
@@ -89,18 +89,15 @@ where
 
 /// Plugin for setting up linked RNG sources
 #[cfg(feature = "experimental")]
-pub struct LinkedEntropySources<
-    Source: Component,
-    Target: Component,
-    Rng: SeedableEntropySource + 'static,
-> {
+pub struct LinkedEntropySources<Source: Component, Target: Component, Rng: EntropySource + 'static>
+{
     rng: PhantomData<Rng>,
     source: PhantomData<Source>,
     target: PhantomData<Target>,
 }
 
 #[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Default
+impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Default
     for LinkedEntropySources<Source, Target, Rng>
 {
     fn default() -> Self {
@@ -113,7 +110,7 @@ impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static>
 }
 
 #[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: SeedableEntropySource + 'static> Plugin
+impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Plugin
     for LinkedEntropySources<Source, Target, Rng>
 where
     Rng::Seed: Send + Sync + Clone,

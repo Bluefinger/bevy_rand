@@ -36,7 +36,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 
 ### Registering a PRNG for use with Bevy Rand
 
-Before a PRNG can be used via `GlobalEntropy` or `EntropyComponent`, it must be registered via the plugin.
+Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registered via the plugin.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -69,7 +69,7 @@ fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
 
 ### Forking RNGs
 
-For seeding `EntropyComponent`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `EntropyComponent` instances.
+For seeding `Entropy`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `Entropy` instances.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -88,12 +88,12 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>
 }
 ```
 
-`EntropyComponent`s can be seeded/forked from other `EntropyComponent`s as well.
+`Entropy`s can be seeded/forked from other `Entropy`s as well.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{EntropyComponent, ForkableRng};
+use bevy_rand::prelude::{Entropy, ForkableRng};
 
 #[derive(Component)]
 struct Npc;
@@ -103,7 +103,7 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Query<&mut EntropyComponent<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 ) {
    let mut source = q_source.single_mut();
    for _ in 0..2 {

@@ -1,6 +1,6 @@
 use crate::{
     newtype::{newtype_prng, newtype_prng_remote},
-    SeedableEntropySource,
+    EntropySource,
 };
 
 use bevy_reflect::{reflect_remote, std_traits::ReflectDefault, Reflect, ReflectFromReflect};
