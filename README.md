@@ -36,7 +36,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 
 ### Registering a PRNG for use with Bevy Rand
 
-Before a PRNG can be used via `GlobalEntropy` or `EntropyComponent`, it must be registered via the plugin.
+Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registered via the plugin.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -69,7 +69,7 @@ fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
 
 ### Forking RNGs
 
-For seeding `EntropyComponent`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `EntropyComponent` instances.
+For seeding `Entropy`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `Entropy` instances.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -88,12 +88,12 @@ fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>
 }
 ```
 
-`EntropyComponent`s can be seeded/forked from other `EntropyComponent`s as well.
+`Entropy`s can be seeded/forked from other `Entropy`s as well.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{EntropyComponent, ForkableRng};
+use bevy_rand::prelude::{Entropy, ForkableRng};
 
 #[derive(Component)]
 struct Npc;
@@ -103,7 +103,7 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Query<&mut EntropyComponent<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 ) {
    let mut source = q_source.single_mut();
    for _ in 0..2 {
@@ -132,7 +132,7 @@ fn setup_npc_from_source(
 
 | `bevy` | `bevy_rand`  |
 | ------ | ------------ |
-| v0.15  | v0.8         |
+| v0.15  | v0.8 - v0.9  |
 | v0.14  | v0.7         |
 | v0.13  | v0.5 - v0.6  |
 | v0.12  | v0.4         |
@@ -143,7 +143,7 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 | `bevy_rand`  | `rand_core` | `rand` |
 | ------------ | ----------- | ------ |
-| v0.1 -> v0.8 | v0.6        | v0.8   |
+| v0.1 -> v0.9 | v0.6        | v0.8   |
 
 ## Migrations
 

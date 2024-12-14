@@ -1,12 +1,12 @@
-use bevy_prng::SeedableEntropySource;
+use bevy_prng::EntropySource;
 use rand_core::{RngCore, SeedableRng};
 
 /// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic.
-pub trait ForkableRng: EcsEntropySource {
+pub trait ForkableRng: EcsEntropy {
     /// The type of instance that is to be forked from the original source.
-    type Output: EcsEntropySource;
+    type Output: EcsEntropy;
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method preserves the RNG algorithm between original and forked instances.
@@ -34,11 +34,11 @@ pub trait ForkableRng: EcsEntropySource {
 /// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking between different PRNG algorithm types.
-pub trait ForkableAsRng: EcsEntropySource {
+pub trait ForkableAsRng: EcsEntropy {
     /// The type of instance that is to be forked from the original source.
-    type Output<R>: EcsEntropySource
+    type Output<R>: EcsEntropy
     where
-        R: SeedableEntropySource;
+        R: EntropySource;
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
@@ -58,7 +58,7 @@ pub trait ForkableAsRng: EcsEntropySource {
     ///         ));
     /// }
     /// ```
-    fn fork_as<T: SeedableEntropySource>(&mut self) -> Self::Output<T> {
+    fn fork_as<T: EntropySource>(&mut self) -> Self::Output<T> {
         Self::Output::<_>::from_rng(self).unwrap()
     }
 }
@@ -66,9 +66,9 @@ pub trait ForkableAsRng: EcsEntropySource {
 /// Trait for implementing Forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking the inner PRNG instance of the source component/resource.
-pub trait ForkableInnerRng: EcsEntropySource {
+pub trait ForkableInnerRng: EcsEntropy {
     /// The type of instance that is to be forked from the original source.
-    type Output: SeedableEntropySource;
+    type Output: EntropySource;
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method yields the inner PRNG instance directly as a forked instance.
@@ -99,7 +99,7 @@ pub trait ForkableInnerRng: EcsEntropySource {
 /// Trait for implementing forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
-pub trait ForkableSeed<S: SeedableEntropySource>: EcsEntropySource
+pub trait ForkableSeed<S: EntropySource>: EcsEntropy
 where
     S::Seed: Send + Sync + Clone,
 {
@@ -137,11 +137,11 @@ where
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component of a different
 /// PRNG algorithm.
-pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
+pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     /// The type of seed component that is to be forked from the original source.
     type Output<T>: SeedSource<T>
     where
-        T: SeedableEntropySource,
+        T: EntropySource,
         T::Seed: Send + Sync + Clone;
 
     /// Fork a new seed from the original entropy source.
@@ -162,7 +162,7 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
     ///         ));
     /// }
     /// ```
-    fn fork_as_seed<T: SeedableEntropySource>(&mut self) -> Self::Output<T>
+    fn fork_as_seed<T: EntropySource>(&mut self) -> Self::Output<T>
     where
         T::Seed: Send + Sync + Clone,
     {
@@ -177,7 +177,7 @@ pub trait ForkableAsSeed<S: SeedableEntropySource>: EcsEntropySource {
 /// Trait for implementing forking behaviour for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
-pub trait ForkableInnerSeed<S: SeedableEntropySource>: EcsEntropySource
+pub trait ForkableInnerSeed<S: EntropySource>: EcsEntropy
 where
     S::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
 {
@@ -213,7 +213,7 @@ where
 
 /// A trait for providing [`crate::seed::RngSeed`] with
 /// common initialization strategies. This trait is not object safe and is also a sealed trait.
-pub trait SeedSource<R: SeedableEntropySource>: private::SealedSeed<R>
+pub trait SeedSource<R: EntropySource>: private::SealedSeed<R>
 where
     R::Seed: Send + Sync + Clone,
 {
@@ -253,23 +253,23 @@ where
 
 /// A marker trait for [`crate::component::EntropyComponent`] and [`crate::resource::GlobalEntropy`].
 /// This is a sealed trait and cannot be consumed by downstream.
-pub trait EcsEntropySource: RngCore + SeedableRng + private::SealedSource {}
+pub trait EcsEntropy: RngCore + SeedableRng + private::SealedSource {}
 
 mod private {
-    use super::{EcsEntropySource, SeedSource, SeedableEntropySource};
+    use super::{EcsEntropy, EntropySource, SeedSource};
 
     pub trait SealedSource {}
     pub trait SealedSeed<R>
     where
-        R: SeedableEntropySource,
+        R: EntropySource,
     {
     }
 
-    impl<T> SealedSource for T where T: EcsEntropySource {}
+    impl<T> SealedSource for T where T: EcsEntropy {}
     impl<R, T> SealedSeed<R> for T
     where
         T: SeedSource<R>,
-        R: SeedableEntropySource,
+        R: EntropySource,
         R::Seed: Send + Sync + Clone,
     {
     }

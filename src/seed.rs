@@ -1,24 +1,27 @@
 use std::marker::PhantomData;
 
-use bevy_ecs::{component::{Immutable, StorageType}, prelude::Component};
-use bevy_prng::SeedableEntropySource;
+use bevy_ecs::{
+    component::{Immutable, StorageType},
+    prelude::Component,
+};
+use bevy_prng::EntropySource;
 use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
 
-use crate::{component::EntropyComponent, traits::SeedSource};
+use crate::{component::Entropy, traits::SeedSource};
 
 /// The initial seed/state for an [`EntropyComponent`]. Adding this component to an `Entity` will cause
 /// an `EntropyComponent` to be initialised as well. To force a reseed, just insert this component to an
 /// `Entity` to overwrite the old value, and the `EntropyComponent` will be overwritten with the new seed
 /// in turn.
 #[derive(Debug, Reflect)]
-pub struct RngSeed<R: SeedableEntropySource> {
+pub struct RngSeed<R: EntropySource> {
     seed: R::Seed,
     #[reflect(ignore)]
     rng: PhantomData<R>,
 }
 
-impl<R: SeedableEntropySource> SeedSource<R> for RngSeed<R>
+impl<R: EntropySource> SeedSource<R> for RngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
@@ -43,7 +46,7 @@ where
     }
 }
 
-impl<R: SeedableEntropySource> Component for RngSeed<R>
+impl<R: EntropySource> Component for RngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
@@ -60,13 +63,10 @@ where
                 world
                     .commands()
                     .entity(entity)
-                    .insert(EntropyComponent::<R>::from_seed(seed));
+                    .insert(Entropy::<R>::from_seed(seed));
             })
             .on_remove(|mut world, entity, _| {
-                world
-                    .commands()
-                    .entity(entity)
-                    .remove::<EntropyComponent<R>>();
+                world.commands().entity(entity).remove::<Entropy<R>>();
             });
     }
 }

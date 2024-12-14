@@ -1,4 +1,4 @@
-pub use crate::component::EntropyComponent;
+pub use crate::component::Entropy;
 pub use crate::plugin::EntropyPlugin;
 pub use crate::resource::GlobalEntropy;
 pub use crate::seed::RngSeed;

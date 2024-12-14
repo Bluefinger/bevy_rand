@@ -3,7 +3,7 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::{EntropyComponent, EntropyPlugin, ForkableRng, GlobalEntropy};
+use bevy_rand::prelude::{Entropy, EntropyPlugin, ForkableRng, GlobalEntropy};
 use rand::prelude::{IteratorRandom, Rng};
 
 #[derive(Component, PartialEq, Eq)]
@@ -97,7 +97,7 @@ fn setup_enemies(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rn
 }
 
 fn determine_attack_order(
-    mut q_entities: Query<(Entity, &mut EntropyComponent<ChaCha8Rng>), With<Kind>>,
+    mut q_entities: Query<(Entity, &mut Entropy<ChaCha8Rng>), With<Kind>>,
 ) -> Vec<Entity> {
     // No matter the order of entities in the query, because they have their own RNG instance,
     // it will always result in a deterministic output due to being seeded from a single global
@@ -121,7 +121,7 @@ fn attack_turn(
         &Defense,
         &Name,
         &mut Health,
-        &mut EntropyComponent<ChaCha8Rng>,
+        &mut Entropy<ChaCha8Rng>,
     )>,
 ) {
     // Establish list of enemy entities for player to attack
@@ -173,10 +173,7 @@ fn attack_turn(
 }
 
 fn buff_entities(
-    mut q_entities: Query<
-        (&Name, &Buff, &mut Health, &mut EntropyComponent<ChaCha8Rng>),
-        With<Kind>,
-    >,
+    mut q_entities: Query<(&Name, &Buff, &mut Health, &mut Entropy<ChaCha8Rng>), With<Kind>>,
 ) {
     // Query iteration order is not stable, but entities having their own RNG source side-steps this
     // completely, so the result is always deterministic.

@@ -1,15 +1,15 @@
 use std::fmt::Debug;
 
 use crate::{
-    component::EntropyComponent,
+    component::Entropy,
     seed::RngSeed,
     traits::{
-        EcsEntropySource, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
+        EcsEntropy, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
         ForkableRng, ForkableSeed,
     },
 };
 use bevy_ecs::prelude::{ReflectFromWorld, ReflectResource, Resource};
-use bevy_prng::SeedableEntropySource;
+use bevy_prng::EntropySource;
 use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};
 
@@ -65,12 +65,12 @@ use serde::{Deserialize, Serialize};
 )]
 #[cfg_attr(feature = "serialize", reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone + Serialize + for<'a> Deserialize<'a>))]
 #[cfg_attr(not(feature = "serialize"), reflect(where R::Seed: PartialEq + Debug + Sync + Send + Clone))]
-pub struct GlobalEntropy<R: SeedableEntropySource + 'static> {
+pub struct GlobalEntropy<R: EntropySource + 'static> {
     seed: R::Seed,
     rng: R,
 }
 
-impl<R: SeedableEntropySource + 'static> GlobalEntropy<R>
+impl<R: EntropySource + 'static> GlobalEntropy<R>
 where
     R::Seed: Clone,
 {
@@ -97,7 +97,7 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + 'static> Default for GlobalEntropy<R>
+impl<R: EntropySource + 'static> Default for GlobalEntropy<R>
 where
     R::Seed: Clone,
 {
@@ -107,7 +107,7 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + 'static> RngCore for GlobalEntropy<R> {
+impl<R: EntropySource + 'static> RngCore for GlobalEntropy<R> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
         self.rng.next_u32()
@@ -129,7 +129,7 @@ impl<R: SeedableEntropySource + 'static> RngCore for GlobalEntropy<R> {
     }
 }
 
-impl<R: SeedableEntropySource + 'static> SeedableRng for GlobalEntropy<R>
+impl<R: EntropySource + 'static> SeedableRng for GlobalEntropy<R>
 where
     R::Seed: Clone,
 {
@@ -159,27 +159,30 @@ where
     }
 }
 
-impl<R: SeedableEntropySource + 'static> EcsEntropySource for GlobalEntropy<R> where R::Seed: Clone {}
+impl<R: EntropySource + 'static> EcsEntropy for GlobalEntropy<R> where R::Seed: Clone {}
 
 impl<R> ForkableRng for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Clone,
 {
-    type Output = EntropyComponent<R>;
+    type Output = Entropy<R>;
 }
 
 impl<R> ForkableAsRng for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Clone,
 {
-    type Output<T> = EntropyComponent<T> where T: SeedableEntropySource;
+    type Output<T>
+        = Entropy<T>
+    where
+        T: EntropySource;
 }
 
 impl<R> ForkableInnerRng for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Clone,
 {
     type Output = R;
@@ -187,7 +190,7 @@ where
 
 impl<R> ForkableSeed<R> for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Send + Sync + Clone,
 {
     type Output = RngSeed<R>;
@@ -195,15 +198,19 @@ where
 
 impl<R> ForkableAsSeed<R> for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Clone,
 {
-    type Output<T> = RngSeed<T> where T: SeedableEntropySource, T::Seed: Send + Sync + Clone;
+    type Output<T>
+        = RngSeed<T>
+    where
+        T: EntropySource,
+        T::Seed: Send + Sync + Clone;
 }
 
 impl<R> ForkableInnerSeed<R> for GlobalEntropy<R>
 where
-    R: SeedableEntropySource + 'static,
+    R: EntropySource + 'static,
     R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
 {
     type Output = R::Seed;
