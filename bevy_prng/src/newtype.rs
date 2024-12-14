@@ -72,7 +72,7 @@ macro_rules! newtype_prng {
             }
         }
 
-        impl SeedableEntropySource for $newtype {}
+        impl EntropySource for $newtype {}
     };
 }
 
@@ -150,7 +150,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
-        impl SeedableEntropySource for $newtype {}
+        impl EntropySource for $newtype {}
     };
 }
 

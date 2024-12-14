@@ -6,19 +6,19 @@ use bevy_ecs::{
     system::{Populated, Single},
 };
 
-use bevy_prng::SeedableEntropySource;
+use bevy_prng::EntropySource;
 
 use crate::{
-    prelude::{EntropyComponent, ForkableSeed, GlobalEntropy},
+    prelude::{Entropy, ForkableSeed, GlobalEntropy},
     seed::RngSeed,
     traits::SeedSource,
 };
 
 /// Component to denote a source has linked children entities
 #[derive(Debug, Component)]
-pub struct RngChildren<Source: SeedableEntropySource>(PhantomData<Source>);
+pub struct RngChildren<Source: EntropySource>(PhantomData<Source>);
 
-impl<Rng: SeedableEntropySource> Default for RngChildren<Rng> {
+impl<Rng: EntropySource> Default for RngChildren<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -26,9 +26,9 @@ impl<Rng: SeedableEntropySource> Default for RngChildren<Rng> {
 
 /// Component to denote has a relation to a parent Rng source entity.
 #[derive(Debug, Component)]
-pub struct RngParent<Source: SeedableEntropySource>(Entity, PhantomData<Source>);
+pub struct RngParent<Source: EntropySource>(Entity, PhantomData<Source>);
 
-impl<Source: SeedableEntropySource> RngParent<Source> {
+impl<Source: EntropySource> RngParent<Source> {
     /// Initialises the relation component with the parent entity
     pub fn new(parent: Entity) -> Self {
         Self(parent, PhantomData)
@@ -43,9 +43,9 @@ impl<Source: SeedableEntropySource> RngParent<Source> {
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
 #[derive(Debug, Event)]
-pub struct SeedFromGlobal<Rng: SeedableEntropySource>(PhantomData<Rng>);
+pub struct SeedFromGlobal<Rng: EntropySource>(PhantomData<Rng>);
 
-impl<Rng: SeedableEntropySource> Default for SeedFromGlobal<Rng> {
+impl<Rng: EntropySource> Default for SeedFromGlobal<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -54,9 +54,9 @@ impl<Rng: SeedableEntropySource> Default for SeedFromGlobal<Rng> {
 /// Observer event for triggering an entity to pull a new seed value from a
 /// linked parent entity.
 #[derive(Debug, Event)]
-pub struct SeedFromParent<Rng: SeedableEntropySource>(PhantomData<Rng>);
+pub struct SeedFromParent<Rng: EntropySource>(PhantomData<Rng>);
 
-impl<Rng: SeedableEntropySource> Default for SeedFromParent<Rng> {
+impl<Rng: EntropySource> Default for SeedFromParent<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -65,9 +65,9 @@ impl<Rng: SeedableEntropySource> Default for SeedFromParent<Rng> {
 /// Observer event for triggering an entity to use a new seed value from the
 /// the event.
 #[derive(Debug, Event)]
-pub struct ReseedRng<Rng: SeedableEntropySource>(Rng::Seed);
+pub struct ReseedRng<Rng: EntropySource>(Rng::Seed);
 
-impl<Rng: SeedableEntropySource> ReseedRng<Rng>
+impl<Rng: EntropySource> ReseedRng<Rng>
 where
     Rng::Seed: Send + Sync + Clone,
 {
@@ -81,13 +81,13 @@ where
 /// association needed so that when the source Rng's seed is changed, it propagates new seeds to
 /// all linked Rngs.
 #[derive(Debug, Event)]
-pub struct LinkRngSourceToTarget<Source: Component, Target: Component, Rng: SeedableEntropySource> {
+pub struct LinkRngSourceToTarget<Source: Component, Target: Component, Rng: EntropySource> {
     rng: PhantomData<Rng>,
     source: PhantomData<Source>,
     target: PhantomData<Target>,
 }
 
-impl<Source: Component, Target: Component, Rng: SeedableEntropySource> Default
+impl<Source: Component, Target: Component, Rng: EntropySource> Default
     for LinkRngSourceToTarget<Source, Target, Rng>
 where
     Rng::Seed: Sync + Send + Clone,
@@ -102,7 +102,7 @@ where
 }
 
 /// Observer system for reseeding a target RNG on an entity with a provided seed value.
-pub fn reseed<Rng: SeedableEntropySource>(trigger: Trigger<ReseedRng<Rng>>, mut commands: Commands)
+pub fn reseed<Rng: EntropySource>(trigger: Trigger<ReseedRng<Rng>>, mut commands: Commands)
 where
     Rng::Seed: Sync + Send + Clone,
 {
@@ -116,7 +116,7 @@ where
 }
 
 /// Observer System for pulling in a new seed from a GlobalEntropy source
-pub fn seed_from_global<Rng: SeedableEntropySource>(
+pub fn seed_from_global<Rng: EntropySource>(
     trigger: Trigger<SeedFromGlobal<Rng>>,
     mut source: ResMut<GlobalEntropy<Rng>>,
     mut commands: Commands,
@@ -130,10 +130,10 @@ pub fn seed_from_global<Rng: SeedableEntropySource>(
 
 /// Observer System for pulling in a new seed for the current entity from its parent Rng source. This
 /// observer system will only run if there are parent entities to have seeds pulled from.
-pub fn seed_from_parent<Rng: SeedableEntropySource>(
+pub fn seed_from_parent<Rng: EntropySource>(
     trigger: Trigger<SeedFromParent<Rng>>,
     q_linked: Populated<&RngParent<Rng>>,
-    mut q_parents: Populated<&mut EntropyComponent<Rng>, With<RngChildren<Rng>>>,
+    mut q_parents: Populated<&mut Entropy<Rng>, With<RngChildren<Rng>>>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
@@ -150,10 +150,10 @@ pub fn seed_from_parent<Rng: SeedableEntropySource>(
 
 /// Observer System for handling seed propagation from source Rng to all child entities. This observer
 /// will only run if there is a single source entity and also if there are target entities to seed.
-pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropySource>(
-    trigger: Trigger<OnInsert, EntropyComponent<Rng>>,
+pub fn seed_children<Source: Component, Target: Component, Rng: EntropySource>(
+    trigger: Trigger<OnInsert, Entropy<Rng>>,
     q_source: Single<
-        (Entity, &mut EntropyComponent<Rng>),
+        (Entity, &mut Entropy<Rng>),
         (With<Source>, With<RngChildren<Rng>>, Without<Target>),
     >,
     q_target: Populated<Entity, (With<Target>, With<RngParent<Rng>>, Without<Source>)>,
@@ -177,7 +177,7 @@ pub fn seed_children<Source: Component, Target: Component, Rng: SeedableEntropyS
 /// Observer System for handling linking a source Rng with all target entities. This observer will only
 /// run if there is a single source entity and if there are target entities to link with. If these assumptions
 /// are not met, the observer system will not run.
-pub fn link_targets<Source: Component, Target: Component, Rng: SeedableEntropySource>(
+pub fn link_targets<Source: Component, Target: Component, Rng: EntropySource>(
     _trigger: Trigger<LinkRngSourceToTarget<Source, Target, Rng>>,
     q_source: Single<Entity, (With<Source>, Without<Target>)>,
     q_target: Populated<Entity, (With<Target>, Without<Source>)>,

@@ -27,3 +27,7 @@ As the `wyrand` dependency has been updated and contains a breaking output chang
 ## Migrating from v0.7 to v0.8
 
 `GlobalRngSeed` has been removed, instead being rolled into `GlobalEntropy`. This will allow better reflection tracking of the global rng source, and will allow for automatic reseeding without any custom system needing to be provided. Use the `reseed` method to reinstantiate the internal RNG source with the new seed, and `get_seed` to return a reference to the initial starting seed for the source. The serialized format of `GlobalEntropy` has changed and previously serialized instances are no longer compatible.
+
+## Migrating from v0.8 to v0.9
+
+`EntropyComponent` has been renamed to `Entropy`, and the trait `SeedableEntropySource` has been renamed to `EntropySource`. The change to `Entropy` also changes the `TypePath` definition, so this will change the serialised format of the component.
