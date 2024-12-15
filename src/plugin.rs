@@ -73,6 +73,7 @@ where
     fn build(&self, app: &mut App) {
         app.register_type::<GlobalEntropy<R>>()
             .register_type::<Entropy<R>>()
+            .register_type::<RngSeed<R>>()
             .register_type::<R::Seed>();
 
         if let Some(seed) = self.seed.as_ref() {
