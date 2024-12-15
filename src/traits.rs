@@ -1,7 +1,7 @@
 use bevy_prng::EntropySource;
 use rand_core::{RngCore, SeedableRng};
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic.
 pub trait ForkableRng: EcsEntropy {
@@ -18,7 +18,7 @@ pub trait ForkableRng: EcsEntropy {
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -31,7 +31,7 @@ pub trait ForkableRng: EcsEntropy {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking between different PRNG algorithm types.
 pub trait ForkableAsRng: EcsEntropy {
@@ -50,7 +50,7 @@ pub trait ForkableAsRng: EcsEntropy {
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha12Rng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha12Rng>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -63,7 +63,7 @@ pub trait ForkableAsRng: EcsEntropy {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking the inner PRNG instance of the source component/resource.
 pub trait ForkableInnerRng: EcsEntropy {
@@ -85,7 +85,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     ///     println!("Random value: {}", source.next_u32());
     /// }
     ///
-    /// fn access_source(mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    /// fn access_source(mut global: GlobalEntropy<ChaCha8Rng>) {
     ///     let mut source = global.fork_inner();
     ///
     ///     do_random_action(&mut source);
@@ -96,7 +96,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     }
 }
 
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
 pub trait ForkableSeed<S: EntropySource>: EcsEntropy
@@ -116,7 +116,7 @@ where
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -133,7 +133,7 @@ where
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component of a different
 /// PRNG algorithm.
@@ -154,7 +154,7 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha12Rng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha12Rng>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -174,7 +174,7 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     }
 }
 
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
 pub trait ForkableInnerSeed<S: EntropySource>: EcsEntropy
@@ -194,7 +194,7 @@ where
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -251,7 +251,7 @@ where
     }
 }
 
-/// A marker trait for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// A marker trait for [`crate::component::Entropy`].
 /// This is a sealed trait and cannot be consumed by downstream.
 pub trait EcsEntropy: RngCore + SeedableRng + private::SealedSource {}
 

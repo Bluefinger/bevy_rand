@@ -56,7 +56,7 @@ use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableRng};
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     commands
         .spawn((
             Source,
@@ -75,7 +75,7 @@ use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableAsRng};
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     commands
         .spawn((
             Source,

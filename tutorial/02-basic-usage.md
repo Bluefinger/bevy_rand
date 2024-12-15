@@ -3,12 +3,11 @@
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
-use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -37,7 +36,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn spawn_randomised_npcs(mut commands: Commands, mut rng: ResMut<GlobalEntropy<WyRand>>) {
+fn spawn_randomised_npcs(mut commands: Commands, mut rng: GlobalEntropy<WyRand>) {
     for _ in 0..10 {
         commands.spawn((
             Npc,
@@ -63,7 +62,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn randomise_npc_stat(mut rng: ResMut<GlobalEntropy<WyRand>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
+fn randomise_npc_stat(mut rng: GlobalEntropy<WyRand>, mut q_npc: Query<&mut Stat, With<Npc>>) {
     for mut stat in q_npc.iter_mut() {
         stat.0 = rng.next_u32();
     }

@@ -1,7 +1,7 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
-use bevy_rand::prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy};
+use bevy_rand::{global::GlobalSeed, prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy}, traits::SeedSource};
 use rand::prelude::Rng;
 
 use rand_core::RngCore;
@@ -74,7 +74,7 @@ fn random_output_e(mut q_source: Query<&mut Entropy<WyRand>, With<SourceE>>) {
     );
 }
 
-fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_sources(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     commands.spawn((SourceA, rng.fork_rng()));
 
     commands.spawn((SourceB, rng.fork_rng()));
@@ -86,7 +86,7 @@ fn setup_sources(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rn
     commands.spawn((SourceE, rng.fork_as::<WyRand>()));
 }
 
-fn read_global_seed(rng: Res<GlobalEntropy<ChaCha8Rng>>) {
+fn read_global_seed(rng: GlobalSeed<ChaCha8Rng>) {
     assert_eq!(rng.get_seed(), &[2; 32]);
 }
 
