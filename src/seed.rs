@@ -10,9 +10,9 @@ use rand_core::SeedableRng;
 
 use crate::{component::Entropy, traits::SeedSource};
 
-/// The initial seed/state for an [`EntropyComponent`]. Adding this component to an `Entity` will cause
-/// an `EntropyComponent` to be initialised as well. To force a reseed, just insert this component to an
-/// `Entity` to overwrite the old value, and the `EntropyComponent` will be overwritten with the new seed
+/// The initial seed/state for an [`Entropy`]. Adding this component to an `Entity` will cause
+/// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
+/// `Entity` to overwrite the old value, and the `Entropy` will be overwritten with the new seed
 /// in turn.
 #[derive(Debug, Reflect)]
 pub struct RngSeed<R: EntropySource> {

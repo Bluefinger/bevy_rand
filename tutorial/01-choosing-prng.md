@@ -24,7 +24,7 @@ use bevy_rand::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 ```
 
-When you've selected and imported the PRNG algorithm you want to use, you then need to enable it by adding the `EntropyPlugin` to your app. This then makes it available for use with `GlobalEntropy` and `EntropyComponent`, as well as registering the types for reflection.
+When you've selected and imported the PRNG algorithm you want to use, you then need to enable it by adding the `EntropyPlugin` to your app. This then makes it available for use with `GlobalEntropy` and `Entropy`, as well as registering the types for reflection.
 
 ```rust
 use bevy_ecs::prelude::*;
