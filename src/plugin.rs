@@ -82,6 +82,8 @@ where
             app.world_mut().spawn((RngSeed::<R>::from_entropy(), Global));
         }
 
+        app.world_mut().flush();
+
         #[cfg(feature = "experimental")]
         app.add_observer(crate::observers::seed_from_global::<R>)
             .add_observer(crate::observers::reseed::<R>);

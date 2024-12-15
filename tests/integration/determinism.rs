@@ -1,7 +1,11 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
-use bevy_rand::{global::GlobalSeed, prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy}, traits::SeedSource};
+use bevy_rand::{
+    global::GlobalSeed,
+    prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy},
+    traits::SeedSource,
+};
 use rand::prelude::Rng;
 
 use rand_core::RngCore;
