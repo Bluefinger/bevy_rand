@@ -36,7 +36,7 @@ pub use wyrand::WyRand;
 pub use xoshiro::*;
 
 /// A marker trait to define the required trait bounds for a seedable PRNG to
-/// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
+/// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(feature = "serialize")]
 pub trait EntropySource:
     RngCore
@@ -90,7 +90,7 @@ impl<
 }
 
 /// A marker trait to define the required trait bounds for a seedable PRNG to
-/// integrate into `EntropyComponent` or `GlobalEntropy`. This is a sealed trait.
+/// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(not(feature = "serialize"))]
 pub trait EntropySource:
     RngCore

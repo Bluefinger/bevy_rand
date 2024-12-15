@@ -1,6 +1,6 @@
 # EXPERIMENTAL - Observer-driven Reseeding
 
-The following feature is _experimental_ so to enable it, you'll need to edit your Cargo.toml file and change the dependency declaration for `bevy_rand` to have `features=["experimental"]` applied. Once done, you'll get access to some utils that will enable easy setup of observer driven reseeding utilities for managing when entities with `EntropyComponent`s obtain new seeds from which sources. Keep in mind, this feature is not *stable* and will be subject to further work and iteration, so if problems and issues are encountered, please do create issues outlining the use-cases and difficulties.
+The following feature is _experimental_ so to enable it, you'll need to edit your Cargo.toml file and change the dependency declaration for `bevy_rand` to have `features=["experimental"]` applied. Once done, you'll get access to some utils that will enable easy setup of observer driven reseeding utilities for managing when entities with `Entropy`s obtain new seeds from which sources. Keep in mind, this feature is not *stable* and will be subject to further work and iteration, so if problems and issues are encountered, please do create issues outlining the use-cases and difficulties.
 
 ```toml
 bevy_rand = { version = "0.8", features = ["rand_chacha", "wyrand", "experimental"] }
@@ -42,7 +42,7 @@ fn reseed_target_entities_from_set_seed(mut commands: Commands, mut q_targets: Q
 }
 ```
 
-With these observers, you can initialise entropy components on all targetted entities simply by triggering a reseed event on them. As long as your entities have been spawned with a component you can target them with, they will automatically be given an `RngSeed` component (which stores the initial seed value) and an `EntropyComponent`.
+With these observers, you can initialise entropy components on all targetted entities simply by triggering a reseed event on them. As long as your entities have been spawned with a component you can target them with, they will automatically be given an `RngSeed` component (which stores the initial seed value) and an `Entropy`.
 
 Additionally, you can link entities to draw their seeds from other source entities instead of the global resources. So one `Source` entity can then seed many `Target` entities, and whenever the `Source` entity is updated with a new seed value, it then automatically pushes new seeds to its linked targets. Note: this is NOT a `bevy_hierarchy` relationship, and while the `Source` will have "child" entities, removing/despawning the source entity will *not* despawn the children entities. They will simply no longer have a valid "link". A new link can be established by triggering another "link" event.
 

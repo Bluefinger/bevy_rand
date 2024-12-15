@@ -70,4 +70,4 @@ fn randomise_npc_stat(mut rng: ResMut<GlobalEntropy<WyRand>>, mut q_npc: Query<&
 }
 ```
 
-But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalEntropy` but `EntropyComponent` instead, moving the RNG source to the entities themselves. The next section will cover their usage.
+But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalEntropy` but `Entropy` instead, moving the RNG source to the entities themselves. The next section will cover their usage.
