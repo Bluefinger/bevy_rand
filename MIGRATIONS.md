@@ -31,3 +31,29 @@ As the `wyrand` dependency has been updated and contains a breaking output chang
 ## Migrating from v0.8 to v0.9
 
 `EntropyComponent` has been renamed to `Entropy`, and the trait `SeedableEntropySource` has been renamed to `EntropySource`. The change to `Entropy` also changes the `TypePath` definition, so this will change the serialised format of the component.
+
+`GlobalEntropy` is no longer a resource, it is a query helper for accessing a `Global` `Entropy` source. It's all entities now, so for "global" and unique sources, they are entities created during plugin initialisation with a `Global` marker component. It is guaranteed to be a single instance per algorithm type, so accessing them is done via `Single` queries. In place of a resource access, there's now helper queries provided in case you need to access the source entity in question for a variety of purposes:
+
+* `GlobalEntropy` is for accessing the `Entropy` component from `Global`.
+* `GlobalSeed` is for accessing the `RngSeed` component from `Global`. This is read-only however, since `RngSeed` is an immutable component.
+* `GlobalSource` is for getting the `Entity` of the `Global` source. You likely need this query if you want to reseed the global source, as you'll need to insert a new `RngSeed` component to the entity.
+
+For most usages of `GlobalEntropy`, updating should be very straightforward:
+
+```diff
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
+
+#[derive(Component)]
+struct Source;
+
+- fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>>) {
++ fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
+    commands
+        .spawn((
+            Source,
+            global.fork_rng(),
+        ));
+}
+```
