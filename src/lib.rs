@@ -7,6 +7,8 @@
 
 /// Components for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
 pub mod component;
+/// Global [`crate::component::Entropy`] sources, with query helpers.
+pub mod global;
 #[cfg(feature = "experimental")]
 /// Utility observers for handling seeding between parent/child entropy sources
 pub mod observers;
@@ -14,8 +16,6 @@ pub mod observers;
 pub mod plugin;
 /// Prelude for providing all necessary types for easy use.
 pub mod prelude;
-/// Resource for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
-pub mod resource;
 /// Seed Resource for seeding [`crate::resource::GlobalEntropy`].
 pub mod seed;
 #[cfg(feature = "thread_local_entropy")]

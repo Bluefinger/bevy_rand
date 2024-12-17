@@ -40,7 +40,7 @@ fn main() {
 }
 ```
 
-By default, the plugin will instantiate the `GlobalEntropy` resource with a random seed from OS sources. If you want to initialise the plugin and `GlobalEntropy` with a set seed or from a different source, use [`crate::prelude::EntropyPlugin::with_seed`] instead.
+By default, the plugin will instantiate a global `Entropy` entity (accessible via `GlobalEntropy`) with a random seed from OS sources. If you want to initialise the plugin and `GlobalEntropy` with a set seed or from a different source, use [`crate::prelude::EntropyPlugin::with_seed`] instead.
 
 ```rust
 use bevy_ecs::prelude::*;

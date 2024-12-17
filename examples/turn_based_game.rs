@@ -49,7 +49,7 @@ fn main() {
         .run();
 }
 
-fn setup_player(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_player(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     commands.spawn((
         Kind::Player,
         Name("Player".into()),
@@ -73,7 +73,7 @@ fn setup_player(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng
     ));
 }
 
-fn setup_enemies(mut commands: Commands, mut rng: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_enemies(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     for i in 1..=2 {
         commands.spawn((
             Kind::Enemy,
