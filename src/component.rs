@@ -123,6 +123,7 @@ impl<R: EntropySource + 'static> Entropy<R> {
 
     /// Reseeds the internal `RngCore` instance with a new seed.
     #[inline]
+    #[deprecated = "Make use of `RngSeed` component instead for reseeding."]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
     }
