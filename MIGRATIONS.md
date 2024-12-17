@@ -30,6 +30,8 @@ As the `wyrand` dependency has been updated and contains a breaking output chang
 
 ## Migrating from v0.8 to v0.9
 
+The tutorial has been updated to reflect changes to the APIs and intended usages, so please do take a [look at them](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html).
+
 `EntropyComponent` has been renamed to `Entropy`, and the trait `SeedableEntropySource` has been renamed to `EntropySource`. The change to `Entropy` also changes the `TypePath` definition, so this will change the serialised format of the component.
 
 `GlobalEntropy` is no longer a resource, it is a query helper for accessing a `Global` `Entropy` source. It's all entities now, so for "global" and unique sources, they are entities created during plugin initialisation with a `Global` marker component. It is guaranteed to be a single instance per algorithm type, so accessing them is done via `Single` queries. In place of a resource access, there's now helper queries provided in case you need to access the source entity in question for a variety of purposes:

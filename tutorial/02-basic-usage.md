@@ -1,6 +1,6 @@
 # Basic Usage with `GlobalEntropy`
 
-At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
+At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. This is because `GlobalEntropy` is a query to access a single entity with a mutable reference to the `Entropy` component. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
 use bevy_prng::ChaCha8Rng;
@@ -16,7 +16,7 @@ In addition, the `rand` crate can be optionally pulled in and used with `bevy_ra
 
 ## Determinism when using `GlobalEntropy`
 
-When using `GlobalEntropy`, the way to ensure deterministic output/usage with the resource is in the following ways:
+When using `GlobalEntropy`, the way to ensure deterministic output/usage with the single entity is in the following ways:
 
 - One time or non-looping accesses when generating random numbers.
 - Iterating over set loops/ranges.
@@ -69,4 +69,4 @@ fn randomise_npc_stat(mut rng: GlobalEntropy<WyRand>, mut q_npc: Query<&mut Stat
 }
 ```
 
-But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalEntropy` but `Entropy` instead, moving the RNG source to the entities themselves. The next section will cover their usage.
+But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalEntropy` but `Entropy` instead, moving the RNG source from a single global entity to the entities you want to provide entropy to themselves. The next section will cover their usage.
