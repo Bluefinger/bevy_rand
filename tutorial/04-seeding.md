@@ -73,10 +73,31 @@ fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
 
 The `SeedSource` trait provides the methods needed to get access to the wrapped seed value, though `RngSeed` does implement `Deref` as well.
 
+## Reseeding
+
+In order to ensure that new seeds always proliferate into updating `Entropy` components, `RngSeed` is an *immutable* component. It does not allow obtaining mutable references to it, nor exposes mutable methods to modify the seed. That means the only way to update a source entity's seed is to reinsert a new `RngSeed`. By doing so, it also triggers the component's hooks to also reinsert a new `Entropy` with the updated seed.
+
+```rust
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{RngSeed, SeedSource, GlobalSource};
+
+#[derive(Component)]
+struct Source;
+
+fn setup_source(mut commands: Commands, global: GlobalSource<WyRand>) {
+    let new_seed = [42; 8]; // This seed has been chosen as random
+
+    commands.entity(*global).insert(RngSeed::<WyRand>::from_seed(new_seed));
+}
+```
+
+Reinsertions do not invoke archetype moves, so this will not cause any extra overhead.
+
 ## Pitfalls when Querying
 
-In general, never do a `Query<&mut RngSeed<T>>` without any query filters.
+In general, never do a `Query<&RngSeed<T>>` without any query filters.
 
 In basic usages, there's only *one* entity, the `Global` entity for the enabled RNG algorithm. The above query will yield the `Global` entity, same as using `GlobalSeed` query helper. However, if you've spawned more than one source, the above query will yield *all* `RngSeed` entities, global and non-global ones included. The ordering is also not guaranteed, so the first result out of that query is not guaranteed to be the global entity.
 
-Therefore, always use something like `Single` to enforce access to a single source such as `Single<&mut RngSeed<T>, With<Source>>`, or use query helpers like `GlobalSeed` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&mut RngSeed<T>, With<Source>>`.
+Therefore, always use something like `Single` to enforce access to a single source such as `Single<&RngSeed<T>, With<Source>>`, or use query helpers like `GlobalSeed` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&RngSeed<T>, With<Source>>`.
