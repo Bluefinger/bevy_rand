@@ -74,20 +74,22 @@ where
             .register_type::<RngSeed<R>>()
             .register_type::<R::Seed>();
 
-        app.world_mut().register_component_hooks::<RngSeed<R>>();
+        let world = app.world_mut();
 
-        if let Some(seed) = self.seed.as_ref() {
-            app.world_mut().spawn((RngSeed::<R>::from_seed(seed.clone()), Global));
-        } else {
-            app.world_mut().spawn((RngSeed::<R>::from_entropy(), Global));
-        }
+        world.register_component_hooks::<RngSeed<R>>();
 
-        app.world_mut().flush();
+        world.spawn((
+            self.seed
+                .clone()
+                .map_or_else(RngSeed::<R>::from_entropy, RngSeed::<R>::from_seed),
+            Global,
+        ));
+
+        world.flush();
 
         #[cfg(feature = "experimental")]
         app.add_observer(crate::observers::seed_from_global::<R>)
             .add_observer(crate::observers::reseed::<R>);
-        
     }
 }
 
