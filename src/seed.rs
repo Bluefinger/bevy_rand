@@ -73,11 +73,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[cfg(feature = "serialize")]
     #[test]
     fn reflection_serialization_round_trip_works() {
+        use super::*;
+
         use bevy_prng::WyRand;
         use bevy_reflect::{
             serde::{TypedReflectDeserializer, TypedReflectSerializer},
