@@ -12,7 +12,7 @@ exclude = ["/.*"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize"]
+default = []
 serialize = [
     "dep:serde",
     "dep:serde_derive",

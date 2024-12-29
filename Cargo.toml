@@ -39,7 +39,7 @@ rust-version = { workspace = true }
 default = ["serialize", "thread_local_entropy"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha"]
-serialize = ["dep:serde", "dep:serde_derive", "rand_core/serde1"]
+serialize = ["dep:serde", "dep:serde_derive", "rand_core/serde1", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
