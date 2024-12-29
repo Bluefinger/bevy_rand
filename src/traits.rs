@@ -244,7 +244,7 @@ where
         {
             use getrandom::getrandom;
 
-            getrandom(seed.as_mut()).expect("Unable to source entropy for seeding");
+            getrandom(dest.as_mut()).expect("Unable to source entropy for seeding");
         }
 
         Self::from_seed(dest)
