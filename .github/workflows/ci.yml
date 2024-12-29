@@ -47,7 +47,7 @@ jobs:
         run: cargo clippy --workspace --all-features --all-targets -- -Dwarnings
         if: startsWith(matrix.rust, 'nightly')
       - name: No Default Feature checks
-        run: cargo check --no-default-features
+        run: cargo check --no-default-features --workspace
       - name: Test with all features enabled
         run: cargo test --all-features
       - name: Test wasm

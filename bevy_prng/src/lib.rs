@@ -111,33 +111,13 @@ pub trait EntropySource:
 /// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 pub trait EntropySeed:
-    Debug
-    + Default
-    + PartialEq
-    + AsMut<u8>
-    + Clone
-    + Sync
-    + Send
-    + Reflect
-    + TypePath
-    + FromReflect
-    + GetTypeRegistration //+ private::SealedSeed
+    Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect
 {
 }
 
 #[cfg(not(feature = "serialize"))]
 impl<
-        T: Debug
-            + Default
-            + PartialEq
-            + AsMut<[u8]>
-            + Clone
-            + Sync
-            + Send
-            + Reflect
-            + TypePath
-            + FromReflect
-            + GetTypeRegistration,
+        T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect,
     > EntropySeed for T
 {
 }
