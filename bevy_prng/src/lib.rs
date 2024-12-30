@@ -98,7 +98,6 @@ pub trait EntropySource:
     + Clone
     + Debug
     + PartialEq
-    + AsMut<[u8]>
     + Reflectable
     + FromReflect
     + Sync
