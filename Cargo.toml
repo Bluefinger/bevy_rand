@@ -16,7 +16,7 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs" }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
 serde = "1"
 serde_derive = "1"
-rand_core = { version = "0.6", features = ["getrandom"]}
+rand_core = { version = "0.6", features = ["getrandom"] }
 rand_chacha = "0.3"
 wyrand = "0.2"
 rand_pcg = "0.3"
