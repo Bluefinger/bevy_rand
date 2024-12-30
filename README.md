@@ -116,6 +116,17 @@ fn setup_npc_from_source(
 }
 ```
 
+## Usage within Web WASM environments
+
+From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
+
+```toml
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+```
+
+This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
+
 ## Features
 
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
