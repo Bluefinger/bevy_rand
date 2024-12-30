@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use crate::{
     component::Entropy,
@@ -55,10 +55,7 @@ use serde::{Deserialize, Serialize};
     not(feature = "serialize"),
     reflect(Debug, PartialEq, Resource, FromReflect, FromWorld)
 )]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde_derive::Serialize, serde_derive::Deserialize)
-)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>, R::Seed: for<'a> Deserialize<'a>"))
@@ -218,6 +215,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+
     use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
     use bevy_reflect::TypePath;
 

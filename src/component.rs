@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use crate::{
     seed::RngSeed,
@@ -95,10 +95,7 @@ use serde::Deserialize;
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Component, Reflect)]
-#[cfg_attr(
-    feature = "serialize",
-    derive(serde_derive::Serialize, serde_derive::Deserialize)
-)]
+#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
@@ -241,6 +238,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+
     use bevy_prng::{ChaCha12Rng, ChaCha8Rng};
     use bevy_reflect::TypePath;
 

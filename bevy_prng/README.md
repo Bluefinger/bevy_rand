@@ -9,6 +9,8 @@
 
 `bevy_prng` is a crate that provides newtyped versions of various `rand_*` PRNG algorithm crates to make them suitable for integration within `bevy` for reflection purposes. It enables these types to have stable `TypePath`s and otherwise implement various required traits. This crate can be used as standalone to provide access to various PRNG algorithms of one's choice, to then use to write components/resources for one's game in `bevy`, but primarily, it's purpose to support and be a counterpart to `bevy_rand` (which provides the generic wrapper component/resource that `bevy_prng` types can plug in to).
 
+This crate is `no_std` compatible.
+
 ## Using Bevy PRNG
 
 By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you require is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have activate one of the following features:

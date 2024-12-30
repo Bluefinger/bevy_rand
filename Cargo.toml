@@ -14,8 +14,7 @@ rust-version = "1.76.0"
 bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app" }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs" }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
-serde = "1"
-serde_derive = "1"
+serde = { version = "1", default-features = false, features = ["derive"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 rand_chacha = "0.3"
 wyrand = "0.2"
@@ -37,9 +36,10 @@ rust-version = { workspace = true }
 
 [features]
 default = ["serialize", "thread_local_entropy"]
+std = []
 experimental = []
-thread_local_entropy = ["dep:rand_chacha"]
-serialize = ["dep:serde", "dep:serde_derive", "rand_core/serde1", "bevy_prng/serialize"]
+thread_local_entropy = ["dep:rand_chacha", "std"]
+serialize = ["dep:serde", "rand_core/serde1", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
@@ -56,7 +56,6 @@ getrandom = "0.2"
 rand_core.workspace = true
 rand_chacha = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
-serde_derive = { workspace = true, optional = true }
 
 # This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
 # version in lockstep with bevy_rand, so that even minor versions
