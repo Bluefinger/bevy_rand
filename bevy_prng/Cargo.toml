@@ -12,7 +12,7 @@ exclude = ["/.*"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize"]
+default = []
 serialize = [
     "dep:serde",
     "dep:serde_derive",
@@ -22,6 +22,10 @@ serialize = [
     "rand_xoshiro?/serde1",
     "wyrand?/serde1",
 ]
+rand_chacha = ["dep:rand_chacha"]
+wyrand = ["dep:wyrand"]
+rand_pcg = ["dep:rand_pcg"]
+rand_xoshiro = ["dep:rand_xoshiro"]
 
 [dependencies]
 bevy_reflect.workspace = true
