@@ -40,6 +40,8 @@ fn setup_source(mut commands: Commands) {
 }
 ```
 
+`GlobalEntropy` is basically the same thing! It's just an `Entity` with an `Entropy` component and `RngSeed`, combined with a `Global` marker component. `GlobalEntropy` itself is not a type, but an alias for a query: `Query<&mut Entropy<WyRand>, With<Global>>`.
+
 We can also instantiate these components with set seeds, but there's then the danger that with all of them having the same seed, they'll output the same random numbers. But we want determinism without being easy to predict across many, many entities. How would one achieve this? By forking.
 
 ## Forking new sources from existing ones
@@ -56,7 +58,7 @@ use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableRng};
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     commands
         .spawn((
             Source,
@@ -75,7 +77,7 @@ use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableAsRng};
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
     commands
         .spawn((
             Source,
@@ -125,3 +127,11 @@ fn randomise_npc_stat(mut q_npc: Query<(&mut Stat, &mut Entropy<WyRand>), With<N
 This way, no matter what order the query iterates, we can be assured that the resulting output is always deterministic. Other systems that access different entities with RNG sources that don't overlap with `Npc` entity systems will be able to run in parallel, and iterating the queries themselves can also be done in parallel with `.par_iter()`. We've ensured that each *access* is deterministic and owned to the entity itself.
 
 As a final note: for both `GlobalEntropy` and `Entropy`s, one can fork the inner PRNG instance to use directly or pass into methods via `fork_inner()`.
+
+## Pitfalls when Querying
+
+In general, never do a `Query<&mut Entropy<T>>` without any query filters.
+
+In basic usages, there's only *one* entity, the `Global` entity for the enabled RNG algorithm. The above query will yield the `Global` entity, same as using `GlobalEntropy` query helper. However, if you've spawned more than one source, the above query will yield *all* `Entropy` entities, global and non-global ones included. The ordering is also not guaranteed, so the first result out of that query is not guaranteed to be the global entity.
+
+Therefore, always use something like `Single` to enforce access to a single source such as `Single<&mut Entropy<T>, With<Source>>`, or use query helpers like `GlobalEntropy` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&mut Entropy, With<Source>>`.

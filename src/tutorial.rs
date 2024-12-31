@@ -21,5 +21,8 @@ pub mod ch02_basic_usage {}
 #[doc = include_str!("../tutorial/03-components-forking.md")]
 pub mod ch03_components_forking {}
 
-#[doc = include_str!("../tutorial/04-observer-driven-reseeding.md")]
-pub mod ch04_observer_driven_reseeding {}
+#[doc = include_str!("../tutorial/04-seeding.md")]
+pub mod ch04_seeding {}
+
+#[doc = include_str!("../tutorial/05-observer-driven-reseeding.md")]
+pub mod ch05_observer_driven_reseeding {}

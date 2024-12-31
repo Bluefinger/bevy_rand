@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use core::marker::PhantomData;
 
 use bevy_ecs::{
-    prelude::{Commands, Component, Entity, Event, OnInsert, ResMut, Trigger, With},
+    prelude::{Commands, Component, Entity, Event, OnInsert, Trigger, With},
     query::Without,
     system::{Populated, Single},
 };
@@ -119,7 +119,7 @@ where
 /// Observer System for pulling in a new seed from a GlobalEntropy source
 pub fn seed_from_global<Rng: EntropySource>(
     trigger: Trigger<SeedFromGlobal<Rng>>,
-    mut source: ResMut<GlobalEntropy<Rng>>,
+    mut source: GlobalEntropy<Rng>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
