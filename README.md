@@ -38,11 +38,22 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
-All PRNG backends should support `no_std` environments.
-
 ```toml
 bevy_rand = { version = "0.8", default-features = false, features = ["rand_chacha", "wyrand"] }
 ```
+
+All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/0.2.15/getrandom/index.html#custom-implementations).
+
+#### Usage within Web WASM environments
+
+From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
+
+```toml
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+```
+
+This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -125,17 +136,6 @@ fn setup_npc_from_source(
    }
 }
 ```
-
-## Usage within Web WASM environments
-
-From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
-
-```toml
-[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
-```
-
-This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
 
 ## Features
 
