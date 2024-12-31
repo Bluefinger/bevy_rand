@@ -1,12 +1,11 @@
 #[cfg(feature = "experimental")]
 use std::marker::PhantomData;
 
-use crate::{component::Entropy, resource::GlobalEntropy, seed::RngSeed};
+use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
 #[cfg(feature = "experimental")]
 use bevy_ecs::prelude::Component;
 use bevy_prng::{EntropySeed, EntropySource};
-use rand_core::SeedableRng;
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
 /// the bevy engine, registering types for a global resource and
@@ -29,7 +28,7 @@ use rand_core::SeedableRng;
 ///    .run();
 /// }
 ///
-/// fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
+/// fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
@@ -71,20 +70,26 @@ where
     R::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
-        app.register_type::<GlobalEntropy<R>>()
-            .register_type::<Entropy<R>>()
+        app.register_type::<Entropy<R>>()
             .register_type::<RngSeed<R>>()
             .register_type::<R::Seed>();
 
-        if let Some(seed) = self.seed.as_ref() {
-            app.insert_resource(GlobalEntropy::<R>::from_seed(seed.clone()));
-        } else {
-            app.init_resource::<GlobalEntropy<R>>();
-        }
+        let world = app.world_mut();
+
+        world.register_component_hooks::<RngSeed<R>>();
+
+        world.spawn((
+            self.seed
+                .clone()
+                .map_or_else(RngSeed::<R>::from_entropy, RngSeed::<R>::from_seed),
+            Global,
+        ));
+
+        world.flush();
+
         #[cfg(feature = "experimental")]
         app.add_observer(crate::observers::seed_from_global::<R>)
             .add_observer(crate::observers::reseed::<R>);
-        app.world_mut().register_component_hooks::<RngSeed<R>>();
     }
 }
 

@@ -57,12 +57,11 @@ fn example_main() {
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
-use bevy_ecs::prelude::ResMut;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: ResMut<GlobalEntropy<WyRand>>) {
+fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -79,7 +78,7 @@ use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<WyRand>>) {
+fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
     commands
         .spawn((
             Source,

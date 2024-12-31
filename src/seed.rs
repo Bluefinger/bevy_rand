@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{marker::PhantomData, ops::Deref};
 
 use bevy_ecs::{component::StorageType, prelude::Component};
 use bevy_prng::EntropySource;
@@ -11,7 +11,27 @@ use crate::{component::Entropy, traits::SeedSource};
 /// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
 /// `Entity` to overwrite the old value, and the `Entropy` will be overwritten with the new seed
 /// in turn.
-#[derive(Debug, Reflect)]
+///
+/// ## Examples
+///
+/// Randomised Seed via `Default`:
+/// ```
+/// use bevy_ecs::prelude::*;
+/// use bevy_prng::WyRand;
+/// use bevy_rand::prelude::RngSeed;
+///
+/// #[derive(Component)]
+/// struct Source;
+///
+/// fn setup_source(mut commands: Commands) {
+///     commands
+///         .spawn((
+///             Source,
+///             RngSeed::<WyRand>::default(),
+///         ));
+/// }
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
 pub struct RngSeed<R: EntropySource> {
     seed: R::Seed,
     #[reflect(ignore)]
@@ -64,6 +84,27 @@ where
             .on_remove(|mut world, entity, _| {
                 world.commands().entity(entity).remove::<Entropy<R>>();
             });
+    }
+}
+
+impl<R: EntropySource> Default for RngSeed<R>
+where
+    R::Seed: Sync + Send + Clone,
+{
+    #[inline]
+    fn default() -> Self {
+        Self::from_entropy()
+    }
+}
+
+impl<R: EntropySource> Deref for RngSeed<R>
+where
+    R::Seed: Sync + Send + Clone,
+{
+    type Target = R::Seed;
+
+    fn deref(&self) -> &Self::Target {
+        self.get_seed()
     }
 }
 
