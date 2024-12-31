@@ -15,6 +15,7 @@ This crate is `no_std` compatible.
 
 By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you require is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have activate one of the following features:
 
+- **`std`** - This enables some `std` specific functionality in some PRNGs, particularly in `rand_chacha`. Only for `std` environments.
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.

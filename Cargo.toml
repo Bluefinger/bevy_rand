@@ -20,7 +20,7 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
-rand_chacha = "0.3"
+rand_chacha = { version = "0.3", default-features = false }
 wyrand = "0.2"
 rand_pcg = "0.3"
 rand_xoshiro = "0.6"
@@ -39,8 +39,8 @@ exclude = ["/.*"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy"]
-std = []
+default = ["serialize", "thread_local_entropy", "std"]
+std = ["bevy_prng/std"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha", "std"]
 serialize = ["dep:serde", "rand_core/serde1", "bevy_prng/serialize"]
@@ -69,6 +69,10 @@ serde = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.9" }
 
 [dev-dependencies]
+bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
+    "bevy_reflect",
+    "bevy_tasks",
+] }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
     "bevy_reflect",
     "multi_threaded",
@@ -81,6 +85,9 @@ ron = { version = "0.8.0", features = ["integer128"] }
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.2", features = ["js"] }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
+    "bevy_reflect",
+] }
 
 [[example]]
 name = "turn_based_game"
