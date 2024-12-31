@@ -36,7 +36,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 
 #### `no_std` support
 
-`bevy_rand` is `no_std` compatible, but it requires disabling default features. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
+`bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
 bevy_rand = { version = "0.8", default-features = false, features = ["rand_chacha", "wyrand"] }
