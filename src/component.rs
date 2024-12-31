@@ -27,7 +27,7 @@ use serde::Deserialize;
 /// ## Creating new [`Entropy`]s.
 ///
 /// You can creates a new [`Entropy`] directly from anything that implements
-/// [`RngCore`] or provides a mut reference to [`RngCore`], such as [`ResMut`] or a
+/// [`RngCore`] or provides a mut reference to [`RngCore`], such as a
 /// [`Component`], or from a [`RngCore`] source directly.
 ///
 /// ## Examples
@@ -59,7 +59,7 @@ use serde::Deserialize;
 /// #[derive(Component)]
 /// struct Source;
 ///
-/// fn setup_source(mut commands: Commands, mut global: ResMut<GlobalEntropy<ChaCha8Rng>>) {
+/// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
 ///     commands
 ///         .spawn((
 ///             Source,
@@ -123,6 +123,7 @@ impl<R: EntropySource + 'static> Entropy<R> {
 
     /// Reseeds the internal `RngCore` instance with a new seed.
     #[inline]
+    #[deprecated = "Make use of `RngSeed` component instead for reseeding."]
     pub fn reseed(&mut self, seed: R::Seed) {
         self.0 = R::from_seed(seed);
     }
