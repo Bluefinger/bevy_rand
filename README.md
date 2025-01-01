@@ -20,14 +20,14 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 #### `bevy_rand` feature activation
 ```toml
 rand_core = "0.6"
-bevy_rand = { version = "0.8", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
 rand_core = "0.6"
-bevy_rand = "0.8"
-bevy_prng = { version = "0.8", features = ["rand_chacha", "wyrand"] }
+bevy_rand = "0.10"
+bevy_prng = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
 
 The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `rand_chacha`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
@@ -39,7 +39,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
-bevy_rand = { version = "0.8", default-features = false, features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.10", default-features = false, features = ["rand_chacha", "wyrand"] }
 ```
 
 All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/0.2.15/getrandom/index.html#custom-implementations).
