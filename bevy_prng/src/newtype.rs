@@ -5,7 +5,7 @@ macro_rules! newtype_prng {
         #[reflect(opaque)]
         #[cfg_attr(
             feature = "serialize",
-            derive(::serde_derive::Serialize, ::serde_derive::Deserialize)
+            derive(::serde::Serialize, ::serde::Deserialize)
         )]
         #[cfg_attr(
             all(feature = "serialize"),
@@ -83,7 +83,7 @@ macro_rules! newtype_prng_remote {
         #[derive(Debug, Clone, PartialEq, Reflect)]
         #[cfg_attr(
             feature = "serialize",
-            derive(::serde_derive::Serialize, ::serde_derive::Deserialize)
+            derive(::serde::Serialize, ::serde::Deserialize)
         )]
         #[cfg_attr(
             all(feature = "serialize"),

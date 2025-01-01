@@ -9,10 +9,13 @@
 
 `bevy_prng` is a crate that provides newtyped versions of various `rand_*` PRNG algorithm crates to make them suitable for integration within `bevy` for reflection purposes. It enables these types to have stable `TypePath`s and otherwise implement various required traits. This crate can be used as standalone to provide access to various PRNG algorithms of one's choice, to then use to write components/resources for one's game in `bevy`, but primarily, it's purpose to support and be a counterpart to `bevy_rand` (which provides the generic wrapper component/resource that `bevy_prng` types can plug in to).
 
+This crate is `no_std` compatible.
+
 ## Using Bevy PRNG
 
 By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you require is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have activate one of the following features:
 
+- **`std`** - This enables some `std` specific functionality in some PRNGs, particularly in `rand_chacha`. Only for `std` environments.
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
@@ -46,7 +49,8 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 | `bevy` | `bevy_prng`  |
 | ------ | ------------ |
-| v0.15  | v0.8         |
+| main   | v0.10 (main) |
+| v0.15  | v0.8 -> v0.9 |
 | v0.14  | v0.7 -> v0.8 |
 | v0.13  | v0.5 -> v0.6 |
 | v0.12  | v0.2         |
@@ -54,9 +58,9 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as follows:
 
-| `bevy_prng`  | `rand_core` | `rand` |
-| ------------ | ----------- | ------ |
-| v0.1 -> v0.8 | v0.6        | v0.8   |
+| `bevy_prng`   | `rand_core` | `rand` |
+| ------------- | ----------- | ------ |
+| v0.1 -> v0.10 | v0.6        | v0.8   |
 
 ## License
 

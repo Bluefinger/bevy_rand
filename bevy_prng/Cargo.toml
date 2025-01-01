@@ -13,9 +13,9 @@ rust-version = { workspace = true }
 
 [features]
 default = []
+std = ["rand_chacha?/std"]
 serialize = [
     "dep:serde",
-    "dep:serde_derive",
     "rand_core/serde1",
     "rand_chacha?/serde1",
     "rand_pcg?/serde1",
@@ -31,7 +31,6 @@ rand_xoshiro = ["dep:rand_xoshiro"]
 bevy_reflect.workspace = true
 rand_core.workspace = true
 serde = { workspace = true, optional = true }
-serde_derive = { workspace = true, optional = true }
 rand_chacha = { workspace = true, optional = true }
 wyrand = { workspace = true, optional = true }
 rand_pcg = { workspace = true, optional = true }

@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, ops::Deref};
+use core::{marker::PhantomData, ops::Deref};
 
 use bevy_ecs::{
     component::{Immutable, StorageType},

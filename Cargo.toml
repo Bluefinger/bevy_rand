@@ -7,17 +7,20 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.9.0"
+version = "0.10.0"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
-bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app" }
-bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs" }
+bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
+    "bevy_reflect",
+] }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
+    "bevy_reflect",
+] }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
-serde = "1"
-serde_derive = "1"
+serde = { version = "1", default-features = false, features = ["derive"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
-rand_chacha = "0.3"
+rand_chacha = { version = "0.3", default-features = false }
 wyrand = "0.2"
 rand_pcg = "0.3"
 rand_xoshiro = "0.6"
@@ -36,10 +39,11 @@ exclude = ["/.*"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy"]
+default = ["serialize", "thread_local_entropy", "std"]
+std = ["bevy_prng/std"]
 experimental = []
-thread_local_entropy = ["dep:rand_chacha"]
-serialize = ["dep:serde", "dep:serde_derive", "rand_core/serde1", "bevy_prng/serialize"]
+thread_local_entropy = ["dep:rand_chacha", "std"]
+serialize = ["dep:serde", "rand_core/serde1", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
@@ -49,30 +53,41 @@ wyrand = ["bevy_prng/wyrand"]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_reflect.workspace = true
-bevy_prng = { path = "bevy_prng", version = "0.9" }
+bevy_prng = { path = "bevy_prng", version = "0.10" }
 
 # others
 getrandom = "0.2"
 rand_core.workspace = true
 rand_chacha = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
-serde_derive = { workspace = true, optional = true }
 
 # This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
 # version in lockstep with bevy_rand, so that even minor versions
 # cannot be out of step with bevy_rand due to dependencies on traits
 # and implementations between the two crates.
 [target.'cfg(any())'.dependencies]
-bevy_prng = { path = "bevy_prng", version = "=0.9" }
+bevy_prng = { path = "bevy_prng", version = "=0.10" }
 
 [dev-dependencies]
-bevy_prng = { path = "bevy_prng", version = "0.9", features = ["rand_chacha", "wyrand"] }
+bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
+    "bevy_reflect",
+    "bevy_tasks",
+] }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
+    "bevy_reflect",
+    "multi_threaded",
+    "async_executor",
+] }
+bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.2", features = ["js"] }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
+    "bevy_reflect",
+] }
 
 [[example]]
 name = "turn_based_game"

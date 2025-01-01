@@ -34,6 +34,27 @@ The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cas
 
 DO **NOT** use `bevy_rand` for actual security purposes, as this requires much more careful consideration and properly vetted crates designed for cryptography. A good starting point would be to look at [RustCrypto](https://github.com/RustCrypto) and go from there.
 
+#### `no_std` support
+
+`bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
+
+```toml
+bevy_rand = { version = "0.8", default-features = false, features = ["rand_chacha", "wyrand"] }
+```
+
+All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/0.2.15/getrandom/index.html#custom-implementations).
+
+#### Usage within Web WASM environments
+
+From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
+
+```toml
+[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+```
+
+This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
+
 ### Registering a PRNG for use with Bevy Rand
 
 Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registered via the plugin.
@@ -115,20 +136,10 @@ fn setup_npc_from_source(
 }
 ```
 
-## Usage within Web WASM environments
-
-From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
-
-```toml
-[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
-```
-
-This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
-
 ## Features
 
-- **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Enabled by default.
+- **`std`** - Enables support for `std` environment, allows enabling `std` specific optimisations for `rand_chacha` and more. Enabled by default.
+- **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
@@ -142,6 +153,7 @@ This is in preparation for the newer versions of `getrandom`, which will force u
 
 | `bevy` | `bevy_rand`  |
 | ------ | ------------ |
+| main   | v0.10 (main) |
 | v0.15  | v0.8 - v0.9  |
 | v0.14  | v0.7         |
 | v0.13  | v0.5 - v0.6  |
@@ -151,9 +163,9 @@ This is in preparation for the newer versions of `getrandom`, which will force u
 
 The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as follows:
 
-| `bevy_rand`  | `rand_core` | `rand` |
-| ------------ | ----------- | ------ |
-| v0.1 -> v0.9 | v0.6        | v0.8   |
+| `bevy_rand`   | `rand_core` | `rand` |
+| ------------- | ----------- | ------ |
+| v0.1 -> v0.10 | v0.6        | v0.8   |
 
 ## Migrations
 

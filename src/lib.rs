@@ -3,7 +3,13 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, allow(unused_attributes))]
 #![warn(missing_docs)]
+#![no_std]
 #![doc = include_str!("../README.md")]
+
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
 
 /// Components for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
 pub mod component;

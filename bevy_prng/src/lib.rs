@@ -2,6 +2,7 @@
 #![deny(missing_docs)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(docsrs, allow(unused_attributes))]
+#![no_std]
 
 #[cfg(feature = "rand_chacha")]
 mod chacha;
@@ -19,7 +20,7 @@ mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
 
-use std::fmt::Debug;
+use core::fmt::Debug;
 
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};

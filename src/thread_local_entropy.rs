@@ -1,4 +1,7 @@
-use std::{cell::UnsafeCell, marker::PhantomData, ptr::NonNull, rc::Rc};
+use alloc::rc::Rc;
+use core::{cell::UnsafeCell, marker::PhantomData, ptr::NonNull};
+
+use std::thread_local;
 
 use rand_chacha::ChaCha8Rng;
 use rand_core::{CryptoRng, RngCore, SeedableRng};
@@ -80,6 +83,8 @@ impl CryptoRng for ThreadLocalEntropy {}
 
 #[cfg(test)]
 mod tests {
+    use alloc::{format, vec, vec::Vec};
+
     use super::*;
 
     #[test]
