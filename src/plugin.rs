@@ -85,11 +85,13 @@ where
             Global,
         ));
 
-        world.flush();
-
         #[cfg(feature = "experimental")]
-        app.add_observer(crate::observers::seed_from_global::<R>)
-            .add_observer(crate::observers::reseed::<R>);
+        {
+            world.add_observer(crate::observers::seed_from_global::<R>);
+            world.add_observer(crate::observers::reseed::<R>);
+        }
+
+        world.flush();
     }
 }
 

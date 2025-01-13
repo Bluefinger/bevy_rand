@@ -1,6 +1,6 @@
 pub use crate::component::Entropy;
+pub use crate::global::{Global, GlobalEntropy, GlobalSeed, GlobalSource};
 pub use crate::plugin::EntropyPlugin;
-pub use crate::global::*;
 pub use crate::seed::RngSeed;
 pub use crate::traits::{
     ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed, ForkableRng, ForkableSeed,
