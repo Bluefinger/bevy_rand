@@ -2,9 +2,11 @@ use alloc::vec::Vec;
 use core::marker::PhantomData;
 
 use bevy_ecs::{
+    component::{Immutable, Mutable, StorageType},
     prelude::{Commands, Component, Entity, Event, OnInsert, Trigger, With},
     query::Without,
-    system::{Populated, Single},
+    relationship::{Relationship, RelationshipTarget},
+    system::{Populated, Query, Single},
 };
 
 use bevy_prng::EntropySource;
@@ -14,20 +16,70 @@ use crate::{
     seed::RngSeed,
     traits::SeedSource,
 };
-
 /// Component to denote a source has linked children entities
-#[derive(Debug, Component)]
-pub struct RngChildren<Source: EntropySource>(PhantomData<Source>);
+#[derive(Debug)]
+pub struct RngChildren<Source: EntropySource>(Vec<Entity>, PhantomData<Source>);
 
-impl<Rng: EntropySource> Default for RngChildren<Rng> {
+impl<Source: EntropySource> RelationshipTarget for RngChildren<Source> {
+    type Relationship = RngParent<Source>;
+    type Collection = Vec<Entity>;
+
+    fn collection(&self) -> &Self::Collection {
+        &self.0
+    }
+
+    fn collection_mut_risky(&mut self) -> &mut Self::Collection {
+        &mut self.0
+    }
+
+    fn from_collection_risky(collection: Self::Collection) -> Self {
+        Self(collection, PhantomData)
+    }
+}
+
+impl<Source: EntropySource> Component for RngChildren<Source> {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+
+    type Mutability = Mutable;
+
+    fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
+        hooks.on_replace(<Self as bevy_ecs::relationship::RelationshipTarget>::on_replace);
+        hooks.on_despawn(<Self as bevy_ecs::relationship::RelationshipTarget>::on_despawn);
+    }
+}
+
+impl<Source: EntropySource> Default for RngChildren<Source> {
     fn default() -> Self {
-        Self(PhantomData)
+        Self(Vec::new(), PhantomData)
     }
 }
 
 /// Component to denote has a relation to a parent Rng source entity.
-#[derive(Debug, Component)]
+#[derive(Debug)]
 pub struct RngParent<Source: EntropySource>(Entity, PhantomData<Source>);
+
+impl<Source: EntropySource> Component for RngParent<Source> {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+
+    type Mutability = Immutable;
+
+    fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
+        hooks.on_insert(<Self as bevy_ecs::relationship::Relationship>::on_insert);
+        hooks.on_replace(<Self as bevy_ecs::relationship::Relationship>::on_replace);
+    }
+}
+
+impl<Source: EntropySource> Relationship for RngParent<Source> {
+    type RelationshipTarget = RngChildren<Source>;
+
+    fn get(&self) -> Entity {
+        self.0
+    }
+
+    fn from(entity: Entity) -> Self {
+        Self(entity, PhantomData)
+    }
+}
 
 impl<Source: EntropySource> RngParent<Source> {
     /// Initialises the relation component with the parent entity
@@ -47,6 +99,17 @@ impl<Source: EntropySource> RngParent<Source> {
 pub struct SeedFromGlobal<Rng: EntropySource>(PhantomData<Rng>);
 
 impl<Rng: EntropySource> Default for SeedFromGlobal<Rng> {
+    fn default() -> Self {
+        Self(PhantomData)
+    }
+}
+
+/// Observer event for triggering an entity to pull a new seed value from a
+/// GlobalEntropy source.
+#[derive(Debug, Event)]
+pub struct SeedChildren<Rng: EntropySource>(PhantomData<Rng>);
+
+impl<Rng: EntropySource> Default for SeedChildren<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -150,28 +213,45 @@ pub fn seed_from_parent<Rng: EntropySource>(
 }
 
 /// Observer System for handling seed propagation from source Rng to all child entities. This observer
-/// will only run if there is a single source entity and also if there are target entities to seed.
-pub fn seed_children<Source: Component, Target: Component, Rng: EntropySource>(
-    trigger: Trigger<OnInsert, Entropy<Rng>>,
-    q_source: Single<
-        (Entity, &mut Entropy<Rng>),
-        (With<Source>, With<RngChildren<Rng>>, Without<Target>),
-    >,
-    q_target: Populated<Entity, (With<Target>, With<RngParent<Rng>>, Without<Source>)>,
+/// will only run if there is a source entity and also if there are target entities to seed.
+pub fn seed_children<Rng: EntropySource>(
+    trigger: Trigger<SeedChildren<Rng>>,
+    mut q_source: Query<(&mut Entropy<Rng>, &RngChildren<Rng>)>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    let (source, mut rng) = q_source.into_inner();
-    // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
-    // will keep triggering and cause a stack overflow.
-    if source == trigger.target() {
-        let batch: Vec<(Entity, RngSeed<Rng>)> = q_target
+    if trigger.target() == Entity::PLACEHOLDER {
+        return;
+    }
+    if let Ok((mut rng, targets)) = q_source.get_mut(trigger.target()) {
+        let batched: Vec<_> = targets
+            .0
             .iter()
+            .copied()
             .map(|target| (target, rng.fork_seed()))
             .collect();
 
-        commands.insert_batch(batch);
+        commands.try_insert_batch(batched);
+    }
+}
+
+/// Observer System for triggering seed propagation from source Rng to all child entities. This observer
+/// will only run if there is a source entity and also if there are target entities to seed.
+pub fn trigger_seed_children<Rng: EntropySource>(
+    trigger: Trigger<OnInsert, Entropy<Rng>>,
+    q_source: Query<Entity, With<RngChildren<Rng>>>,
+    mut commands: Commands,
+) where
+    Rng::Seed: Send + Sync + Clone,
+{
+    if trigger.target() == Entity::PLACEHOLDER {
+        return;
+    }
+    // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
+    // will keep triggering and cause a stack overflow.
+    if let Ok(source) = q_source.get(trigger.target()) {
+        commands.trigger_targets(SeedChildren::<Rng>::default(), source);
     }
 }
 
@@ -186,23 +266,9 @@ pub fn link_targets<Source: Component, Target: Component, Rng: EntropySource>(
 ) {
     let parent = q_source.into_inner();
 
-    let mut targets = q_target.iter();
-
-    if targets.size_hint().0 == 1 {
-        let target = targets.next().unwrap();
-
-        commands
-            .entity(target)
-            .insert(RngParent::<Rng>::new(parent));
-    } else {
-        let targets: Vec<_> = targets
-            .map(|target| (target, RngParent::<Rng>::new(parent)))
-            .collect();
-
-        commands.insert_batch(targets);
-    }
+    let related: Vec<Entity> = q_target.iter().collect();
 
     commands
         .entity(parent)
-        .insert(RngChildren::<Rng>::default());
+        .add_related::<RngParent<Rng>>(&related);
 }
