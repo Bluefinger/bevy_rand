@@ -232,7 +232,7 @@ pub fn seed_children<Rng: EntropySource>(
             .map(|target| (target, rng.fork_seed()))
             .collect();
 
-        commands.try_insert_batch(batched);
+        commands.insert_batch(batched);
     }
 }
 
@@ -248,6 +248,7 @@ pub fn trigger_seed_children<Rng: EntropySource>(
     if trigger.target() == Entity::PLACEHOLDER {
         return;
     }
+
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(source) = q_source.get(trigger.target()) {

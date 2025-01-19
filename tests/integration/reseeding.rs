@@ -367,6 +367,7 @@ fn generic_observer_reseeding_children() {
         |mut commands: Commands, query: Query<Entity, With<Source>>| {
             for entity in &query {
                 commands.trigger_targets(SeedChildren::<WyRand>::default(), entity);
+                println!("WIN");
             }
         },
     )

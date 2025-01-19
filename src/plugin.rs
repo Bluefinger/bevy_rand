@@ -89,6 +89,9 @@ where
         {
             world.add_observer(crate::observers::seed_from_global::<R>);
             world.add_observer(crate::observers::reseed::<R>);
+            world.add_observer(crate::observers::seed_from_parent::<R>);
+            world.add_observer(crate::observers::seed_children::<R>);
+            world.add_observer(crate::observers::trigger_seed_children::<R>);
         }
 
         world.flush();
@@ -124,9 +127,6 @@ where
     Rng::Seed: Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
-        app.add_observer(crate::observers::seed_from_parent::<Rng>)
-            .add_observer(crate::observers::seed_children::<Rng>)
-            .add_observer(crate::observers::link_targets::<Source, Target, Rng>)
-            .add_observer(crate::observers::trigger_seed_children::<Rng>);
+        app.add_observer(crate::observers::link_targets::<Source, Target, Rng>);
     }
 }
