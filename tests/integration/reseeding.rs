@@ -353,21 +353,22 @@ fn generic_observer_reseeding_children() {
             expected
                 .into_iter()
                 .zip(seeds.map(u64::from_ne_bytes))
-                .for_each(|(expected, actual)| assert_eq!(expected, actual));
+                .for_each(|(expected, actual)| {
+                    assert_eq!(expected, actual, "Expected output to match")
+                });
         },
     )
     .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
         let expected = 2484862625678185386u64;
         let seeds = u64::from_ne_bytes(query.single().clone_seed());
 
-        assert_eq!(expected, seeds);
+        assert_eq!(expected, seeds, "Expected seeds to match");
     })
     .add_systems(
         Update,
         |mut commands: Commands, query: Query<Entity, With<Source>>| {
             for entity in &query {
                 commands.trigger_targets(SeedChildren::<WyRand>::default(), entity);
-                println!("WIN");
             }
         },
     )
@@ -381,12 +382,13 @@ fn generic_observer_reseeding_children() {
                 908888629357954483,
                 6128439264405451235,
             ];
+
             let expected = [
-                2656876351602726802u64,
-                4226413670151402273,
-                2344778986622729714,
-                9109365740673988404,
-                6101264679293753504,
+                13007546668837876556u64,
+                11167966742313596632,
+                6059854582339877554,
+                16378674538987011914,
+                14627163487140195445,
             ];
 
             prev_expected
@@ -400,9 +402,12 @@ fn generic_observer_reseeding_children() {
                 )
                 .for_each(|((previous, expected), actual)| {
                     // Must not equal the previous seeds.
-                    assert_ne!(previous, actual);
+                    assert_ne!(
+                        previous, actual,
+                        "Expected output not to match previous output"
+                    );
                     // Should equal the expected updated seeds.
-                    assert_eq!(expected, actual)
+                    assert_eq!(expected, actual, "Expected output to be updated")
                 });
         },
     )
@@ -411,8 +416,16 @@ fn generic_observer_reseeding_children() {
         |source: Query<&RngSeed<WyRand>, With<Source>>,
          children: Query<&RngSeed<WyRand>, (Without<Source>, Without<Global>)>| {
             // Check we have the correct amount of allocated RNG entities
-            assert_eq!(source.iter().size_hint().0, 1);
-            assert_eq!(children.iter().size_hint().0, 5);
+            assert_eq!(
+                source.iter().size_hint().0,
+                1,
+                "Only one SOURCE should exist"
+            );
+            assert_eq!(
+                children.iter().size_hint().0,
+                5,
+                "Only 5 TARGET should exist"
+            );
         },
     );
 

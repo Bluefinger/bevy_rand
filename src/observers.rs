@@ -221,9 +221,6 @@ pub fn seed_children<Rng: EntropySource>(
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    if trigger.target() == Entity::PLACEHOLDER {
-        return;
-    }
     if let Ok((mut rng, targets)) = q_source.get_mut(trigger.target()) {
         let batched: Vec<_> = targets
             .0
@@ -245,10 +242,6 @@ pub fn trigger_seed_children<Rng: EntropySource>(
 ) where
     Rng::Seed: Send + Sync + Clone,
 {
-    if trigger.target() == Entity::PLACEHOLDER {
-        return;
-    }
-
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(source) = q_source.get(trigger.target()) {
