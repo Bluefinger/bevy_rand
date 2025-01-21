@@ -1,10 +1,5 @@
-#[cfg(feature = "experimental")]
-use std::marker::PhantomData;
-
 use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
-#[cfg(feature = "experimental")]
-use bevy_ecs::prelude::Component;
 use bevy_prng::{EntropySeed, EntropySource};
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
@@ -85,48 +80,13 @@ where
             Global,
         ));
 
-        #[cfg(feature = "experimental")]
-        {
-            world.add_observer(crate::observers::seed_from_global::<R>);
-            world.add_observer(crate::observers::reseed::<R>);
-            world.add_observer(crate::observers::seed_from_parent::<R>);
-            world.add_observer(crate::observers::seed_children::<R>);
-            world.add_observer(crate::observers::trigger_seed_children::<R>);
-        }
+        world.add_observer(crate::observers::seed_from_global::<R>);
+        world.add_observer(crate::observers::reseed::<R>);
+        world.add_observer(crate::observers::seed_from_parent::<R>);
+        world.add_observer(crate::observers::seed_children::<R>);
+        world.add_observer(crate::observers::trigger_seed_children::<R>);
+        world.add_observer(crate::observers::link_targets::<R>);
 
         world.flush();
-    }
-}
-
-/// Plugin for setting up linked RNG sources
-#[cfg(feature = "experimental")]
-pub struct LinkedEntropySources<Source: Component, Target: Component, Rng: EntropySource + 'static>
-{
-    rng: PhantomData<Rng>,
-    source: PhantomData<Source>,
-    target: PhantomData<Target>,
-}
-
-#[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Default
-    for LinkedEntropySources<Source, Target, Rng>
-{
-    fn default() -> Self {
-        Self {
-            rng: PhantomData,
-            source: PhantomData,
-            target: PhantomData,
-        }
-    }
-}
-
-#[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Plugin
-    for LinkedEntropySources<Source, Target, Rng>
-where
-    Rng::Seed: Send + Sync + Clone,
-{
-    fn build(&self, app: &mut App) {
-        app.add_observer(crate::observers::link_targets::<Source, Target, Rng>);
     }
 }

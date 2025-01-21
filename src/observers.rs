@@ -4,17 +4,14 @@ use core::marker::PhantomData;
 use bevy_ecs::{
     component::{Immutable, Mutable, StorageType},
     prelude::{Commands, Component, Entity, Event, OnInsert, Trigger, With},
-    query::Without,
     relationship::{Relationship, RelationshipTarget},
-    system::{Populated, Query, Single},
+    system::{Populated, Query},
 };
 
 use bevy_prng::EntropySource;
 
 use crate::{
-    prelude::{Entropy, ForkableSeed, GlobalEntropy},
-    seed::RngSeed,
-    traits::SeedSource,
+    prelude::{Entropy, ForkableSeed, GlobalEntropy}, seed::RngSeed, traits::SeedSource
 };
 /// Component to denote a source has linked children entities
 #[derive(Debug)]
@@ -145,22 +142,23 @@ where
 /// association needed so that when the source Rng's seed is changed, it propagates new seeds to
 /// all linked Rngs.
 #[derive(Debug, Event)]
-pub struct LinkRngSourceToTarget<Source: Component, Target: Component, Rng: EntropySource> {
+pub struct LinkRngSourceToTarget<Rng: EntropySource> {
     rng: PhantomData<Rng>,
-    source: PhantomData<Source>,
-    target: PhantomData<Target>,
+    source: Entity,
+    target: Vec<Entity>,
 }
 
-impl<Source: Component, Target: Component, Rng: EntropySource> Default
-    for LinkRngSourceToTarget<Source, Target, Rng>
+impl<Rng: EntropySource> LinkRngSourceToTarget<Rng>
 where
     Rng::Seed: Sync + Send + Clone,
 {
-    fn default() -> Self {
+    /// Construct a new linking event, taking one source [`Entity`] that will link to one
+    /// or many [`Entity`],
+    pub fn new(source: Entity, target: Vec<Entity>) -> Self {
         Self {
             rng: PhantomData,
-            source: PhantomData,
-            target: PhantomData,
+            source,
+            target,
         }
     }
 }
@@ -252,17 +250,11 @@ pub fn trigger_seed_children<Rng: EntropySource>(
 /// Observer System for handling linking a source Rng with all target entities. This observer will only
 /// run if there is a single source entity and if there are target entities to link with. If these assumptions
 /// are not met, the observer system will not run.
-pub fn link_targets<Source: Component, Target: Component, Rng: EntropySource>(
-    _trigger: Trigger<LinkRngSourceToTarget<Source, Target, Rng>>,
-    q_source: Single<Entity, (With<Source>, Without<Target>)>,
-    q_target: Populated<Entity, (With<Target>, Without<Source>)>,
+pub fn link_targets<Rng: EntropySource>(
+    trigger: Trigger<LinkRngSourceToTarget<Rng>>,
     mut commands: Commands,
 ) {
-    let parent = q_source.into_inner();
-
-    let related: Vec<Entity> = q_target.iter().collect();
-
     commands
-        .entity(parent)
-        .add_related::<RngParent<Rng>>(&related);
+        .entity(trigger.source)
+        .add_related::<RngParent<Rng>>(&trigger.target);
 }

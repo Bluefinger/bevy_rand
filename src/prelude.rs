@@ -1,3 +1,4 @@
+pub use crate::commands::{RngCommandsExt, EntityRngCommands};
 pub use crate::component::Entropy;
 pub use crate::global::{Global, GlobalEntropy, GlobalSeed, GlobalSource};
 pub use crate::plugin::EntropyPlugin;
