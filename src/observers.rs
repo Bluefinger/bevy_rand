@@ -11,14 +11,16 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 
 use crate::{
-    prelude::{Entropy, ForkableSeed, GlobalEntropy}, seed::RngSeed, traits::SeedSource
+    prelude::{Entropy, ForkableSeed, GlobalEntropy},
+    seed::RngSeed,
+    traits::SeedSource,
 };
 /// Component to denote a source has linked children entities
 #[derive(Debug)]
-pub struct RngChildren<Source: EntropySource>(Vec<Entity>, PhantomData<Source>);
+pub struct RngLinks<Source: EntropySource>(Vec<Entity>, PhantomData<Source>);
 
-impl<Source: EntropySource> RelationshipTarget for RngChildren<Source> {
-    type Relationship = RngParent<Source>;
+impl<Source: EntropySource> RelationshipTarget for RngLinks<Source> {
+    type Relationship = RngSource<Source>;
     type Collection = Vec<Entity>;
 
     fn collection(&self) -> &Self::Collection {
@@ -34,7 +36,7 @@ impl<Source: EntropySource> RelationshipTarget for RngChildren<Source> {
     }
 }
 
-impl<Source: EntropySource> Component for RngChildren<Source> {
+impl<Source: EntropySource> Component for RngLinks<Source> {
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
     type Mutability = Mutable;
@@ -45,7 +47,7 @@ impl<Source: EntropySource> Component for RngChildren<Source> {
     }
 }
 
-impl<Source: EntropySource> Default for RngChildren<Source> {
+impl<Source: EntropySource> Default for RngLinks<Source> {
     fn default() -> Self {
         Self(Vec::new(), PhantomData)
     }
@@ -53,9 +55,9 @@ impl<Source: EntropySource> Default for RngChildren<Source> {
 
 /// Component to denote has a relation to a parent Rng source entity.
 #[derive(Debug)]
-pub struct RngParent<Source: EntropySource>(Entity, PhantomData<Source>);
+pub struct RngSource<Source: EntropySource>(Entity, PhantomData<Source>);
 
-impl<Source: EntropySource> Component for RngParent<Source> {
+impl<Source: EntropySource> Component for RngSource<Source> {
     const STORAGE_TYPE: StorageType = StorageType::Table;
 
     type Mutability = Immutable;
@@ -66,8 +68,8 @@ impl<Source: EntropySource> Component for RngParent<Source> {
     }
 }
 
-impl<Source: EntropySource> Relationship for RngParent<Source> {
-    type RelationshipTarget = RngChildren<Source>;
+impl<Source: EntropySource> Relationship for RngSource<Source> {
+    type RelationshipTarget = RngLinks<Source>;
 
     fn get(&self) -> Entity {
         self.0
@@ -78,7 +80,7 @@ impl<Source: EntropySource> Relationship for RngParent<Source> {
     }
 }
 
-impl<Source: EntropySource> RngParent<Source> {
+impl<Source: EntropySource> RngSource<Source> {
     /// Initialises the relation component with the parent entity
     pub fn new(parent: Entity) -> Self {
         Self(parent, PhantomData)
@@ -104,9 +106,9 @@ impl<Rng: EntropySource> Default for SeedFromGlobal<Rng> {
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
 #[derive(Debug, Event)]
-pub struct SeedChildren<Rng: EntropySource>(PhantomData<Rng>);
+pub struct SeedLinked<Rng: EntropySource>(PhantomData<Rng>);
 
-impl<Rng: EntropySource> Default for SeedChildren<Rng> {
+impl<Rng: EntropySource> Default for SeedLinked<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -115,9 +117,9 @@ impl<Rng: EntropySource> Default for SeedChildren<Rng> {
 /// Observer event for triggering an entity to pull a new seed value from a
 /// linked parent entity.
 #[derive(Debug, Event)]
-pub struct SeedFromParent<Rng: EntropySource>(PhantomData<Rng>);
+pub struct SeedFromSource<Rng: EntropySource>(PhantomData<Rng>);
 
-impl<Rng: EntropySource> Default for SeedFromParent<Rng> {
+impl<Rng: EntropySource> Default for SeedFromSource<Rng> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -193,9 +195,9 @@ pub fn seed_from_global<Rng: EntropySource>(
 /// Observer System for pulling in a new seed for the current entity from its parent Rng source. This
 /// observer system will only run if there are parent entities to have seeds pulled from.
 pub fn seed_from_parent<Rng: EntropySource>(
-    trigger: Trigger<SeedFromParent<Rng>>,
-    q_linked: Populated<&RngParent<Rng>>,
-    mut q_parents: Populated<&mut Entropy<Rng>, With<RngChildren<Rng>>>,
+    trigger: Trigger<SeedFromSource<Rng>>,
+    q_linked: Populated<&RngSource<Rng>>,
+    mut q_parents: Populated<&mut Entropy<Rng>, With<RngLinks<Rng>>>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
@@ -213,8 +215,8 @@ pub fn seed_from_parent<Rng: EntropySource>(
 /// Observer System for handling seed propagation from source Rng to all child entities. This observer
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn seed_children<Rng: EntropySource>(
-    trigger: Trigger<SeedChildren<Rng>>,
-    mut q_source: Query<(&mut Entropy<Rng>, &RngChildren<Rng>)>,
+    trigger: Trigger<SeedLinked<Rng>>,
+    mut q_source: Query<(&mut Entropy<Rng>, &RngLinks<Rng>)>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
@@ -235,7 +237,7 @@ pub fn seed_children<Rng: EntropySource>(
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn trigger_seed_children<Rng: EntropySource>(
     trigger: Trigger<OnInsert, Entropy<Rng>>,
-    q_source: Query<Entity, With<RngChildren<Rng>>>,
+    q_source: Query<Entity, With<RngLinks<Rng>>>,
     mut commands: Commands,
 ) where
     Rng::Seed: Send + Sync + Clone,
@@ -243,7 +245,7 @@ pub fn trigger_seed_children<Rng: EntropySource>(
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(source) = q_source.get(trigger.target()) {
-        commands.trigger_targets(SeedChildren::<Rng>::default(), source);
+        commands.trigger_targets(SeedLinked::<Rng>::default(), source);
     }
 }
 
@@ -256,5 +258,5 @@ pub fn link_targets<Rng: EntropySource>(
 ) {
     commands
         .entity(trigger.source)
-        .add_related::<RngParent<Rng>>(&trigger.target);
+        .add_related::<RngSource<Rng>>(&trigger.target);
 }

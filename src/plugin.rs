@@ -1,3 +1,5 @@
+use core::marker::PhantomData;
+
 use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, EntropySource};
@@ -81,11 +83,34 @@ where
         ));
 
         world.add_observer(crate::observers::seed_from_global::<R>);
-        world.add_observer(crate::observers::reseed::<R>);
-        world.add_observer(crate::observers::seed_from_parent::<R>);
-        world.add_observer(crate::observers::seed_children::<R>);
-        world.add_observer(crate::observers::trigger_seed_children::<R>);
-        world.add_observer(crate::observers::link_targets::<R>);
+
+        world.flush();
+    }
+}
+
+/// [`Plugin`] for setting up observers for handling related Rngs.
+pub struct EntropyRelationPlugin<Rng: EntropySource> {
+    _rng: PhantomData<Rng>,
+}
+
+impl<Rng: EntropySource> Default for EntropyRelationPlugin<Rng> {
+    fn default() -> Self {
+        Self { _rng: PhantomData }
+    }
+}
+
+impl<Rng: EntropySource> Plugin for EntropyRelationPlugin<Rng>
+where
+    Rng::Seed: Send + Sync + Clone,
+{
+    fn build(&self, app: &mut App) {
+        let world = app.world_mut();
+
+        world.add_observer(crate::observers::reseed::<Rng>);
+        world.add_observer(crate::observers::seed_from_parent::<Rng>);
+        world.add_observer(crate::observers::seed_children::<Rng>);
+        world.add_observer(crate::observers::trigger_seed_children::<Rng>);
+        world.add_observer(crate::observers::link_targets::<Rng>);
 
         world.flush();
     }
