@@ -29,13 +29,13 @@ use bevy_prng::{EntropySeed, EntropySource};
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
-pub struct EntropyPlugin<R: EntropySource + 'static> {
-    seed: Option<R::Seed>,
+pub struct EntropyPlugin<Rng: EntropySource + 'static> {
+    seed: Option<Rng::Seed>,
 }
 
-impl<R: EntropySource + 'static> EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> EntropyPlugin<Rng>
 where
-    R::Seed: Send + Sync + Clone,
+    Rng::Seed: Send + Sync + Clone,
 {
     /// Creates a new plugin instance configured for randomised,
     /// non-deterministic seeding of the global entropy resource.
@@ -48,41 +48,41 @@ where
     /// Configures the plugin instance to have a set seed for the
     /// global entropy resource.
     #[inline]
-    pub fn with_seed(seed: R::Seed) -> Self {
+    pub fn with_seed(seed: Rng::Seed) -> Self {
         Self { seed: Some(seed) }
     }
 }
 
-impl<R: EntropySource + 'static> Default for EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> Default for EntropyPlugin<Rng>
 where
-    R::Seed: Send + Sync + Clone,
+    Rng::Seed: Send + Sync + Clone,
 {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<R: EntropySource + 'static> Plugin for EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> Plugin for EntropyPlugin<Rng>
 where
-    R::Seed: EntropySeed,
+    Rng::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
-        app.register_type::<Entropy<R>>()
-            .register_type::<RngSeed<R>>()
-            .register_type::<R::Seed>();
+        app.register_type::<Entropy<Rng>>()
+            .register_type::<RngSeed<Rng>>()
+            .register_type::<Rng::Seed>();
 
         let world = app.world_mut();
 
-        world.register_component_hooks::<RngSeed<R>>();
+        world.register_component_hooks::<RngSeed<Rng>>();
 
         world.spawn((
             self.seed
                 .clone()
-                .map_or_else(RngSeed::<R>::from_entropy, RngSeed::<R>::from_seed),
+                .map_or_else(RngSeed::<Rng>::from_entropy, RngSeed::<Rng>::from_seed),
             Global,
         ));
 
-        world.add_observer(crate::observers::seed_from_global::<R>);
+        world.add_observer(crate::observers::seed_from_global::<Rng>);
 
         world.flush();
     }
@@ -106,11 +106,9 @@ where
     fn build(&self, app: &mut App) {
         let world = app.world_mut();
 
-        world.add_observer(crate::observers::reseed::<Rng>);
         world.add_observer(crate::observers::seed_from_parent::<Rng>);
-        world.add_observer(crate::observers::seed_children::<Rng>);
-        world.add_observer(crate::observers::trigger_seed_children::<Rng>);
-        world.add_observer(crate::observers::link_targets::<Rng>);
+        world.add_observer(crate::observers::seed_linked::<Rng>);
+        world.add_observer(crate::observers::trigger_seed_linked::<Rng>);
 
         world.flush();
     }
