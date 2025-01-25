@@ -2,8 +2,8 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
-    global::{Global, GlobalEntropy},
-    plugin::{EntropyPlugin, EntropyRelationPlugin},
+    global::{Global, GlobalEntropy, GlobalRng},
+    plugin::{EntropyObserversPlugin, EntropyPlugin},
     prelude::Entropy,
     seed::RngSeed,
     traits::{ForkableAsSeed, ForkableSeed, SeedSource},
@@ -163,7 +163,7 @@ fn observer_global_reseeding() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyRelationPlugin::<WyRand>::default(),
+        EntropyObserversPlugin::<WyRand, WyRand>::default(),
     ))
     .add_systems(
         Startup,
@@ -171,14 +171,11 @@ fn observer_global_reseeding() {
             |mut commands: Commands| {
                 commands.spawn_batch(vec![Target; 5]);
             },
-            |mut commands: Commands,
-             q_targets: Query<Entity, With<Target>>,
-             global: GlobalSource<WyRand>| {
-                let source = global.into_inner();
+            |q_targets: Query<Entity, With<Target>>, mut global: GlobalRng<WyRand>| {
                 let targets: Vec<_> = q_targets.iter().collect();
 
-                commands
-                    .rng::<WyRand>(source)
+                global
+                    .rng_commands()
                     .link_target_rngs(&targets)
                     .reseed_linked();
             },
@@ -253,7 +250,7 @@ fn generic_observer_reseeding_from_parent() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyRelationPlugin::<WyRand>::default(),
+        EntropyObserversPlugin::<WyRand, WyRand>::default(),
     ))
     .add_systems(
         Startup,
@@ -322,7 +319,7 @@ fn generic_observer_reseeding_children() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyRelationPlugin::<WyRand>::default(),
+        EntropyObserversPlugin::<WyRand, WyRand>::default(),
     ))
     .add_systems(
         Startup,

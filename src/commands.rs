@@ -57,7 +57,13 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
     /// Links a list of target [`Entity`]s to the current `Rng`, designating it
     /// as the Source `Rng` for the Targets to draw new seeds from.
     pub fn link_target_rngs(&mut self, targets: &[Entity]) -> &mut Self {
-        self.commands.add_related::<RngSource<Rng>>(targets);
+        self.commands.add_related::<RngSource<Rng, Rng>>(targets);
+
+        self
+    }
+
+    pub fn link_target_rngs_as<Target: EntropySource>(&mut self, targets: &[Entity]) -> &mut Self {
+        self.commands.add_related::<RngSource<Rng, Target>>(targets);
 
         self
     }
@@ -65,7 +71,13 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
     /// Emits an event for the current Source `Rng` to generate and push out new seeds to
     /// all linked target `Rng`s.
     pub fn reseed_linked(&mut self) -> &mut Self {
-        self.commands.trigger(SeedLinked::<Rng>::default());
+        self.commands.trigger(SeedLinked::<Rng, Rng>::default());
+
+        self
+    }
+
+    pub fn reseed_linked_as<Target: EntropySource>(&mut self) -> &mut Self {
+        self.commands.trigger(SeedLinked::<Rng, Target>::default());
 
         self
     }
@@ -73,18 +85,32 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
     /// Emits an event for the current `Rng` to pull a new seed from its linked
     /// Source `Rng`.
     pub fn reseed_from_source(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromSource::<Rng>::default());
+        self.commands.trigger(SeedFromSource::<Rng, Rng>::default());
+
+        self
+    }
+
+    pub fn reseed_from_source_as<Source: EntropySource>(&mut self) -> &mut Self {
+        self.commands.trigger(SeedFromSource::<Source, Rng>::default());
 
         self
     }
 
     /// Emits an event for the current `Rng` to pull a new seed from the
     /// Global `Rng`.
-    pub fn reseed_from_global(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromGlobal::<Rng>::default());
+    pub fn reseed_from_global<Source: EntropySource>(&mut self) -> &mut Self {
+        self.commands.trigger(SeedFromGlobal::<Source, Rng>::default());
 
         self
     }
+
+    // /// Emits an event for the current `Rng` to pull a new seed from the
+    // /// Global `Rng`.
+    // pub fn reseed_from_global<Source: EntropySource>(&mut self) -> &mut Self {
+    //     self.commands.trigger(SeedFromGlobal::<Source, Rng>::default());
+
+    //     self
+    // }
 
     /// Returns the inner [`EntityCommands`] with a smaller lifetime.
     pub fn entity_commands(&mut self) -> EntityCommands<'_> {

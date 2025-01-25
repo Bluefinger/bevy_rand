@@ -82,33 +82,34 @@ where
             Global,
         ));
 
-        world.add_observer(crate::observers::seed_from_global::<Rng>);
-
         world.flush();
     }
 }
 
 /// [`Plugin`] for setting up observers for handling related Rngs.
-pub struct EntropyRelationPlugin<Rng: EntropySource> {
-    _rng: PhantomData<Rng>,
+pub struct EntropyObserversPlugin<Source, Target> {
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
 }
 
-impl<Rng: EntropySource> Default for EntropyRelationPlugin<Rng> {
+impl<Source: EntropySource, Target: EntropySource> Default for EntropyObserversPlugin<Source, Target> {
     fn default() -> Self {
-        Self { _rng: PhantomData }
+        Self { _source: PhantomData, _target: PhantomData }
     }
 }
 
-impl<Rng: EntropySource> Plugin for EntropyRelationPlugin<Rng>
+impl<Source: EntropySource, Target: EntropySource> Plugin for EntropyObserversPlugin<Source, Target>
 where
-    Rng::Seed: Send + Sync + Clone,
+    Source::Seed: Send + Sync + Clone,
+    Target::Seed: Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
         let world = app.world_mut();
 
-        world.add_observer(crate::observers::seed_from_parent::<Rng>);
-        world.add_observer(crate::observers::seed_linked::<Rng>);
-        world.add_observer(crate::observers::trigger_seed_linked::<Rng>);
+        world.add_observer(crate::observers::seed_from_global::<Source, Target>);
+        world.add_observer(crate::observers::seed_from_parent::<Source, Target>);
+        world.add_observer(crate::observers::seed_linked::<Source, Target>);
+        world.add_observer(crate::observers::trigger_seed_linked::<Source, Target>);
 
         world.flush();
     }
