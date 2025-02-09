@@ -80,15 +80,15 @@ In order to ensure that new seeds always proliferate into updating `Entropy` com
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{RngSeed, SeedSource, GlobalSource};
+use bevy_rand::prelude::{RngSeed, SeedSource, GlobalRngEntity};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, global: GlobalSource<WyRand>) {
+fn setup_source(mut global: GlobalRngEntity<WyRand>) {
     let new_seed = [42; 8]; // This seed has been chosen as random
 
-    commands.entity(*global).insert(RngSeed::<WyRand>::from_seed(new_seed));
+    global.rng_commands().reseed(new_seed);
 }
 ```
 
