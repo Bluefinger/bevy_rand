@@ -43,7 +43,7 @@ impl<'a, Rng: EntropySource> Deref for RngEntityCommands<'a, Rng> {
     }
 }
 
-impl<'a, Rng: EntropySource> DerefMut for RngEntityCommands<'a, Rng> {
+impl<Rng: EntropySource> DerefMut for RngEntityCommands<'_, Rng> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.commands
     }

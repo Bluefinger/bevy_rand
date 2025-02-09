@@ -16,7 +16,7 @@ where
     entity: Entity,
 }
 
-impl<'w, Rng: EntropySource> RngEntityItem<'w, Rng>
+impl<Rng: EntropySource> RngEntityItem<'_, Rng>
 where
     Rng::Seed: Debug + Clone,
 {
