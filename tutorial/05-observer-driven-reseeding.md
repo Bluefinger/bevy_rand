@@ -1,9 +1,9 @@
-# EXPERIMENTAL - Observer-driven Reseeding
+# Observer-driven and Command-based Reseeding
 
 The following feature is _experimental_ so to enable it, you'll need to edit your Cargo.toml file and change the dependency declaration for `bevy_rand` to have `features=["experimental"]` applied. Once done, you'll get access to some utils that will enable easy setup of observer driven reseeding utilities for managing when entities with `Entropy`s obtain new seeds from which sources. Keep in mind, this feature is not *stable* and will be subject to further work and iteration, so if problems and issues are encountered, please do create issues outlining the use-cases and difficulties.
 
 ```toml
-bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand", "experimental"] }
+bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
 
 By default, when the `experimental` feature is enabled, you'll be able to trigger a reseeding for a given entity either by pulling from a global source, or by providing a set seed value. This does not require any specific setup, and can simply be triggered by emitting the event on the entity needing to be reseeded. ALl observer events require providing a generic for the RNG algorithm to be targetted, as an entity could have multiple RNG sources attached to it.

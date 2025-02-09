@@ -7,7 +7,7 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2021"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.10.0"
+version = "0.11.0"
 rust-version = "1.76.0"
 
 [workspace.dependencies]
@@ -53,7 +53,7 @@ wyrand = ["bevy_prng/wyrand"]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_reflect.workspace = true
-bevy_prng = { path = "bevy_prng", version = "0.10" }
+bevy_prng = { path = "bevy_prng", version = "0.11" }
 
 # others
 getrandom = "0.2"
@@ -66,7 +66,7 @@ serde = { workspace = true, optional = true }
 # cannot be out of step with bevy_rand due to dependencies on traits
 # and implementations between the two crates.
 [target.'cfg(any())'.dependencies]
-bevy_prng = { path = "bevy_prng", version = "=0.10" }
+bevy_prng = { path = "bevy_prng", version = "=0.11" }
 
 [dev-dependencies]
 bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
@@ -78,7 +78,7 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
     "multi_threaded",
     "async_executor",
 ] }
-bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }
+bevy_prng = { path = "bevy_prng", version = "0.11", features = ["rand_chacha", "wyrand"] }
 rand = "0.8"
 ron = { version = "0.8.0", features = ["integer128"] }
 

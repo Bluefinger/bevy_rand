@@ -2,9 +2,8 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
 use bevy_rand::{
-    global::GlobalSeed,
+    global::GlobalRngEntity,
     prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy},
-    traits::SeedSource,
 };
 use rand::prelude::Rng;
 
@@ -90,8 +89,8 @@ fn setup_sources(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     commands.spawn((SourceE, rng.fork_as::<WyRand>()));
 }
 
-fn read_global_seed(rng: GlobalSeed<ChaCha8Rng>) {
-    assert_eq!(rng.get_seed(), &[2; 32]);
+fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {
+    assert_eq!(rng.clone_seed(), [2; 32]);
 }
 
 /// Entities having their own sources side-steps issues with parallel execution and scheduling

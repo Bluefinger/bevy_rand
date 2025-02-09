@@ -1,6 +1,7 @@
-pub use crate::commands::{EntityRngCommands, RngCommandsExt};
+pub use crate::commands::{RngEntityCommands, RngCommandsExt, RngEntityCommandsExt};
 pub use crate::component::Entropy;
-pub use crate::global::{Global, GlobalEntropy, GlobalSeed, GlobalSource};
+pub use crate::global::{Global, GlobalEntropy, GlobalRngEntity};
+pub use crate::params::{RngEntity, RngEntityItem};
 pub use crate::plugin::EntropyPlugin;
 pub use crate::seed::RngSeed;
 pub use crate::traits::{

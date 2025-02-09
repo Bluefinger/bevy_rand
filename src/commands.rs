@@ -1,4 +1,4 @@
-use core::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData, ops::{Deref, DerefMut}};
 
 use bevy_ecs::{
     entity::Entity,
@@ -8,33 +8,64 @@ use bevy_prng::EntropySource;
 
 use crate::{
     observers::{RngSource, SeedFromGlobal, SeedFromSource, SeedLinked},
+    params::RngEntityItem,
     seed::RngSeed,
     traits::SeedSource,
 };
 
 /// Commands for handling RNG specific operations with regards to seeding and
 /// linking.
-pub struct EntityRngCommands<'a, Rng: EntropySource> {
+pub struct RngEntityCommands<'a, Rng: EntropySource> {
     commands: EntityCommands<'a>,
     _rng: PhantomData<Rng>,
 }
 
 /// Extension trait for [`Commands`] for getting access to [`EntityRngCommands`].
-pub trait RngCommandsExt {
+pub trait RngEntityCommandsExt<'a> {
     /// Takes an [`Entity`] and yields the [`EntityRngCommands`] for that entity.
-    fn rng<Rng: EntropySource>(&mut self, entity: Entity) -> EntityRngCommands<'_, Rng>;
+    fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng>;
 }
 
-impl RngCommandsExt for Commands<'_, '_> {
-    fn rng<Rng: EntropySource>(&mut self, entity: Entity) -> EntityRngCommands<'_, Rng> {
-        EntityRngCommands {
-            commands: self.entity(entity),
+impl<'a> RngEntityCommandsExt<'a> for EntityCommands<'a> {
+    fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng> {
+        RngEntityCommands {
+            commands: self,
             _rng: PhantomData,
         }
     }
 }
 
-impl<Rng: EntropySource> EntityRngCommands<'_, Rng>
+impl<'a, Rng: EntropySource> Deref for RngEntityCommands<'a, Rng> {
+    type Target = EntityCommands<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.commands
+    }
+}
+
+impl<'a, Rng: EntropySource> DerefMut for RngEntityCommands<'a, Rng> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.commands
+    }
+}
+
+/// Extension trait to create a [`RngEntityCommands`] directly from a [`Commands`].
+pub trait RngCommandsExt {
+    /// Creates a [`RngEntityCommands`] from a given [`Entity`].
+    fn rng<Rng: EntropySource>(&mut self, entity: &RngEntityItem<'_, Rng>) -> RngEntityCommands<'_, Rng>
+    where
+        Rng::Seed: Debug + Clone + Send + Sync;
+}
+
+impl RngCommandsExt for Commands<'_, '_> {
+    fn rng<Rng: EntropySource>(&mut self, entity: &RngEntityItem<'_, Rng>) -> RngEntityCommands<'_, Rng>
+        where
+            Rng::Seed: Debug + Clone + Send + Sync {
+        self.entity(entity.entity()).rng()
+    }
+}
+
+impl<Rng: EntropySource> RngEntityCommands<'_, Rng>
 where
     Rng::Seed: Send + Sync + Clone,
 {
@@ -53,7 +84,7 @@ where
     }
 }
 
-impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
+impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Links a list of target [`Entity`]s to the current `Rng`, designating it
     /// as the Source `Rng` for the Targets to draw new seeds from.
     pub fn link_target_rngs(&mut self, targets: &[Entity]) -> &mut Self {
@@ -62,6 +93,8 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
         self
     }
 
+    /// Links a list of target [`Entity`]s to the current `Rng` as the specified `Target` type,
+    /// designating it as the Source `Rng` for the Targets to draw new seeds from.
     pub fn link_target_rngs_as<Target: EntropySource>(&mut self, targets: &[Entity]) -> &mut Self {
         self.commands.add_related::<RngSource<Rng, Target>>(targets);
 
@@ -76,6 +109,8 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
         self
     }
 
+    /// Emits an event for the current Source `Rng` to generate and push out new seeds to
+    /// all linked target `Rng`s as the specified `Target` type.
     pub fn reseed_linked_as<Target: EntropySource>(&mut self) -> &mut Self {
         self.commands.trigger(SeedLinked::<Rng, Target>::default());
 
@@ -83,34 +118,43 @@ impl<Rng: EntropySource> EntityRngCommands<'_, Rng> {
     }
 
     /// Emits an event for the current `Rng` to pull a new seed from its linked
-    /// Source `Rng`.
+    /// Source `Rng`. This method assumes the `Source` and `Target` are the same `Rng`
+    /// type.
     pub fn reseed_from_source(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromSource::<Rng, Rng>::default());
+        self.commands
+            .trigger(SeedFromSource::<Rng, Rng>::default());
 
         self
     }
 
+    /// Emits an event for the current `Rng` to pull a new seed from its linked
+    /// Source `Rng`. A `Rng` entity can have multiple linked sources, so a source
+    /// `Rng` must be specified explicitly if you want to pull from a `Source` that
+    /// isn't the same `Rng` kind as the target.
     pub fn reseed_from_source_as<Source: EntropySource>(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromSource::<Source, Rng>::default());
+        self.commands
+            .trigger(SeedFromSource::<Source, Rng>::default());
 
         self
     }
 
-    /// Emits an event for the current `Rng` to pull a new seed from the
+    /// Emits an event for the current `Rng` to pull a new seed from the specified
     /// Global `Rng`.
-    pub fn reseed_from_global<Source: EntropySource>(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromGlobal::<Source, Rng>::default());
+    pub fn reseed_from_global(&mut self) -> &mut Self {
+        self.commands
+            .trigger(SeedFromGlobal::<Rng, Rng>::default());
 
         self
     }
 
-    // /// Emits an event for the current `Rng` to pull a new seed from the
-    // /// Global `Rng`.
-    // pub fn reseed_from_global<Source: EntropySource>(&mut self) -> &mut Self {
-    //     self.commands.trigger(SeedFromGlobal::<Source, Rng>::default());
+    /// Emits an event for the current `Rng` to pull a new seed from the specified
+    /// Global `Rng`.
+    pub fn reseed_from_global_as<Source: EntropySource>(&mut self) -> &mut Self {
+        self.commands
+            .trigger(SeedFromGlobal::<Source, Rng>::default());
 
-    //     self
-    // }
+        self
+    }
 
     /// Returns the inner [`EntityCommands`] with a smaller lifetime.
     pub fn entity_commands(&mut self) -> EntityCommands<'_> {

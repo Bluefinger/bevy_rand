@@ -19,6 +19,8 @@ pub mod component;
 pub mod global;
 /// Utility observers for handling seeding between parent/child entropy sources
 pub mod observers;
+/// Utility query/system parameters for accessing RNGs.
+pub mod params;
 /// Plugin for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
 pub mod plugin;
 /// Prelude for providing all necessary types for easy use.

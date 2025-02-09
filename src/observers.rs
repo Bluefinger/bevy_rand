@@ -5,7 +5,7 @@ use bevy_ecs::{
     component::{ComponentHooks, Immutable, Mutable, StorageType},
     prelude::{Commands, Component, Entity, Event, OnInsert, Trigger, With},
     relationship::{Relationship, RelationshipTarget},
-    system::{Populated, Query},
+    system::Query,
 };
 
 use bevy_prng::EntropySource;
@@ -22,6 +22,7 @@ pub struct RngLinks<Source, Target>(Vec<Entity>, PhantomData<Source>, PhantomDat
 impl<Source: EntropySource, Target: EntropySource> RelationshipTarget for RngLinks<Source, Target> {
     type Relationship = RngSource<Source, Target>;
     type Collection = Vec<Entity>;
+    const LINKED_SPAWN: bool = true;
 
     fn collection(&self) -> &Self::Collection {
         &self.0
@@ -143,8 +144,8 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
 /// observer system will only run if there are parent entities to have seeds pulled from.
 pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<SeedFromSource<Source, Target>>,
-    q_linked: Populated<&RngSource<Source, Target>>,
-    mut q_parents: Populated<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
+    q_linked: Query<&RngSource<Source, Target>>,
+    mut q_parents: Query<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) where
     Source::Seed: Send + Sync + Clone,
