@@ -22,7 +22,7 @@ pub struct RngLinks<Source, Target>(Vec<Entity>, PhantomData<Source>, PhantomDat
 impl<Source: EntropySource, Target: EntropySource> RelationshipTarget for RngLinks<Source, Target> {
     type Relationship = RngSource<Source, Target>;
     type Collection = Vec<Entity>;
-    const LINKED_SPAWN: bool = true;
+    const LINKED_SPAWN: bool = false;
 
     fn collection(&self) -> &Self::Collection {
         &self.0
