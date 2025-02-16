@@ -1,9 +1,16 @@
 use core::{fmt::Debug, ops::Deref};
 
-use bevy_ecs::{component::Component, query::With, system::{Commands, Single, SystemParam}};
+use bevy_ecs::{
+    component::Component,
+    query::With,
+    system::{Commands, Single, SystemParam},
+};
 use bevy_prng::EntropySource;
 
-use crate::{params::{RngEntity, RngEntityItem}, prelude::{Entropy, RngEntityCommands, RngEntityCommandsExt}};
+use crate::{
+    params::{RngEntity, RngEntityItem},
+    prelude::{Entropy, RngEntityCommands, RngEntityCommandsExt},
+};
 
 /// A marker component to signify a global source. Warning: there should only be **one** entity per
 /// PRNG type that qualifies as the `Global` source.

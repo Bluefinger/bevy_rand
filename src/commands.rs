@@ -1,4 +1,8 @@
-use core::{fmt::Debug, marker::PhantomData, ops::{Deref, DerefMut}};
+use core::{
+    fmt::Debug,
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
 use bevy_ecs::{
     entity::Entity,
@@ -52,15 +56,22 @@ impl<Rng: EntropySource> DerefMut for RngEntityCommands<'_, Rng> {
 /// Extension trait to create a [`RngEntityCommands`] directly from a [`Commands`].
 pub trait RngCommandsExt {
     /// Creates a [`RngEntityCommands`] from a given [`Entity`].
-    fn rng<Rng: EntropySource>(&mut self, entity: &RngEntityItem<'_, Rng>) -> RngEntityCommands<'_, Rng>
+    fn rng<Rng: EntropySource>(
+        &mut self,
+        entity: &RngEntityItem<'_, Rng>,
+    ) -> RngEntityCommands<'_, Rng>
     where
         Rng::Seed: Debug + Clone + Send + Sync;
 }
 
 impl RngCommandsExt for Commands<'_, '_> {
-    fn rng<Rng: EntropySource>(&mut self, entity: &RngEntityItem<'_, Rng>) -> RngEntityCommands<'_, Rng>
-        where
-            Rng::Seed: Debug + Clone + Send + Sync {
+    fn rng<Rng: EntropySource>(
+        &mut self,
+        entity: &RngEntityItem<'_, Rng>,
+    ) -> RngEntityCommands<'_, Rng>
+    where
+        Rng::Seed: Debug + Clone + Send + Sync,
+    {
         self.entity(entity.entity()).rng()
     }
 }
@@ -121,8 +132,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Source `Rng`. This method assumes the `Source` and `Target` are the same `Rng`
     /// type.
     pub fn reseed_from_source(&mut self) -> &mut Self {
-        self.commands
-            .trigger(SeedFromSource::<Rng, Rng>::default());
+        self.commands.trigger(SeedFromSource::<Rng, Rng>::default());
 
         self
     }
@@ -141,8 +151,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Emits an event for the current `Rng` to pull a new seed from the specified
     /// Global `Rng`.
     pub fn reseed_from_global(&mut self) -> &mut Self {
-        self.commands
-            .trigger(SeedFromGlobal::<Rng, Rng>::default());
+        self.commands.trigger(SeedFromGlobal::<Rng, Rng>::default());
 
         self
     }

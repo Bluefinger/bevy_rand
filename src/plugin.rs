@@ -92,9 +92,14 @@ pub struct EntropyObserversPlugin<Source, Target> {
     _target: PhantomData<Target>,
 }
 
-impl<Source: EntropySource, Target: EntropySource> Default for EntropyObserversPlugin<Source, Target> {
+impl<Source: EntropySource, Target: EntropySource> Default
+    for EntropyObserversPlugin<Source, Target>
+{
     fn default() -> Self {
-        Self { _source: PhantomData, _target: PhantomData }
+        Self {
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 }
 

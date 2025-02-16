@@ -1,9 +1,10 @@
 use bevy_app::prelude::*;
-use bevy_ecs::prelude::*;
+use bevy_ecs::{prelude::*, relationship::RelatedSpawnerCommands};
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
     commands::RngEntityCommandsExt,
     global::{Global, GlobalEntropy, GlobalRngEntity},
+    observers::RngSource,
     params::RngEntity,
     plugin::{EntropyObserversPlugin, EntropyPlugin},
     prelude::Entropy,
@@ -287,7 +288,7 @@ fn generic_observer_reseeding_from_parent() {
             commands.rng(&query.single()).reseed_from_source();
         },
     )
-    .add_systems( 
+    .add_systems(
         PostUpdate,
         |query: Query<&RngSeed<WyRand>, With<Target>>| {
             let prev_expected = 6445550333322662121;
@@ -326,19 +327,17 @@ fn generic_observer_reseeding_children() {
         Startup,
         (
             |mut commands: Commands| {
-                commands.spawn_batch(vec![Target; 5]);
-                commands.spawn(Source);
+                commands.spawn(Source).with_related(
+                    |s: &mut RelatedSpawnerCommands<'_, RngSource<WyRand, WyRand>>| {
+                        vec![Target; 5].into_iter().for_each(|bundle| {
+                            s.spawn(bundle);
+                        });
+                    },
+                );
             },
-            |mut commands: Commands,
-             q_source: Single<Entity, With<Source>>,
-             q_target: Query<Entity, With<Target>>,
-             mut global: GlobalRngEntity<WyRand>| {
+            |q_source: Single<Entity, With<Source>>, mut global: GlobalRngEntity<WyRand>| {
                 let source = q_source.into_inner();
 
-                commands
-                    .entity(source)
-                    .rng::<WyRand>()
-                    .link_target_rngs(&q_target.iter().collect::<Vec<_>>());
                 global
                     .rng_commands()
                     .link_target_rngs(&[source])
