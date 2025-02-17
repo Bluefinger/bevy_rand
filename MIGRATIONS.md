@@ -59,3 +59,13 @@ struct Source;
         ));
 }
 ```
+
+## Migrating from v0.10 to v0.11
+
+To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs.
+
+`GlobalSource` and `GlobalSeed` have been removed and now is represented by a `GlobalRngEntity` SystemParam. All uses of `GlobalSource` & `GlobalSeed` can be replaced by `GlobalRngEntity`.
+
+Various observer events have been removed and replaced with Bevy's relations APIs. `LinkRngSourceToTarget`, `ReseedRng`, `RngChildren` and `RngParent` no longer exist. Instead, for queries, `RngLinks` and `RngSource` are the relations components, and `SeedFromGlobal`, `SeedFromSource`, and `SeedLinked` are the new observer events. For the most part, it is recommended to use the new Commands APIs provided by `RngCommandsExt` & `RngEntityCommandsExt`.
+
+To enable the full relations API and features, make sure to add the `EntropyObserversPlugin` to your bevy app.
