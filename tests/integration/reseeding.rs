@@ -1,13 +1,11 @@
 use bevy_app::prelude::*;
-use bevy_ecs::{prelude::*, relationship::RelatedSpawnerCommands};
+use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
-    commands::RngEntityCommandsExt,
     global::{Global, GlobalEntropy, GlobalRngEntity},
-    observers::RngSource,
     params::RngEntity,
-    plugin::{EntropyObserversPlugin, EntropyPlugin},
-    prelude::Entropy,
+    plugin::{EntropyPlugin, EntropyRelationsPlugin},
+    prelude::{Entropy, RngLinks},
     seed::RngSeed,
     traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
@@ -18,7 +16,7 @@ use wasm_bindgen_test::*;
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn test_global_reseeding() {
+pub fn test_global_reseeding() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -75,7 +73,7 @@ fn test_global_reseeding() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn component_fork_seed() {
+pub fn component_fork_seed() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -110,7 +108,7 @@ fn component_fork_seed() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn component_fork_as_seed() {
+pub fn component_fork_as_seed() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -151,11 +149,11 @@ fn component_fork_as_seed() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn observer_global_reseeding() {
+pub fn observer_global_reseeding() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
     use bevy_rand::traits::SeedSource;
 
-    #[derive(Component, Clone)]
+    #[derive(Component, Clone, Copy)]
     struct Target;
 
     let seed = [2; 8];
@@ -164,25 +162,11 @@ fn observer_global_reseeding() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyObserversPlugin::<WyRand, WyRand>::default(),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
-    .add_systems(
-        Startup,
-        (
-            |mut commands: Commands| {
-                commands.spawn_batch(vec![Target; 5]);
-            },
-            |q_targets: Query<Entity, With<Target>>, mut global: GlobalRngEntity<WyRand>| {
-                let targets: Vec<_> = q_targets.iter().collect();
-
-                global
-                    .rng_commands()
-                    .link_target_rngs(&targets)
-                    .reseed_linked();
-            },
-        )
-            .chain(),
-    )
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global.rng_commands().with_target_rngs([Target; 5]);
+    })
     .add_systems(
         PreUpdate,
         |query: Query<RngEntity<WyRand>, Without<Global>>| {
@@ -194,6 +178,8 @@ fn observer_global_reseeding() {
                 11723565746675474547,
             ];
             let seeds = query.iter().map(|a| a.seed().clone_seed());
+
+            assert_eq!(seeds.size_hint().0, 5);
 
             expected
                 .into_iter()
@@ -230,7 +216,7 @@ fn observer_global_reseeding() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn generic_observer_reseeding_from_parent() {
+pub fn generic_observer_reseeding_from_parent() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
     use bevy_ecs::prelude::With;
     use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
@@ -246,24 +232,13 @@ fn generic_observer_reseeding_from_parent() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyObserversPlugin::<WyRand, WyRand>::default(),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
-    .add_systems(
-        Startup,
-        |mut commands: Commands, mut global: GlobalRngEntity<WyRand>| {
-            let target = commands.spawn(Target).id();
-
-            let source = commands
-                .spawn(Source)
-                .rng::<WyRand>()
-                .link_target_rngs(&[target])
-                .id();
-            global
-                .rng_commands()
-                .link_target_rngs(&[source])
-                .reseed_linked();
-        },
-    )
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global
+            .rng_commands()
+            .with_target_rngs([(Source, RngLinks::<WyRand, WyRand>::spawn(Spawn(Target)))]);
+    })
     .add_systems(
         PreUpdate,
         |query: Query<RngEntity<WyRand>, With<Target>>| {
@@ -305,9 +280,9 @@ fn generic_observer_reseeding_from_parent() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn generic_observer_reseeding_children() {
+pub fn generic_observer_reseeding_children() {
     use bevy_app::prelude::{Last, PostUpdate, PreUpdate, Startup};
-    use bevy_ecs::prelude::{Component, Entity, With, Without};
+    use bevy_ecs::prelude::{Component, With, Without};
     use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
 
     let seed = [2u8; 8];
@@ -321,31 +296,20 @@ fn generic_observer_reseeding_children() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        EntropyObserversPlugin::<WyRand, WyRand>::default(),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
-    .add_systems(
-        Startup,
-        (
-            |mut commands: Commands| {
-                commands.spawn(Source).with_related(
-                    |s: &mut RelatedSpawnerCommands<'_, RngSource<WyRand, WyRand>>| {
-                        vec![Target; 5].into_iter().for_each(|bundle| {
-                            s.spawn(bundle);
-                        });
-                    },
-                );
-            },
-            |q_source: Single<Entity, With<Source>>, mut global: GlobalRngEntity<WyRand>| {
-                let source = q_source.into_inner();
-
-                global
-                    .rng_commands()
-                    .link_target_rngs(&[source])
-                    .reseed_linked();
-            },
-        )
-            .chain(),
-    )
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global.rng_commands().with_target_rngs([(
+            Source,
+            RngLinks::<WyRand, WyRand>::spawn((
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+            )),
+        )]);
+    })
     .add_systems(
         PreUpdate,
         |query: Query<&RngSeed<WyRand>, (With<Target>, Without<Global>)>| {
@@ -401,15 +365,17 @@ fn generic_observer_reseeding_children() {
                 14627163487140195445,
             ];
 
+            let actual = query
+                .iter()
+                .map(RngSeed::<WyRand>::clone_seed)
+                .map(u64::from_ne_bytes);
+
+            assert_eq!(actual.size_hint().0, 5);
+
             prev_expected
                 .into_iter()
                 .zip(expected)
-                .zip(
-                    query
-                        .iter()
-                        .map(RngSeed::<WyRand>::clone_seed)
-                        .map(u64::from_ne_bytes),
-                )
+                .zip(actual)
                 .for_each(|((previous, expected), actual)| {
                     // Must not equal the previous seeds.
                     assert_ne!(

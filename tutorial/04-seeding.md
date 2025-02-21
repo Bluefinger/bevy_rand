@@ -35,7 +35,7 @@ But for most purposes, you don't actually *need* to know its exact internal stat
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::Entropy;
+use bevy_rand::prelude::RngSeed;
 
 #[derive(Component)]
 struct Source;
@@ -46,7 +46,7 @@ fn setup_source(mut commands: Commands) {
             Source,
             // This will yield a random `RngSeed<WyRand>` and then an `Entropy<WyRand>`
             // with the same random seed
-            Entropy::<WyRand>::default(),
+            RngSeed::<WyRand>::default(),
         ));
 }
 ```

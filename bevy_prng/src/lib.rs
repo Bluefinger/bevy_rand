@@ -75,18 +75,18 @@ pub trait EntropySeed:
 
 #[cfg(feature = "serialize")]
 impl<
-        T: Debug
-            + Default
-            + PartialEq
-            + AsMut<[u8]>
-            + Clone
-            + Sync
-            + Send
-            + Reflectable
-            + FromReflect
-            + Serialize
-            + for<'a> Deserialize<'a>,
-    > EntropySeed for T
+    T: Debug
+        + Default
+        + PartialEq
+        + AsMut<[u8]>
+        + Clone
+        + Sync
+        + Send
+        + Reflectable
+        + FromReflect
+        + Serialize
+        + for<'a> Deserialize<'a>,
+> EntropySeed for T
 {
 }
 
@@ -116,9 +116,8 @@ pub trait EntropySeed:
 }
 
 #[cfg(not(feature = "serialize"))]
-impl<
-        T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect,
-    > EntropySeed for T
+impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect>
+    EntropySeed for T
 {
 }
 

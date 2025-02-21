@@ -1,4 +1,4 @@
-use core::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData};
 
 use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
@@ -86,14 +86,38 @@ where
     }
 }
 
-/// [`Plugin`] for setting up observers for handling related Rngs.
-pub struct EntropyObserversPlugin<Source, Target> {
+/// [`Plugin`] for setting up relations/observers for handling related Rngs. It takes two generic parameters,
+/// the first is the `Source` Rng, which is the algorithm for the source Rng entity, and then the second
+/// is the `Target` Rng, which is the algorithm for the targets. It follows a One to One/Many relationship
+/// model, going from `Source` to `Target`, where `Source` can have one or many `Target`s.
+///
+/// Note: This is for RNG algorithms, not Components. For more information, please read the
+/// [tutorial](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch05_observer_driven_reseeding/index.html).
+///
+/// ```
+/// use bevy_app::prelude::*;
+/// use bevy_prng::{ChaCha8Rng, WyRand};
+/// use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
+///
+/// App::new()
+///     .add_plugins((
+///         // First initialise the RNGs
+///         EntropyPlugin::<ChaCha8Rng>::default(),
+///         EntropyPlugin::<WyRand>::default(),
+///         // This initialises observers for WyRand -> WyRand seeding relations
+///         EntropyRelationsPlugin::<WyRand, WyRand>::default(),
+///         // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+///         EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+///     ))
+///     .run();
+/// ```
+pub struct EntropyRelationsPlugin<Source, Target> {
     _source: PhantomData<Source>,
     _target: PhantomData<Target>,
 }
 
 impl<Source: EntropySource, Target: EntropySource> Default
-    for EntropyObserversPlugin<Source, Target>
+    for EntropyRelationsPlugin<Source, Target>
 {
     fn default() -> Self {
         Self {
@@ -103,10 +127,10 @@ impl<Source: EntropySource, Target: EntropySource> Default
     }
 }
 
-impl<Source: EntropySource, Target: EntropySource> Plugin for EntropyObserversPlugin<Source, Target>
+impl<Source: EntropySource, Target: EntropySource> Plugin for EntropyRelationsPlugin<Source, Target>
 where
-    Source::Seed: Send + Sync + Clone,
-    Target::Seed: Send + Sync + Clone,
+    Source::Seed: Debug + Send + Sync + Clone,
+    Target::Seed: Debug + Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
         let world = app.world_mut();

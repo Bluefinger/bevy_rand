@@ -1,9 +1,9 @@
 use crate::{
-    newtype::{newtype_prng, newtype_prng_remote},
     EntropySource,
+    newtype::{newtype_prng, newtype_prng_remote},
 };
 
-use bevy_reflect::{reflect_remote, std_traits::ReflectDefault, Reflect, ReflectFromReflect};
+use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};
 use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "serialize")]

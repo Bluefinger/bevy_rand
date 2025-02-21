@@ -60,7 +60,7 @@ struct Source;
 }
 ```
 
-## Migrating from v0.10 to v0.11
+## Migrating from v0.9 to v0.10
 
 To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs.
 

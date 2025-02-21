@@ -7,7 +7,7 @@ The nature of the relations are strictly either One to One or One to Many. Many 
 ```rust
 use bevy_app::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
-use bevy_rand::prelude::{EntropyPlugin, EntropyObserversPlugin};
+use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
 
 fn main() {
     App::new()
@@ -16,9 +16,9 @@ fn main() {
             EntropyPlugin::<ChaCha8Rng>::default(),
             EntropyPlugin::<WyRand>::default(),
             // This initialises observers for WyRand -> WyRand seeding relations
-            EntropyObserversPlugin::<WyRand, WyRand>::default(),
+            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
             // This initialises observers for ChaCha8Rng -> WyRand seeding relations
-            EntropyObserversPlugin::<ChaCha8Rng, WyRand>::default(),
+            EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
         ))
         .run();
 }
@@ -29,7 +29,7 @@ Once the plugins are initialised, various observer systems are ready to begin li
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{RngEntity, GlobalRngEntity};
+use bevy_rand::prelude::GlobalRngEntity;
 
 #[derive(Component)]
 struct Target;
@@ -42,6 +42,21 @@ fn link_and_seed_target_rngs_with_global(q_targets: Query<Entity, With<Target>>,
 ```
 
 In the above example, we have created a relationship between the `Global` `WyRand` source and all `Target` entities. The above system creates the relations and then emits a reseeding event, causing all `Target` entities to receive a new `RngSeed` component from the `Global` source. This in turn initialises an `Entropy` component on each `Target` entity with the received seed.
+
+If you want to spawn related entities directly, then you can! The example below will create three `Target` entities that are related to the `Global` source, and will be seeded automatically once spawned.
+
+```rust
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::GlobalRngEntity;
+
+#[derive(Component)]
+struct Target;
+
+fn link_and_seed_target_rngs_with_global(mut global: GlobalRngEntity<WyRand>) {
+    global.rng_commands().with_target_rngs([Target, Target, Target]);
+}
+```
 
 The `GlobalRngEntity` is a special `SystemParam` that access the `Global` source `Entity` for a particular PRNG type. This then allows you to directly ask for an `RngEntityCommands` via the `rng_commands()` method. With this, you can link and seed your Source or Targets.
 
@@ -93,9 +108,9 @@ fn pull_seeds_from_source(mut commands: Commands, q_targets: Query<RngEntity<WyR
 Of course, one _can_ also make use of the observer events directly, though it does require more typing to be involved. An example below:
 
 ```rust
-use bevy_ecs::{prelude::*, relationship::RelatedSpawnerCommands};
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{SeedFromGlobal, RngSource};
+use bevy_rand::prelude::{SeedFromGlobal, RngLinks};
 
 #[derive(Component)]
 struct Source;
@@ -105,13 +120,13 @@ struct Target;
 
 fn initial_setup(mut commands: Commands) {
     // Create the source entity with its related target entities and get the Entity id.
+    // You can also make use of the related! macro for this instead.
     let source = commands
-        .spawn(Source)
-        .with_related(|s: &mut RelatedSpawnerCommands<'_, RngSource<WyRand, WyRand>>| {
-            vec![Target; 5].into_iter().for_each(|bundle| {
-                s.spawn(bundle);
-            });
-        })
+        .spawn((Source, RngLinks::<WyRand, WyRand>::spawn((
+            Spawn(Target),
+            Spawn(Target),
+            Spawn(Target)
+        ))))
         .id();
 
     // Initialise the Source entity to be an RNG source and then seed all its
@@ -146,11 +161,11 @@ As covered in Chapter One: "Selecting and using PRNG Algorithms", when creating 
 
 So in summary:
 
-| Source     | Target     |         |
-| ---------- | ---------- | ------- |
-| `ChaCha8`  | `Wyrand`   | ✅ Good |
-| `ChaCha8`  | `WyRand`   | ✅ Good |
-| `ChaCha12` | `ChaCha8`  | ✅ Good |
-| `WyRand`   | `WyRand`   | ✅ Good |
-| `Wyrand`   | `ChaCha8`  | ❌ Bad  |
-| `ChaCha8`  | `ChaCha12` | ❌ Bad  |
+| Source types                         | Target types                         |         |
+| ------------------------------------ | ------------------------------------ | ------- |
+| `ChaCha8` / `ChaCha12` / `ChaCha20`  | `WyRand` / `Xoshiro256StarStar`      | ✅ Good |
+| `ChaCha12` / `ChaCha20`              | `ChaCha8`                            | ✅ Good |
+| `ChaCha8`                            | `ChaCha8`                            | ✅ Good |
+| `WyRand`                             | `WyRand`                             | ✅ Good |
+| `Wyrand` /`Xoshiro256StarStar`       | `ChaCha8` / `ChaCha12` / `ChaCha20`  | ❌ Bad  |
+| `ChaCha8`                            | `ChaCha12` / `ChaCha20`              | ❌ Bad  |

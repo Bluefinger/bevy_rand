@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
+use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
 use bevy_rand::{
     global::GlobalRngEntity,
     prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy},
@@ -31,7 +31,7 @@ fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>)
     let mut rng = q_source.single_mut();
 
     assert_eq!(
-        rng.gen::<u32>(),
+        rng.r#gen::<u32>(),
         3315785188,
         "SourceA does not match expected output"
     );
@@ -57,7 +57,7 @@ fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>
     let mut rng = q_source.single_mut();
 
     assert_eq!(
-        rng.gen::<(u16, u16)>(),
+        rng.r#gen::<(u16, u16)>(),
         (41421, 7891),
         "SourceD does not match expected output"
     );

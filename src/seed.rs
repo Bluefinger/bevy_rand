@@ -124,8 +124,8 @@ mod tests {
 
         use bevy_prng::WyRand;
         use bevy_reflect::{
-            serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
+            serde::{TypedReflectDeserializer, TypedReflectSerializer},
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;

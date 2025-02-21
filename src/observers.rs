@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use core::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData};
 
 use bevy_ecs::{
     component::{ComponentHooks, Immutable, Mutable, StorageType},
@@ -11,7 +11,8 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 
 use crate::{
-    prelude::{Entropy, GlobalEntropy},
+    params::RngEntity,
+    prelude::{Entropy, GlobalEntropy, RngCommandsExt},
     traits::ForkableAsSeed,
 };
 
@@ -165,7 +166,7 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<SeedLinked<Source, Target>>,
-    mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Source>)>,
+    mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Target>)>,
     mut commands: Commands,
 ) where
     Source::Seed: Send + Sync + Clone,
@@ -187,15 +188,15 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<OnInsert, Entropy<Source>>,
-    q_source: Query<Entity, With<RngLinks<Source, Target>>>,
+    q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) where
-    Source::Seed: Send + Sync + Clone,
-    Target::Seed: Send + Sync + Clone,
+    Source::Seed: Debug + Send + Sync + Clone,
+    Target::Seed: Debug + Send + Sync + Clone,
 {
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(source) = q_source.get(trigger.target()) {
-        commands.trigger_targets(SeedLinked::<Source, Target>::default(), source);
+        commands.rng(&source).reseed_linked_as::<Target>();
     }
 }
