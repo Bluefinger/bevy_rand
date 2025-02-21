@@ -47,7 +47,6 @@ where
 {
     /// Create a new instance of [`RngSeed`] from a given `seed` value.
     #[inline]
-    #[must_use]
     fn from_seed(seed: R::Seed) -> Self {
         Self {
             seed,
