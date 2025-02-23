@@ -26,9 +26,9 @@ pub struct RngEntityCommands<'a, Rng: EntropySource> {
     _rng: PhantomData<Rng>,
 }
 
-/// Extension trait for [`Commands`] for getting access to [`EntityRngCommands`].
+/// Extension trait for [`Commands`] for getting access to [`RngEntityCommands`].
 pub trait RngEntityCommandsExt<'a> {
-    /// Takes an [`Entity`] and yields the [`EntityRngCommands`] for that entity.
+    /// Takes an [`Entity`] and yields the [`RngEntityCommands`] for that entity.
     fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng>;
 }
 

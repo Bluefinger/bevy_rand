@@ -68,4 +68,4 @@ To begin with, the `experimental` feature no longer does anything, as the observ
 
 Various observer events have been removed and replaced with Bevy's relations APIs. `LinkRngSourceToTarget`, `ReseedRng`, `RngChildren` and `RngParent` no longer exist. Instead, for queries, `RngLinks` and `RngSource` are the relations components, and `SeedFromGlobal`, `SeedFromSource`, and `SeedLinked` are the new observer events. For the most part, it is recommended to use the new Commands APIs provided by `RngCommandsExt` & `RngEntityCommandsExt`.
 
-To enable the full relations API and features, make sure to add the `EntropyObserversPlugin` to your bevy app.
+To enable the full relations API and features, make sure to add the `EntropyRelationsPlugin` to your bevy app.
