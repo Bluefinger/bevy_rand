@@ -52,12 +52,12 @@ jobs:
         run: cargo test --all-features
       - name: Test wasm
         env:
-          RUSTFLAGS: --cfg= getrandom_backend="wasm_js"
+          RUSTFLAGS: '--cfg= getrandom_backend="wasm_js"'
         run: wasm-pack test --headless --chrome --firefox -- --all-features
         if: startsWith(matrix.os, 'ubuntu')
       - name: Test wasm (no default features)
         env:
-          RUSTFLAGS: --cfg= getrandom_backend="wasm_js"
+          RUSTFLAGS: '--cfg= getrandom_backend="wasm_js"'
         run: wasm-pack test --headless --chrome --firefox -- --no-default-features
         if: startsWith(matrix.os, 'ubuntu')
   miri:
