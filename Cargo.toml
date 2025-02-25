@@ -19,11 +19,11 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
 ] }
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive"] }
-rand_core = { version = "0.6", features = ["getrandom"] }
-rand_chacha = { version = "0.3", default-features = false }
-wyrand = "0.2"
-rand_pcg = "0.3"
-rand_xoshiro = "0.6"
+rand_core = { version = "0.9", features = ["os_rng"] }
+rand_chacha = { version = "0.9", default-features = false }
+wyrand = "0.3"
+rand_pcg = "0.9"
+rand_xoshiro = "0.7"
 
 [package]
 name = "bevy_rand"
@@ -43,7 +43,7 @@ default = ["serialize", "thread_local_entropy", "std"]
 std = ["bevy_prng/std"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha", "std"]
-serialize = ["dep:serde", "rand_core/serde1", "bevy_prng/serialize"]
+serialize = ["dep:serde", "rand_core/serde", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
@@ -56,7 +56,7 @@ bevy_reflect.workspace = true
 bevy_prng = { path = "bevy_prng", version = "0.10" }
 
 # others
-getrandom = "0.2"
+getrandom = "0.3"
 rand_core.workspace = true
 rand_chacha = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
@@ -79,12 +79,12 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
     "async_executor",
 ] }
 bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }
-rand = "0.8"
+rand = "0.9"
 ron = { version = "0.8.0", features = ["integer128"] }
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.3", features = ["wasm_js"] }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
     "bevy_reflect",
 ] }

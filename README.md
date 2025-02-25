@@ -163,9 +163,10 @@ fn setup_npc_from_source(
 
 The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as follows:
 
-| `bevy_rand`   | `rand_core` | `rand` |
-| ------------- | ----------- | ------ |
-| v0.1 -> v0.10 | v0.6        | v0.8   |
+| `bevy_rand`   | `rand_core` | `rand` | `getrandom` |
+| ------------- | ----------- | ------ | ----------- |
+| v0.10         | v0.9        | 0.9    | v0.3        |
+| v0.1 -> v0.9  | v0.6        | v0.8   | v0.2        |
 
 ## Migrations
 

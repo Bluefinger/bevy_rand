@@ -16,6 +16,12 @@ use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 #[reflect(Debug, Default)]
 pub struct Seed512(pub [u8; 64]);
 
+impl AsRef<[u8]> for Seed512 {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
+
 impl AsMut<[u8]> for Seed512 {
     fn as_mut(&mut self) -> &mut [u8] {
         self.0.as_mut()
