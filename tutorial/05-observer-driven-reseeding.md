@@ -41,7 +41,7 @@ fn link_and_seed_target_rngs_with_global(q_targets: Query<Entity, With<Target>>,
 }
 ```
 
-In the above example, we have created a relationship between the `Global` `WyRand` source and all `Target` entities. The above system creates the relations and then emits a reseeding event, causing all `Target` entities to receive a new `RngSeed` component from the `Global` source. This in turn initialises an `Entropy` component on each `Target` entity with the received seed.
+In the above example, we have created a relationship between the `GlobalRngEntity<WyRand>` source and all `Target` entities. The above system creates the relations and then emits a reseeding event, causing all `Target` entities to receive a new `RngSeed` component from the `Global` source. This in turn initialises an `Entropy` component on each `Target` entity with the received seed.
 
 If you want to spawn related entities directly, then you can! The example below will create three `Target` entities that are related to the `Global` source, and will be seeded automatically once spawned.
 
@@ -100,7 +100,7 @@ struct Target;
 
 fn pull_seeds_from_source(mut commands: Commands, q_targets: Query<RngEntity<WyRand>, With<Target>>) {
     for entity in q_targets {
-        commands.rng(&entity).reseed_from_source();
+        commands.rng_entity(&entity).reseed_from_source();
     }
 }
 ```

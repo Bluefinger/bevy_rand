@@ -92,12 +92,29 @@ fn setup_source(mut global: GlobalRngEntity<WyRand>) {
 }
 ```
 
-Reinsertions do not invoke archetype moves, so this will not cause any extra overhead.
+Reinsertions do not invoke archetype moves, so this will not cause any extra overhead. There's also `RngEntity` query data that encapsulates `Entity` and `RngSeed` together, which then allows for more seamless usage with `RngEntityCommands`.
+
+```rust
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{Entropy, GlobalEntropy, RngEntity, RngCommandsExt};
+use rand::Rng;
+
+#[derive(Component)]
+struct Source;
+
+fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: GlobalEntropy<WyRand>) {
+    for rng_entity in q_sources.iter() {
+        commands.rng_entity(&rng_entity).reseed(global.r#gen());
+    }
+}
+
+```
 
 ## Pitfalls when Querying
 
-In general, never do a `Query<&RngSeed<T>>` without any query filters.
+In general, never do a `Query<&RngSeed<T>>` or `Query<RngEntity<T>>` without any query filters.
 
-In basic usages, there's only *one* entity, the `Global` entity for the enabled RNG algorithm. The above query will yield the `Global` entity, same as using `GlobalSeed` query helper. However, if you've spawned more than one source, the above query will yield *all* `RngSeed` entities, global and non-global ones included. The ordering is also not guaranteed, so the first result out of that query is not guaranteed to be the global entity.
+In basic usages, there's only *one* entity, the `Global` entity for the enabled RNG algorithm. The above query will yield the `Global` entity, same as using `GlobalRngEntity` system param. However, if you've spawned more than one source, the above query will yield *all* `RngSeed` entities, global and non-global ones included. The ordering is also not guaranteed, so the first result out of that query is not guaranteed to be the global entity.
 
-Therefore, always use something like `Single` to enforce access to a single source such as `Single<&RngSeed<T>, With<Source>>`, or use query helpers like `GlobalSeed` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&RngSeed<T>, With<Source>>`.
+Therefore, always use something like `Single` to enforce access to a single source such as `Single<&RngSeed<T>, With<Source>>`, or use query helpers like `GlobalRngEntity` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<RngEntity<T>, With<Source>>`.

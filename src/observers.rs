@@ -197,6 +197,6 @@ pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(source) = q_source.get(trigger.target()) {
-        commands.rng(&source).reseed_linked_as::<Target>();
+        commands.rng_entity(&source).reseed_linked_as::<Target>();
     }
 }

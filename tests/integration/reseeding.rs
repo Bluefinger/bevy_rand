@@ -260,7 +260,7 @@ pub fn generic_observer_reseeding_from_parent() {
     .add_systems(
         Update,
         |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Target>>| {
-            commands.rng(&query.single()).reseed_from_source();
+            commands.rng_entity(&query.single()).reseed_from_source();
         },
     )
     .add_systems(
@@ -342,7 +342,7 @@ pub fn generic_observer_reseeding_children() {
         Update,
         |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>| {
             for entity in &query {
-                commands.rng(&entity).reseed_linked();
+                commands.rng_entity(&entity).reseed_linked();
             }
         },
     )

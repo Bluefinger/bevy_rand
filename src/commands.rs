@@ -29,6 +29,20 @@ pub struct RngEntityCommands<'a, Rng: EntropySource> {
 /// Extension trait for [`Commands`] for getting access to [`RngEntityCommands`].
 pub trait RngEntityCommandsExt<'a> {
     /// Takes an [`Entity`] and yields the [`RngEntityCommands`] for that entity.
+    /// ```
+    /// use bevy_ecs::prelude::*;
+    /// use bevy_prng::WyRand;
+    /// use bevy_rand::prelude::*;
+    ///
+    /// #[derive(Component)]
+    /// struct Target;
+    ///
+    /// fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
+    ///     for target in &q_targets {
+    ///         commands.entity(target).rng::<WyRand>().reseed_from_entropy();
+    ///     }
+    /// }
+    /// ```
     fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng>;
 }
 
@@ -59,7 +73,20 @@ impl<Rng: EntropySource> DerefMut for RngEntityCommands<'_, Rng> {
 /// Extension trait to create a [`RngEntityCommands`] directly from a [`Commands`].
 pub trait RngCommandsExt {
     /// Creates a [`RngEntityCommands`] from a given [`Entity`].
-    fn rng<Rng: EntropySource>(
+    /// ```
+    /// use bevy_ecs::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// 
+    /// #[derive(Component)]
+    /// struct Source;
+    /// 
+    /// fn reseed(mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>) {
+    ///     for entity in &query {
+    ///         commands.rng_entity(&entity).reseed_linked();
+    ///     }
+    /// }
+    /// ```
+    fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, Rng>,
     ) -> RngEntityCommands<'_, Rng>
@@ -69,7 +96,7 @@ pub trait RngCommandsExt {
 
 impl RngCommandsExt for Commands<'_, '_> {
     #[inline]
-    fn rng<Rng: EntropySource>(
+    fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, Rng>,
     ) -> RngEntityCommands<'_, Rng>
