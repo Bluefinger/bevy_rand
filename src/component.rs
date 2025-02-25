@@ -241,7 +241,7 @@ where
 mod tests {
     use alloc::format;
 
-    use bevy_prng::{ChaCha12Rng, ChaCha8Rng};
+    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     use bevy_reflect::TypePath;
 
     use super::*;
@@ -296,8 +296,8 @@ mod tests {
     #[test]
     fn rng_untyped_serialization() {
         use bevy_reflect::{
-            serde::{ReflectDeserializer, ReflectSerializer},
             FromReflect, TypeRegistry,
+            serde::{ReflectDeserializer, ReflectSerializer},
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;
@@ -344,8 +344,8 @@ mod tests {
     #[test]
     fn rng_typed_serialization() {
         use bevy_reflect::{
-            serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
+            serde::{TypedReflectDeserializer, TypedReflectSerializer},
         };
         use ron::ser::to_string;
         use serde::de::DeserializeSeed;

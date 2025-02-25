@@ -1,14 +1,14 @@
 [workspace]
 members = ["bevy_prng"]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
-edition = "2021"
+edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
 version = "0.10.0"
-rust-version = "1.76.0"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
 bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [

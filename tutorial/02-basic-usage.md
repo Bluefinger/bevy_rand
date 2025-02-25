@@ -20,7 +20,7 @@ When using `GlobalEntropy`, the way to ensure deterministic output/usage with th
 
 - One time or non-looping accesses when generating random numbers.
 - Iterating over set loops/ranges.
-- Systems constrained with clear priorities so there are no ambiguities.
+- Systems constrained with clear priorities and ordering so there are no ambiguities.
 
 An example of a guaranteed deterministic system is perhaps spawning new entities with a randomised component value:
 

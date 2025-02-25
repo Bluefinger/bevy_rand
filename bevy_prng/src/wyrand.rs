@@ -1,4 +1,4 @@
-use crate::{newtype::newtype_prng, EntropySource};
+use crate::{EntropySource, newtype::newtype_prng};
 
 use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng};

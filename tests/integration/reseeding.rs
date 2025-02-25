@@ -2,9 +2,10 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
-    global::{Global, GlobalEntropy},
-    plugin::EntropyPlugin,
-    prelude::Entropy,
+    global::{Global, GlobalEntropy, GlobalRngEntity},
+    params::RngEntity,
+    plugin::{EntropyPlugin, EntropyRelationsPlugin},
+    prelude::{Entropy, RngLinks},
     seed::RngSeed,
     traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
@@ -15,7 +16,7 @@ use wasm_bindgen_test::*;
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn test_global_reseeding() {
+pub fn test_global_reseeding() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -72,7 +73,7 @@ fn test_global_reseeding() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn component_fork_seed() {
+pub fn component_fork_seed() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -107,7 +108,7 @@ fn component_fork_seed() {
 
 #[test]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn component_fork_as_seed() {
+pub fn component_fork_as_seed() {
     let mut app = App::new();
 
     let seed = [2; 32];
@@ -147,92 +148,78 @@ fn component_fork_as_seed() {
 }
 
 #[test]
-#[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn observer_global_reseeding() {
+pub fn observer_global_reseeding() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
-    use bevy_ecs::prelude::{Entity, With};
-    use bevy_rand::{
-        observers::ReseedRng,
-        seed::RngSeed,
-        traits::{ForkableInnerSeed, SeedSource},
-    };
+    use bevy_rand::traits::SeedSource;
+
+    #[derive(Component, Clone, Copy)]
+    struct Target;
 
     let seed = [2; 8];
 
     let mut app = App::new();
 
-    app.add_plugins(EntropyPlugin::<WyRand>::with_seed(seed))
-        .add_systems(
-            Startup,
-            |mut commands: Commands, mut source: GlobalEntropy<WyRand>| {
-                for _ in 0..5 {
-                    commands.spawn(source.fork_seed());
-                }
-            },
-        )
-        .add_systems(
-            PreUpdate,
-            |query: Query<&RngSeed<WyRand>, Without<Global>>| {
-                let expected = [
-                    2484862625678185386u64,
-                    10323237495534242118,
-                    14704548354072994214,
-                    14638519449267265798,
-                    11723565746675474547,
-                ];
-                let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+    app.add_plugins((
+        EntropyPlugin::<WyRand>::with_seed(seed),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
+    ))
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global.rng_commands().with_target_rngs([Target; 5]);
+    })
+    .add_systems(
+        PreUpdate,
+        |query: Query<RngEntity<WyRand>, Without<Global>>| {
+            let expected = [
+                2484862625678185386u64,
+                10323237495534242118,
+                14704548354072994214,
+                14638519449267265798,
+                11723565746675474547,
+            ];
+            let seeds = query.iter().map(|a| a.seed().clone_seed());
 
-                expected
-                    .into_iter()
-                    .zip(seeds.map(u64::from_ne_bytes))
-                    .for_each(|(expected, actual)| assert_eq!(expected, actual));
-            },
-        )
-        .add_systems(
-            Update,
-            |mut commands: Commands,
-             query: Query<Entity, (With<Entropy<WyRand>>, Without<Global>)>,
-             mut source: GlobalEntropy<WyRand>| {
-                for e in &query {
-                    commands.trigger_targets(ReseedRng::<WyRand>::new(source.fork_inner_seed()), e);
-                }
-            },
-        )
-        .add_systems(
-            PostUpdate,
-            |query: Query<&RngSeed<WyRand>, Without<Global>>| {
-                let prev_expected = [
-                    2484862625678185386u64,
-                    10323237495534242118,
-                    14704548354072994214,
-                    14638519449267265798,
-                    11723565746675474547,
-                ];
-                let seeds = query.iter().map(RngSeed::<WyRand>::clone_seed);
+            assert_eq!(seeds.size_hint().0, 5);
 
-                prev_expected
-                    .into_iter()
-                    .zip(seeds.map(u64::from_ne_bytes))
-                    .for_each(|(expected, actual)| assert_ne!(expected, actual));
-            },
-        );
+            expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(expected, actual)| assert_eq!(expected, actual));
+        },
+    )
+    .add_systems(Update, |mut global: GlobalRngEntity<WyRand>| {
+        global.rng_commands().reseed_linked();
+    })
+    .add_systems(
+        PostUpdate,
+        |query: Query<RngEntity<WyRand>, Without<Global>>| {
+            let prev_expected = [
+                2484862625678185386u64,
+                10323237495534242118,
+                14704548354072994214,
+                14638519449267265798,
+                11723565746675474547,
+            ];
+            let seeds = query.iter().map(|rng| rng.clone_seed());
+
+            assert_eq!(seeds.size_hint().0, 5);
+
+            prev_expected
+                .into_iter()
+                .zip(seeds.map(u64::from_ne_bytes))
+                .for_each(|(previous, actual)| assert_ne!(previous, actual));
+        },
+    );
 
     app.run();
 }
 
 #[test]
-#[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn generic_observer_reseeding_from_parent() {
+pub fn generic_observer_reseeding_from_parent() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
-    use bevy_ecs::prelude::{Entity, With};
-    use bevy_rand::{
-        observers::{LinkRngSourceToTarget, SeedFromGlobal, SeedFromParent},
-        plugin::LinkedEntropySources,
-        seed::RngSeed,
-        traits::SeedSource,
-    };
+    use bevy_ecs::prelude::With;
+    use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
 
     let seed = [2u8; 8];
 
@@ -245,31 +232,35 @@ fn generic_observer_reseeding_from_parent() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        LinkedEntropySources::<Source, Target, WyRand>::default(),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
-    .add_systems(Startup, |mut commands: Commands| {
-        let source = commands.spawn(Source).id();
-        commands.spawn(Target);
-
-        commands.trigger(LinkRngSourceToTarget::<Source, Target, WyRand>::default());
-        commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), source);
-    })
-    .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Target>>| {
-        let expected = 6445550333322662121;
-        let seed = u64::from_ne_bytes(query.single().clone_seed());
-
-        assert_eq!(seed, expected);
-    })
-    .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
-        let expected = 2484862625678185386;
-        let seed = u64::from_ne_bytes(query.single().clone_seed());
-
-        assert_eq!(seed, expected);
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global
+            .rng_commands()
+            .with_target_rngs([(Source, RngLinks::<WyRand, WyRand>::spawn(Spawn(Target)))]);
     })
     .add_systems(
+        PreUpdate,
+        |query: Query<RngEntity<WyRand>, With<Target>>| {
+            let expected = 6445550333322662121;
+            let seed = u64::from_ne_bytes(query.single().clone_seed());
+
+            assert_eq!(seed, expected);
+        },
+    )
+    .add_systems(
+        PreUpdate,
+        |query: Query<RngEntity<WyRand>, With<Source>>| {
+            let expected = 2484862625678185386;
+            let seed = u64::from_ne_bytes(query.single().clone_seed());
+
+            assert_eq!(seed, expected);
+        },
+    )
+    .add_systems(
         Update,
-        |mut commands: Commands, query: Query<Entity, With<Target>>| {
-            commands.trigger_targets(SeedFromParent::<WyRand>::default(), query.single());
+        |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Target>>| {
+            commands.rng_entity(&query.single()).reseed_from_source();
         },
     )
     .add_systems(
@@ -288,17 +279,11 @@ fn generic_observer_reseeding_from_parent() {
 }
 
 #[test]
-#[cfg(feature = "experimental")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-fn generic_observer_reseeding_children() {
+pub fn generic_observer_reseeding_children() {
     use bevy_app::prelude::{Last, PostUpdate, PreUpdate, Startup};
-    use bevy_ecs::prelude::{Component, Entity, With, Without};
-    use bevy_rand::{
-        observers::{LinkRngSourceToTarget, SeedFromGlobal},
-        plugin::LinkedEntropySources,
-        seed::RngSeed,
-        traits::SeedSource,
-    };
+    use bevy_ecs::prelude::{Component, With, Without};
+    use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
 
     let seed = [2u8; 8];
 
@@ -311,14 +296,19 @@ fn generic_observer_reseeding_children() {
 
     app.add_plugins((
         EntropyPlugin::<WyRand>::with_seed(seed),
-        LinkedEntropySources::<Source, Target, WyRand>::default(),
+        EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
-    .add_systems(Startup, |mut commands: Commands| {
-        commands.spawn_batch(vec![Target; 5]);
-        let source = commands.spawn(Source).id();
-
-        commands.trigger(LinkRngSourceToTarget::<Source, Target, WyRand>::default());
-        commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), source);
+    .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
+        global.rng_commands().with_target_rngs([(
+            Source,
+            RngLinks::<WyRand, WyRand>::spawn((
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+            )),
+        )]);
     })
     .add_systems(
         PreUpdate,
@@ -337,20 +327,22 @@ fn generic_observer_reseeding_children() {
             expected
                 .into_iter()
                 .zip(seeds.map(u64::from_ne_bytes))
-                .for_each(|(expected, actual)| assert_eq!(expected, actual));
+                .for_each(|(expected, actual)| {
+                    assert_eq!(expected, actual, "Expected output to match")
+                });
         },
     )
     .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
         let expected = 2484862625678185386u64;
         let seeds = u64::from_ne_bytes(query.single().clone_seed());
 
-        assert_eq!(expected, seeds);
+        assert_eq!(expected, seeds, "Expected seeds to match");
     })
     .add_systems(
         Update,
-        |mut commands: Commands, query: Query<Entity, With<Source>>| {
+        |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>| {
             for entity in &query {
-                commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), entity);
+                commands.rng_entity(&entity).reseed_linked();
             }
         },
     )
@@ -364,28 +356,34 @@ fn generic_observer_reseeding_children() {
                 908888629357954483,
                 6128439264405451235,
             ];
+
             let expected = [
-                2656876351602726802u64,
-                4226413670151402273,
-                2344778986622729714,
-                9109365740673988404,
-                6101264679293753504,
+                13007546668837876556u64,
+                11167966742313596632,
+                6059854582339877554,
+                16378674538987011914,
+                14627163487140195445,
             ];
+
+            let actual = query
+                .iter()
+                .map(RngSeed::<WyRand>::clone_seed)
+                .map(u64::from_ne_bytes);
+
+            assert_eq!(actual.size_hint().0, 5);
 
             prev_expected
                 .into_iter()
                 .zip(expected)
-                .zip(
-                    query
-                        .iter()
-                        .map(RngSeed::<WyRand>::clone_seed)
-                        .map(u64::from_ne_bytes),
-                )
+                .zip(actual)
                 .for_each(|((previous, expected), actual)| {
                     // Must not equal the previous seeds.
-                    assert_ne!(previous, actual);
+                    assert_ne!(
+                        previous, actual,
+                        "Expected output not to match previous output"
+                    );
                     // Should equal the expected updated seeds.
-                    assert_eq!(expected, actual)
+                    assert_eq!(expected, actual, "Expected output to be updated")
                 });
         },
     )
@@ -394,8 +392,16 @@ fn generic_observer_reseeding_children() {
         |source: Query<&RngSeed<WyRand>, With<Source>>,
          children: Query<&RngSeed<WyRand>, (Without<Source>, Without<Global>)>| {
             // Check we have the correct amount of allocated RNG entities
-            assert_eq!(source.iter().size_hint().0, 1);
-            assert_eq!(children.iter().size_hint().0, 5);
+            assert_eq!(
+                source.iter().size_hint().0,
+                1,
+                "Only one SOURCE should exist"
+            );
+            assert_eq!(
+                children.iter().size_hint().0,
+                5,
+                "Only 5 TARGET should exist"
+            );
         },
     );
 

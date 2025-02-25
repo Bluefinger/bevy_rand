@@ -47,7 +47,6 @@ where
 {
     /// Create a new instance of [`RngSeed`] from a given `seed` value.
     #[inline]
-    #[must_use]
     fn from_seed(seed: R::Seed) -> Self {
         Self {
             seed,
@@ -75,18 +74,21 @@ where
 
     fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
         hooks
-            .on_insert(|mut world, entity, _| {
+            .on_insert(|mut world, context| {
                 let seed = world
-                    .get::<RngSeed<R>>(entity)
+                    .get::<RngSeed<R>>(context.entity)
                     .map(|seed| seed.clone_seed())
                     .unwrap();
                 world
                     .commands()
-                    .entity(entity)
+                    .entity(context.entity)
                     .insert(Entropy::<R>::from_seed(seed));
             })
-            .on_remove(|mut world, entity, _| {
-                world.commands().entity(entity).remove::<Entropy<R>>();
+            .on_remove(|mut world, context| {
+                world
+                    .commands()
+                    .entity(context.entity)
+                    .remove::<Entropy<R>>();
             });
     }
 }
@@ -121,8 +123,8 @@ mod tests {
 
         use bevy_prng::WyRand;
         use bevy_reflect::{
-            serde::{TypedReflectDeserializer, TypedReflectSerializer},
             FromReflect, GetTypeRegistration, TypeRegistry,
+            serde::{TypedReflectDeserializer, TypedReflectSerializer},
         };
         use ron::to_string;
         use serde::de::DeserializeSeed;

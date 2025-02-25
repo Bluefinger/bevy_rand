@@ -1,10 +1,9 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_prng::{ChaCha12Rng, ChaCha8Rng, WyRand};
+use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
 use bevy_rand::{
-    global::GlobalSeed,
+    global::GlobalRngEntity,
     prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy},
-    traits::SeedSource,
 };
 use rand::prelude::Rng;
 
@@ -32,7 +31,7 @@ fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>)
     let mut rng = q_source.single_mut();
 
     assert_eq!(
-        rng.gen::<u32>(),
+        rng.r#gen::<u32>(),
         3315785188,
         "SourceA does not match expected output"
     );
@@ -58,7 +57,7 @@ fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>
     let mut rng = q_source.single_mut();
 
     assert_eq!(
-        rng.gen::<(u16, u16)>(),
+        rng.r#gen::<(u16, u16)>(),
         (41421, 7891),
         "SourceD does not match expected output"
     );
@@ -90,8 +89,8 @@ fn setup_sources(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     commands.spawn((SourceE, rng.fork_as::<WyRand>()));
 }
 
-fn read_global_seed(rng: GlobalSeed<ChaCha8Rng>) {
-    assert_eq!(rng.get_seed(), &[2; 32]);
+fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {
+    assert_eq!(rng.clone_seed(), [2; 32]);
 }
 
 /// Entities having their own sources side-steps issues with parallel execution and scheduling

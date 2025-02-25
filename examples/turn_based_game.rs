@@ -104,7 +104,7 @@ fn determine_attack_order(
     // RNG instance with a chosen seed.
     let mut entities: Vec<_> = q_entities
         .iter_mut()
-        .map(|mut entity| (entity.1.gen::<u32>(), entity))
+        .map(|mut entity| (entity.1.r#gen::<u32>(), entity))
         .collect();
 
     entities.sort_by_key(|k| k.0);

@@ -1,55 +1,116 @@
-# EXPERIMENTAL - Observer-driven Reseeding
+# Observer-driven and Command-based Reseeding
 
-The following feature is _experimental_ so to enable it, you'll need to edit your Cargo.toml file and change the dependency declaration for `bevy_rand` to have `features=["experimental"]` applied. Once done, you'll get access to some utils that will enable easy setup of observer driven reseeding utilities for managing when entities with `Entropy`s obtain new seeds from which sources. Keep in mind, this feature is not *stable* and will be subject to further work and iteration, so if problems and issues are encountered, please do create issues outlining the use-cases and difficulties.
+Managing the seeding of related RNGs manually can be complex and also boilerplate-y, so `bevy_rand` provides a commands API powered by observers and bevy relations to make it much more easy to setup and maintain. This way, pushing a new seed to a single "source" RNG will then automatically push out new seeds to all linked "target" RNGs. It can also be set up for seeding between different kinds of PRNG, but it does require the addition of an extra plugin in order to facilitate this particular case.
 
-```toml
-bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand", "experimental"] }
+The nature of the relations are strictly either One to One or One to Many. Many to Many relations are **not** supported, as it does not make sense for PRNG to have multiple source PRNGs.
+
+```rust
+use bevy_app::prelude::*;
+use bevy_prng::{ChaCha8Rng, WyRand};
+use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
+
+fn main() {
+    App::new()
+        .add_plugins((
+            // First initialise the RNGs
+            EntropyPlugin::<ChaCha8Rng>::default(),
+            EntropyPlugin::<WyRand>::default(),
+            // This initialises observers for WyRand -> WyRand seeding relations
+            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
+            // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+            EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+        ))
+        .run();
+}
 ```
 
-By default, when the `experimental` feature is enabled, you'll be able to trigger a reseeding for a given entity either by pulling from a global source, or by providing a set seed value. This does not require any specific setup, and can simply be triggered by emitting the event on the entity needing to be reseeded. ALl observer events require providing a generic for the RNG algorithm to be targetted, as an entity could have multiple RNG sources attached to it.
+Once the plugins are initialised, various observer systems are ready to begin listening to various linking and reseeding events. Relations can exist between a global source and "local" sources, or between other entity local sources. So for example, a single `Global` source can seed many `Player` entities with their own RNGs, and to reseed all `Player` entities, you just need to push a new seed to the global source, or tell the global source to reseed all its linked RNGs.
 
-```rust ignore
+```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::observers::SeedFromGlobal;
+use bevy_rand::prelude::GlobalRngEntity;
 
 #[derive(Component)]
 struct Target;
 
-fn reseed_target_entities_from_global(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
-    for target in &q_targets {
-        commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), target);
-    }
+fn link_and_seed_target_rngs_with_global(q_targets: Query<Entity, With<Target>>, mut global: GlobalRngEntity<WyRand>) {
+    let targets = q_targets.iter().collect::<Vec<_>>();
+
+    global.rng_commands().link_target_rngs(&targets).reseed_linked();
 }
 ```
+
+In the above example, we have created a relationship between the `GlobalRngEntity<WyRand>` source and all `Target` entities. The above system creates the relations and then emits a reseeding event, causing all `Target` entities to receive a new `RngSeed` component from the `Global` source. This in turn initialises an `Entropy` component on each `Target` entity with the received seed.
+
+If you want to spawn related entities directly, then you can! The example below will create three `Target` entities that are related to the `Global` source, and will be seeded automatically once spawned.
+
+```rust
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::GlobalRngEntity;
+
+#[derive(Component)]
+struct Target;
+
+fn link_and_seed_target_rngs_with_global(mut global: GlobalRngEntity<WyRand>) {
+    global.rng_commands().with_target_rngs([Target, Target, Target]);
+}
+```
+
+The `GlobalRngEntity` is a special `SystemParam` that access the `Global` source `Entity` for a particular PRNG type. This then allows you to directly ask for an `RngEntityCommands` via the `rng_commands()` method. With this, you can link and seed your Source or Targets.
 
 Alternatively, one can provide a set seed to reseed all target entities with:
 
-```rust ignore
+```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::observers::ReseedRng;
+use bevy_rand::prelude::*;
 
 #[derive(Component)]
 struct Target;
 
-fn reseed_target_entities_from_set_seed(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
+fn intialise_rng_entities_with_set_seed(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     let seed = u64::to_ne_bytes(42); 
 
     for target in &q_targets {
-        commands.trigger_targets(ReseedRng::<WyRand>::new(seed), target);
+        commands.entity(target).rng::<WyRand>().reseed(seed);
     }
 }
 ```
 
-With these observers, you can initialise entropy components on all targetted entities simply by triggering a reseed event on them. As long as your entities have been spawned with a component you can target them with, they will automatically be given an `RngSeed` component (which stores the initial seed value) and an `Entropy`.
+The commands API takes an `EntityCommands` and extends it to provide an `rng()` method that takes a generic parameter to define which PRNG you want to initialise/use, and then provides methods to trigger events for seeding either the entity itself, or creating relations between other entities for seeding.
 
-Additionally, you can link entities to draw their seeds from other source entities instead of the global resources. So one `Source` entity can then seed many `Target` entities, and whenever the `Source` entity is updated with a new seed value, it then automatically pushes new seeds to its linked targets. Note: this is NOT a `bevy_hierarchy` relationship, and while the `Source` will have "child" entities, removing/despawning the source entity will *not* despawn the children entities. They will simply no longer have a valid "link". A new link can be established by triggering another "link" event.
+For entities that already have `RngSeed` attached to them, you can make use of `RngEntity` to query them. `Commands` also has a `rng()` method provided that takes a `&RngEntity` to give a `RngEntityCommands` without needing to explicitly provide the generics parameter to yield the correct PRNG target.
 
-```rust ignore
+These command APIs are designed to alleviate or reduce some of the generic typing around the Rng components, so to make it less error prone and more robust that you are targetting the correct PRNG type, and also to make it easier on querying and managing more complex relations of dependencies between RNGs for seeding.
+
+Once the relations are created, it becomes easy to pull new seeds from sources/global using the commands API:
+
+```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::observers::{LinkRngSourceToTarget, SeedFromGlobal};
+use bevy_rand::prelude::{RngEntity, RngCommandsExt};
+
+#[derive(Component)]
+struct Source;
+
+#[derive(Component)]
+struct Target;
+
+fn pull_seeds_from_source(mut commands: Commands, q_targets: Query<RngEntity<WyRand>, With<Target>>) {
+    for entity in q_targets {
+        commands.rng_entity(&entity).reseed_from_source();
+    }
+}
+```
+
+Of course, one _can_ also make use of the observer events directly, though it does require more typing to be involved. An example below:
+
+```rust
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::{SeedFromGlobal, RngLinks};
 
 #[derive(Component)]
 struct Source;
@@ -58,27 +119,28 @@ struct Source;
 struct Target;
 
 fn initial_setup(mut commands: Commands) {
-    // Create the source entity and get the Entity id.
-    let source = commands.spawn(Source).id();
-
-    // Spawn many target entities
-    commands.spawn_batch(vec![Target; 5]);
-
-    // Link the target entities to the Source entity
-    commands.trigger(LinkRngSourceToTarget::<Source, Target, WyRand>::default());
+    // Create the source entity with its related target entities and get the Entity id.
+    // You can also make use of the related! macro for this instead.
+    let source = commands
+        .spawn((Source, RngLinks::<WyRand, WyRand>::spawn((
+            Spawn(Target),
+            Spawn(Target),
+            Spawn(Target)
+        ))))
+        .id();
 
     // Initialise the Source entity to be an RNG source and then seed all its
     // linked entities.
-    commands.trigger_targets(SeedFromGlobal::<WyRand>::default(), source);
+    commands.trigger_targets(SeedFromGlobal::<WyRand, WyRand>::default(), source);
 }
 ```
 
-Once the link has been created, child entities can also pull a new seed from its parent source. So if you want to reseed *one* entity from its parent source, but not all of the entities that have the same source, you can use the `SeedFromParent` observer event to achieve this.
+Once the link has been created, child entities can also pull a new seed from its parent source. So if you want to reseed *one* entity from its parent source, but not all of the entities that have the same source, you can use the `SeedFromSource` observer event to achieve this.
 
-```rust ignore
+```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::observers::SeedFromParent;
+use bevy_rand::observers::SeedFromSource;
 
 #[derive(Component)]
 struct Source;
@@ -88,7 +150,22 @@ struct Target;
 
 fn pull_seed_from_parent(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     for target in &q_targets {
-        commands.trigger_targets(SeedFromParent::<WyRand>::default(), target);
+        commands.trigger_targets(SeedFromSource::<WyRand, WyRand>::default(), target);
     }
 }
 ```
+
+## Note about relations between PRNG types
+
+As covered in Chapter One: "Selecting and using PRNG Algorithms", when creating relationship between different PRNG types, do not seed a stronger PRNG from a weaker one. CSPRNGs like `ChaCha8` should be seeded by either other `ChaCha8` sources or "stronger" sources like `ChaCha12` or `ChaCha20`, never from ones like `WyRand` or `Xoshiro256StarStar`. Always go from stronger to weaker, or same to same, never from weaker to stronger. Doing so makes it easier to predict the seeded PRNG, and reduces the advantage of using a CSPRNG in the first place.
+
+So in summary:
+
+| Source types                         | Target types                         |         |
+| ------------------------------------ | ------------------------------------ | ------- |
+| `ChaCha8` / `ChaCha12` / `ChaCha20`  | `WyRand` / `Xoshiro256StarStar`      | ✅ Good |
+| `ChaCha12` / `ChaCha20`              | `ChaCha8`                            | ✅ Good |
+| `ChaCha8`                            | `ChaCha8`                            | ✅ Good |
+| `WyRand`                             | `WyRand`                             | ✅ Good |
+| `Wyrand` /`Xoshiro256StarStar`       | `ChaCha8` / `ChaCha12` / `ChaCha20`  | ❌ Bad  |
+| `ChaCha8`                            | `ChaCha12` / `ChaCha20`              | ❌ Bad  |

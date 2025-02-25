@@ -1,10 +1,7 @@
-#[cfg(feature = "experimental")]
-use std::marker::PhantomData;
+use core::{fmt::Debug, marker::PhantomData};
 
 use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
-#[cfg(feature = "experimental")]
-use bevy_ecs::prelude::Component;
 use bevy_prng::{EntropySeed, EntropySource};
 
 /// Plugin for integrating a PRNG that implements `RngCore` into
@@ -32,13 +29,13 @@ use bevy_prng::{EntropySeed, EntropySource};
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
-pub struct EntropyPlugin<R: EntropySource + 'static> {
-    seed: Option<R::Seed>,
+pub struct EntropyPlugin<Rng: EntropySource + 'static> {
+    seed: Option<Rng::Seed>,
 }
 
-impl<R: EntropySource + 'static> EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> EntropyPlugin<Rng>
 where
-    R::Seed: Send + Sync + Clone,
+    Rng::Seed: Send + Sync + Clone,
 {
     /// Creates a new plugin instance configured for randomised,
     /// non-deterministic seeding of the global entropy resource.
@@ -51,81 +48,98 @@ where
     /// Configures the plugin instance to have a set seed for the
     /// global entropy resource.
     #[inline]
-    pub fn with_seed(seed: R::Seed) -> Self {
+    pub fn with_seed(seed: Rng::Seed) -> Self {
         Self { seed: Some(seed) }
     }
 }
 
-impl<R: EntropySource + 'static> Default for EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> Default for EntropyPlugin<Rng>
 where
-    R::Seed: Send + Sync + Clone,
+    Rng::Seed: Send + Sync + Clone,
 {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<R: EntropySource + 'static> Plugin for EntropyPlugin<R>
+impl<Rng: EntropySource + 'static> Plugin for EntropyPlugin<Rng>
 where
-    R::Seed: EntropySeed,
+    Rng::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
-        app.register_type::<Entropy<R>>()
-            .register_type::<RngSeed<R>>()
-            .register_type::<R::Seed>();
+        app.register_type::<Entropy<Rng>>()
+            .register_type::<RngSeed<Rng>>()
+            .register_type::<Rng::Seed>();
 
         let world = app.world_mut();
 
-        world.register_component_hooks::<RngSeed<R>>();
+        world.register_component_hooks::<RngSeed<Rng>>();
 
         world.spawn((
             self.seed
                 .clone()
-                .map_or_else(RngSeed::<R>::from_entropy, RngSeed::<R>::from_seed),
+                .map_or_else(RngSeed::<Rng>::from_entropy, RngSeed::<Rng>::from_seed),
             Global,
         ));
-
-        #[cfg(feature = "experimental")]
-        {
-            world.add_observer(crate::observers::seed_from_global::<R>);
-            world.add_observer(crate::observers::reseed::<R>);
-        }
 
         world.flush();
     }
 }
 
-/// Plugin for setting up linked RNG sources
-#[cfg(feature = "experimental")]
-pub struct LinkedEntropySources<Source: Component, Target: Component, Rng: EntropySource + 'static>
-{
-    rng: PhantomData<Rng>,
-    source: PhantomData<Source>,
-    target: PhantomData<Target>,
+/// [`Plugin`] for setting up relations/observers for handling related Rngs. It takes two generic parameters,
+/// the first is the `Source` Rng, which is the algorithm for the source Rng entity, and then the second
+/// is the `Target` Rng, which is the algorithm for the targets. It follows a One to One/Many relationship
+/// model, going from `Source` to `Target`, where `Source` can have one or many `Target`s.
+///
+/// Note: This is for RNG algorithms, not Components. For more information, please read the
+/// [tutorial](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch05_observer_driven_reseeding/index.html).
+///
+/// ```
+/// use bevy_app::prelude::*;
+/// use bevy_prng::{ChaCha8Rng, WyRand};
+/// use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
+///
+/// App::new()
+///     .add_plugins((
+///         // First initialise the RNGs
+///         EntropyPlugin::<ChaCha8Rng>::default(),
+///         EntropyPlugin::<WyRand>::default(),
+///         // This initialises observers for WyRand -> WyRand seeding relations
+///         EntropyRelationsPlugin::<WyRand, WyRand>::default(),
+///         // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+///         EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+///     ))
+///     .run();
+/// ```
+pub struct EntropyRelationsPlugin<Source, Target> {
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
 }
 
-#[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Default
-    for LinkedEntropySources<Source, Target, Rng>
+impl<Source: EntropySource, Target: EntropySource> Default
+    for EntropyRelationsPlugin<Source, Target>
 {
     fn default() -> Self {
         Self {
-            rng: PhantomData,
-            source: PhantomData,
-            target: PhantomData,
+            _source: PhantomData,
+            _target: PhantomData,
         }
     }
 }
 
-#[cfg(feature = "experimental")]
-impl<Source: Component, Target: Component, Rng: EntropySource + 'static> Plugin
-    for LinkedEntropySources<Source, Target, Rng>
+impl<Source: EntropySource, Target: EntropySource> Plugin for EntropyRelationsPlugin<Source, Target>
 where
-    Rng::Seed: Send + Sync + Clone,
+    Source::Seed: Debug + Send + Sync + Clone,
+    Target::Seed: Debug + Send + Sync + Clone,
 {
     fn build(&self, app: &mut App) {
-        app.add_observer(crate::observers::seed_from_parent::<Rng>)
-            .add_observer(crate::observers::seed_children::<Source, Target, Rng>)
-            .add_observer(crate::observers::link_targets::<Source, Target, Rng>);
+        let world = app.world_mut();
+
+        world.add_observer(crate::observers::seed_from_global::<Source, Target>);
+        world.add_observer(crate::observers::seed_from_parent::<Source, Target>);
+        world.add_observer(crate::observers::seed_linked::<Source, Target>);
+        world.add_observer(crate::observers::trigger_seed_linked::<Source, Target>);
+
+        world.flush();
     }
 }
