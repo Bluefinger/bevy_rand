@@ -24,6 +24,15 @@ pub type GlobalEntropy<'w, T> = Single<'w, &'static mut Entropy<T>, With<Global>
 /// A helper [`SystemParam`] to obtain the [`Global`] entity & seed of a given `Rng`. This yields
 /// read-only access to the global entity and its seed, and also allows constructing a
 /// [`RngEntityCommands`] directly from it.
+/// ```
+/// use bevy_ecs::prelude::*;
+/// use bevy_rand::prelude::*;
+/// use bevy_prng::WyRand;
+/// 
+/// fn reseed_all_linked_rngs_from_global(mut global: GlobalRngEntity<WyRand>) {
+///     global.rng_commands().reseed_linked();
+/// }
+/// ```
 #[derive(SystemParam)]
 pub struct GlobalRngEntity<'w, 's, Rng: EntropySource>
 where

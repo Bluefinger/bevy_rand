@@ -76,10 +76,11 @@ pub trait RngCommandsExt {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
-    /// 
+    /// use bevy_prng::WyRand;
+    ///
     /// #[derive(Component)]
     /// struct Source;
-    /// 
+    ///
     /// fn reseed(mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>) {
     ///     for entity in &query {
     ///         commands.rng_entity(&entity).reseed_linked();
@@ -131,6 +132,29 @@ where
 impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Spawns entities related to the current `Source` Rng, linking them and then seeding
     /// them automatically.
+    /// ```
+    /// use bevy_ecs::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// use bevy_prng::WyRand;
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    /// #[derive(Component)]
+    /// struct Target;
+    ///
+    /// fn setup_rng_sources(mut global: GlobalRngEntity<WyRand>) {
+    ///     global.rng_commands().with_target_rngs([(
+    ///     Source,
+    ///     RngLinks::<WyRand, WyRand>::spawn((
+    ///         Spawn(Target),
+    ///         Spawn(Target),
+    ///         Spawn(Target),
+    ///         Spawn(Target),
+    ///         Spawn(Target),
+    ///     )),
+    /// )]);
+    /// }
+    /// ```
     #[inline]
     pub fn with_target_rngs(
         &mut self,
@@ -141,6 +165,30 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
 
     /// Spawns entities related to the current Source Rng, linking them and then seeding
     /// them automatically with the specified `Target` Rng.
+    ///
+    /// ```
+    /// use bevy_ecs::prelude::*;
+    /// use bevy_rand::prelude::*;
+    /// use bevy_prng::{ChaCha8Rng, WyRand};
+    ///
+    /// #[derive(Component)]
+    /// struct Source;
+    /// #[derive(Component)]
+    /// struct Target;
+    ///
+    /// fn setup_rng_sources(mut global: GlobalRngEntity<ChaCha8Rng>) {
+    ///     global.rng_commands().with_target_rngs_as::<WyRand>([(
+    ///         Source,
+    ///         RngLinks::<WyRand, WyRand>::spawn((
+    ///             Spawn(Target),
+    ///             Spawn(Target),
+    ///             Spawn(Target),
+    ///             Spawn(Target),
+    ///             Spawn(Target),
+    ///         )),
+    ///     )]);
+    /// }
+    /// ```
     #[inline]
     pub fn with_target_rngs_as<Target: EntropySource>(
         &mut self,
