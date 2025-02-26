@@ -48,6 +48,7 @@ rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
+wasm_js = ["getrandom/wasm_js"]
 
 [dependencies]
 bevy_app.workspace = true

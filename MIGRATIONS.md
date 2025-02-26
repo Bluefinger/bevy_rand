@@ -62,7 +62,7 @@ struct Source;
 
 ## Migrating from v0.9 to v0.10
 
-To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs.
+To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs. There is now a `wasm_js` feature to help configure `getrandom` for WASM, though there's additional steps needed to build for WASM [outlined here](README#usage-within-web-wasm-environments).
 
 `GlobalSource` and `GlobalSeed` have been removed and now is represented by a `GlobalRngEntity` SystemParam. All uses of `GlobalSource` & `GlobalSeed` can be replaced by `GlobalRngEntity`.
 

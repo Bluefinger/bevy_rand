@@ -42,7 +42,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 bevy_rand = { version = "0.10", default-features = false, features = ["rand_chacha", "wyrand"] }
 ```
 
-All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/0.2.15/getrandom/index.html#custom-implementations).
+All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
 
 #### Usage within Web WASM environments
 
@@ -50,10 +50,18 @@ From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web 
 
 ```toml
 [target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+bevy_rand = { version = "0.10", features = ["wasm_js"] }
 ```
 
-This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
+This enables the `wasm_js` backend to be made available for `getrandom`, but it doesn't actually build. The next step is to either edit your `.cargo/config.toml` with the below configuration:
+
+```toml
+# It's recommended to set the flag on a per-target basis:
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+```
+
+Or pass an environment variable: `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`. This then enables the `getrandom` WASM backend to get built correctly.
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -145,7 +153,8 @@ fn setup_npc_from_source(
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
-- **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this will expose utilities for making use of observers for reseeding sources.
+- **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
+- **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 
 ## Supported Versions & MSRV
 
