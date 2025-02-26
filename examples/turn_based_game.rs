@@ -104,7 +104,7 @@ fn determine_attack_order(
     // RNG instance with a chosen seed.
     let mut entities: Vec<_> = q_entities
         .iter_mut()
-        .map(|mut entity| (entity.1.r#gen::<u32>(), entity))
+        .map(|mut entity| (entity.1.random::<u32>(), entity))
         .collect();
 
     entities.sort_by_key(|k| k.0);
@@ -142,7 +142,7 @@ fn attack_turn(
         let (target, attack_damage, attacker) = {
             let (_, attacker, attack, _, name, _, mut a_rng) = q_entities.get_mut(entity).unwrap();
 
-            let attack_damage = a_rng.gen_range(attack.min..=attack.max);
+            let attack_damage = a_rng.random_range(attack.min..=attack.max);
 
             let target = if attacker == &Kind::Player {
                 enemies.iter().choose(a_rng.as_mut()).copied().unwrap()
@@ -157,7 +157,7 @@ fn attack_turn(
         let (_, _, _, defense, defender, mut hp, mut d_rng) = q_entities.get_mut(target).unwrap();
 
         // Will they dodge the attack?
-        if d_rng.gen_bool(defense.dodge) {
+        if d_rng.random_bool(defense.dodge) {
             println!("{} dodged {}'s attack!", defender.0, attacker);
         } else {
             let damage_taken = (attack_damage - defense.armor).clamp(0.0, f32::MAX);
@@ -178,7 +178,7 @@ fn buff_entities(
     // Query iteration order is not stable, but entities having their own RNG source side-steps this
     // completely, so the result is always deterministic.
     for (name, buff, mut hp, mut rng) in q_entities.iter_mut() {
-        if rng.gen_bool(buff.chance) {
+        if rng.random_bool(buff.chance) {
             hp.amount += buff.effect;
 
             println!("{} buffed their health by {} points!", name.0, buff.effect);

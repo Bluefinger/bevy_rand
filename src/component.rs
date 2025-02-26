@@ -129,7 +129,7 @@ impl<R: EntropySource + 'static> Entropy<R> {
 impl<R: EntropySource + 'static> Default for Entropy<R> {
     #[inline]
     fn default() -> Self {
-        Self::from_entropy()
+        Self::from_os_rng()
     }
 }
 
@@ -148,11 +148,6 @@ impl<R: EntropySource + 'static> RngCore for Entropy<R> {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.0.fill_bytes(dest);
     }
-
-    #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.0.try_fill_bytes(dest)
-    }
 }
 
 impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
@@ -164,13 +159,13 @@ impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     }
 
     #[inline]
-    fn from_rng<S: RngCore>(rng: S) -> Result<Self, rand_core::Error> {
-        R::from_rng(rng).map(Self::new)
+    fn from_rng(rng: &mut impl RngCore) -> Self {
+        Self::new(R::from_rng(rng))
     }
 
     /// Creates a new instance of the RNG seeded via [`ThreadLocalEntropy`]. This method is the recommended way
     /// to construct non-deterministic PRNGs since it is convenient and secure. It overrides the standard
-    /// [`SeedableRng::from_entropy`] method while the `thread_local_entropy` feature is enabled.
+    /// [`SeedableRng::from_os_rng`] method while the `thread_local_entropy` feature is enabled.
     ///
     /// # Panics
     ///
@@ -178,9 +173,10 @@ impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     /// this method will panic.
     #[cfg(feature = "thread_local_entropy")]
     #[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
-    fn from_entropy() -> Self {
+    fn from_os_rng() -> Self {
+        let mut rng = ThreadLocalEntropy::new();
         // This operation should never yield Err on any supported PRNGs
-        Self::from_rng(ThreadLocalEntropy::new()).unwrap()
+        Self::from_rng(&mut rng)
     }
 }
 

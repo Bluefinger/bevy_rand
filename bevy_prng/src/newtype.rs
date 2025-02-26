@@ -44,11 +44,6 @@ macro_rules! newtype_prng {
             fn fill_bytes(&mut self, dest: &mut [u8]) {
                 self.0.fill_bytes(dest)
             }
-
-            #[inline]
-            fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), ::rand_core::Error> {
-                self.0.try_fill_bytes(dest)
-            }
         }
 
         impl SeedableRng for $newtype {
@@ -60,8 +55,8 @@ macro_rules! newtype_prng {
             }
 
             #[inline]
-            fn from_rng<R: RngCore>(source: R) -> Result<Self, ::rand_core::Error> {
-                Ok(Self::new(<$rng>::from_rng(source)?))
+            fn from_rng(source: &mut impl ::rand_core::RngCore) -> Self {
+                Self::new(<$rng>::from_rng(source))
             }
         }
 
@@ -122,11 +117,6 @@ macro_rules! newtype_prng_remote {
             fn fill_bytes(&mut self, dest: &mut [u8]) {
                 self.0.fill_bytes(dest)
             }
-
-            #[inline]
-            fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), ::rand_core::Error> {
-                self.0.try_fill_bytes(dest)
-            }
         }
 
         impl SeedableRng for $newtype {
@@ -138,8 +128,8 @@ macro_rules! newtype_prng_remote {
             }
 
             #[inline]
-            fn from_rng<R: RngCore>(source: R) -> Result<Self, ::rand_core::Error> {
-                Ok(Self::new(<$rng>::from_rng(source)?))
+            fn from_rng(source: &mut impl ::rand_core::RngCore) -> Self {
+                Self::new(<$rng>::from_rng(source))
             }
         }
 

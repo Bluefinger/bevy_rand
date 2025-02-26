@@ -8,7 +8,7 @@ use rand_core::{CryptoRng, RngCore, SeedableRng};
 
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
-    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = Rc::new(UnsafeCell::new(ChaCha8Rng::from_entropy()));
+    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = Rc::new(UnsafeCell::new(ChaCha8Rng::from_os_rng()));
 }
 
 /// [`ThreadLocalEntropy`] uses thread local [`ChaCha8Rng`] instances to provide faster alternative for
@@ -71,11 +71,6 @@ impl RngCore for ThreadLocalEntropy {
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.access_local_source(|rng| rng.fill_bytes(dest));
-    }
-
-    #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.access_local_source(|rng| rng.try_fill_bytes(dest))
     }
 }
 

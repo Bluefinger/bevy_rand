@@ -27,7 +27,7 @@ pub trait ForkableRng: EcsEntropy {
     /// }
     /// ```
     fn fork_rng(&mut self) -> Self::Output {
-        Self::Output::from_rng(self).unwrap()
+        Self::Output::from_rng(self)
     }
 }
 
@@ -59,7 +59,7 @@ pub trait ForkableAsRng: EcsEntropy {
     /// }
     /// ```
     fn fork_as<T: EntropySource>(&mut self) -> Self::Output<T> {
-        Self::Output::<_>::from_rng(self).unwrap()
+        Self::Output::<_>::from_rng(self)
     }
 }
 
@@ -92,7 +92,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     /// }
     /// ```
     fn fork_inner(&mut self) -> Self::Output {
-        Self::Output::from_rng(self).unwrap()
+        Self::Output::from_rng(self)
     }
 }
 
@@ -242,9 +242,9 @@ where
         }
         #[cfg(not(feature = "thread_local_entropy"))]
         {
-            use getrandom::getrandom;
+            use getrandom::fill;
 
-            getrandom(dest.as_mut()).expect("Unable to source entropy for seeding");
+            fill(dest.as_mut()).expect("Unable to source entropy for seeding");
         }
 
         Self::from_seed(dest)
