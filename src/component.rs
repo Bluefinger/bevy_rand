@@ -81,9 +81,9 @@ use serde::Deserialize;
 ///
 /// fn setup_npc_from_source(
 ///    mut commands: Commands,
-///    mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+///    mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 /// ) {
-///    let mut source = q_source.single_mut();
+///    let mut source = q_source.into_inner();
 ///
 ///    for _ in 0..2 {
 ///        commands
