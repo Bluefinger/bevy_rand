@@ -29,7 +29,8 @@ pub fn test_global_reseeding() {
         let global_rng = app
             .world_mut()
             .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
-            .single(app.world());
+            .single(app.world())
+            .unwrap();
 
         // Our RNGs should be the same as each other as they were initialised with the same seed
         assert_eq!(global_rng, &rng_eq);
@@ -41,7 +42,8 @@ pub fn test_global_reseeding() {
         let global_rng = app
             .world_mut()
             .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
-            .single(app.world());
+            .single(app.world())
+            .unwrap();
 
         // Our RNGs should remain the same as each other as we have not run the update
         assert_eq!(global_rng, &rng_eq);
@@ -51,7 +53,8 @@ pub fn test_global_reseeding() {
         let global = app
             .world_mut()
             .query_filtered::<Entity, With<Global>>()
-            .single(app.world());
+            .single(app.world())
+            .unwrap();
 
         app.world_mut()
             .entity_mut(global)
@@ -64,7 +67,8 @@ pub fn test_global_reseeding() {
         let global_rng = app
             .world_mut()
             .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
-            .single(app.world());
+            .single(app.world())
+            .unwrap();
 
         // Now our RNG will not be the same, even though we did not use it directly
         assert_ne!(global_rng, &rng_eq);
@@ -243,7 +247,7 @@ pub fn generic_observer_reseeding_from_parent() {
         PreUpdate,
         |query: Query<RngEntity<WyRand>, With<Target>>| {
             let expected = 6445550333322662121;
-            let seed = u64::from_ne_bytes(query.single().clone_seed());
+            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
 
             assert_eq!(seed, expected);
         },
@@ -252,7 +256,7 @@ pub fn generic_observer_reseeding_from_parent() {
         PreUpdate,
         |query: Query<RngEntity<WyRand>, With<Source>>| {
             let expected = 2484862625678185386;
-            let seed = u64::from_ne_bytes(query.single().clone_seed());
+            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
 
             assert_eq!(seed, expected);
         },
@@ -260,7 +264,9 @@ pub fn generic_observer_reseeding_from_parent() {
     .add_systems(
         Update,
         |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Target>>| {
-            commands.rng_entity(&query.single()).reseed_from_source();
+            commands
+                .rng_entity(&query.single().unwrap())
+                .reseed_from_source();
         },
     )
     .add_systems(
@@ -268,7 +274,7 @@ pub fn generic_observer_reseeding_from_parent() {
         |query: Query<&RngSeed<WyRand>, With<Target>>| {
             let prev_expected = 6445550333322662121;
             let expected = 14968821102299026759;
-            let seed = u64::from_ne_bytes(query.single().clone_seed());
+            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
 
             assert_ne!(seed, prev_expected);
             assert_eq!(seed, expected);
@@ -334,7 +340,7 @@ pub fn generic_observer_reseeding_children() {
     )
     .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
         let expected = 2484862625678185386u64;
-        let seeds = u64::from_ne_bytes(query.single().clone_seed());
+        let seeds = u64::from_ne_bytes(query.single().unwrap().clone_seed());
 
         assert_eq!(expected, seeds, "Expected seeds to match");
     })

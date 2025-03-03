@@ -28,7 +28,7 @@ struct SourceD;
 struct SourceE;
 
 fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>) {
-    let mut rng = q_source.single_mut();
+    let mut rng = q_source.single_mut().unwrap();
 
     assert_eq!(
         rng.random::<u32>(),
@@ -38,13 +38,16 @@ fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>)
 }
 
 fn random_output_b(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceB>>) {
-    let mut rng = q_source.single_mut();
+    let mut rng = q_source.single_mut().unwrap();
 
-    assert!(rng.random_bool(0.5), "SourceB does not match expected output");
+    assert!(
+        rng.random_bool(0.5),
+        "SourceB does not match expected output"
+    );
 }
 
 fn random_output_c(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceC>>) {
-    let mut rng = q_source.single_mut();
+    let mut rng = q_source.single_mut().unwrap();
 
     assert_eq!(
         rng.random_range(0u32..=20u32),
@@ -54,7 +57,7 @@ fn random_output_c(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceC>>)
 }
 
 fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>) {
-    let mut rng = q_source.single_mut();
+    let mut rng = q_source.single_mut().unwrap();
 
     assert_eq!(
         rng.random::<(u16, u16)>(),
@@ -64,7 +67,7 @@ fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>
 }
 
 fn random_output_e(mut q_source: Query<&mut Entropy<WyRand>, With<SourceE>>) {
-    let mut rng = q_source.single_mut();
+    let mut rng = q_source.single_mut().unwrap();
 
     let mut bytes = [0u8; 8];
 
