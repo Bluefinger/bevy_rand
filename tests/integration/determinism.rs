@@ -1,9 +1,9 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
-use bevy_rand::{
-    global::GlobalRngEntity,
-    prelude::{Entropy, EntropyPlugin, ForkableAsRng, ForkableRng, GlobalEntropy},
+use bevy_rand::prelude::{
+    Entropy, EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed,
+    GlobalEntropy, GlobalRngEntity,
 };
 use rand::prelude::Rng;
 
@@ -27,9 +27,7 @@ struct SourceD;
 #[derive(Component)]
 struct SourceE;
 
-fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>) {
-    let mut rng = q_source.single_mut().unwrap();
-
+fn random_output_a(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<SourceA>>) {
     assert_eq!(
         rng.random::<u32>(),
         3315785188,
@@ -37,18 +35,14 @@ fn random_output_a(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceA>>)
     );
 }
 
-fn random_output_b(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceB>>) {
-    let mut rng = q_source.single_mut().unwrap();
-
+fn random_output_b(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<SourceB>>) {
     assert!(
         rng.random_bool(0.5),
         "SourceB does not match expected output"
     );
 }
 
-fn random_output_c(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceC>>) {
-    let mut rng = q_source.single_mut().unwrap();
-
+fn random_output_c(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<SourceC>>) {
     assert_eq!(
         rng.random_range(0u32..=20u32),
         4,
@@ -56,9 +50,7 @@ fn random_output_c(mut q_source: Query<&mut Entropy<ChaCha8Rng>, With<SourceC>>)
     );
 }
 
-fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>) {
-    let mut rng = q_source.single_mut().unwrap();
-
+fn random_output_d(mut rng: Single<&mut Entropy<ChaCha12Rng>, With<SourceD>>) {
     assert_eq!(
         rng.random::<(u16, u16)>(),
         (41421, 7891),
@@ -66,9 +58,7 @@ fn random_output_d(mut q_source: Query<&mut Entropy<ChaCha12Rng>, With<SourceD>>
     );
 }
 
-fn random_output_e(mut q_source: Query<&mut Entropy<WyRand>, With<SourceE>>) {
-    let mut rng = q_source.single_mut().unwrap();
-
+fn random_output_e(mut rng: Single<&mut Entropy<WyRand>, With<SourceE>>) {
     let mut bytes = [0u8; 8];
 
     rng.fill_bytes(bytes.as_mut());
@@ -83,13 +73,13 @@ fn random_output_e(mut q_source: Query<&mut Entropy<WyRand>, With<SourceE>>) {
 fn setup_sources(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
     commands.spawn((SourceA, rng.fork_rng()));
 
-    commands.spawn((SourceB, rng.fork_rng()));
+    commands.spawn((SourceB, rng.fork_seed()));
 
     commands.spawn((SourceC, rng.fork_rng()));
 
     commands.spawn((SourceD, rng.fork_as::<ChaCha12Rng>()));
 
-    commands.spawn((SourceE, rng.fork_as::<WyRand>()));
+    commands.spawn((SourceE, rng.fork_as_seed::<WyRand>()));
 }
 
 fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {

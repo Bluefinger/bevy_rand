@@ -105,7 +105,7 @@ struct Source;
 
 fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: GlobalEntropy<WyRand>) {
     for rng_entity in q_sources.iter() {
-        commands.rng_entity(&rng_entity).reseed(global.r#gen());
+        commands.rng_entity(&rng_entity).reseed(global.random());
     }
 }
 

@@ -150,6 +150,30 @@ impl<R: EntropySource + 'static> RngCore for Entropy<R> {
     }
 }
 
+#[cfg(feature = "compat")]
+impl<R: EntropySource + 'static> rand_core_06::RngCore for Entropy<R> {
+    #[inline]
+    fn next_u32(&mut self) -> u32 {
+        self.0.next_u32()
+    }
+
+    #[inline]
+    fn next_u64(&mut self) -> u64 {
+        self.0.next_u64()
+    }
+
+    #[inline]
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        self.0.fill_bytes(dest);
+    }
+
+    #[inline]
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core_06::Error> {
+        self.0.fill_bytes(dest);
+        Ok(())
+    }
+}
+
 impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     type Seed = R::Seed;
 

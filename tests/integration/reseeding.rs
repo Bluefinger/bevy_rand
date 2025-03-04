@@ -245,36 +245,36 @@ pub fn generic_observer_reseeding_from_parent() {
     })
     .add_systems(
         PreUpdate,
-        |query: Query<RngEntity<WyRand>, With<Target>>| {
+        |query: Single<RngEntity<WyRand>, With<Target>>| {
             let expected = 6445550333322662121;
-            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
+            let seed = u64::from_ne_bytes(query.clone_seed());
 
             assert_eq!(seed, expected);
         },
     )
     .add_systems(
         PreUpdate,
-        |query: Query<RngEntity<WyRand>, With<Source>>| {
+        |query: Single<RngEntity<WyRand>, With<Source>>| {
             let expected = 2484862625678185386;
-            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
+            let seed = u64::from_ne_bytes(query.clone_seed());
 
             assert_eq!(seed, expected);
         },
     )
     .add_systems(
         Update,
-        |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Target>>| {
+        |mut commands: Commands, query: Single<RngEntity<WyRand>, With<Target>>| {
             commands
-                .rng_entity(&query.single().unwrap())
+                .rng_entity(&query)
                 .reseed_from_source();
         },
     )
     .add_systems(
         PostUpdate,
-        |query: Query<&RngSeed<WyRand>, With<Target>>| {
+        |query: Single<&RngSeed<WyRand>, With<Target>>| {
             let prev_expected = 6445550333322662121;
             let expected = 14968821102299026759;
-            let seed = u64::from_ne_bytes(query.single().unwrap().clone_seed());
+            let seed = u64::from_ne_bytes(query.clone_seed());
 
             assert_ne!(seed, prev_expected);
             assert_eq!(seed, expected);
@@ -338,9 +338,9 @@ pub fn generic_observer_reseeding_children() {
                 });
         },
     )
-    .add_systems(PreUpdate, |query: Query<&RngSeed<WyRand>, With<Source>>| {
+    .add_systems(PreUpdate, |query: Single<&RngSeed<WyRand>, With<Source>>| {
         let expected = 2484862625678185386u64;
-        let seeds = u64::from_ne_bytes(query.single().unwrap().clone_seed());
+        let seeds = u64::from_ne_bytes(query.clone_seed());
 
         assert_eq!(expected, seeds, "Expected seeds to match");
     })

@@ -19,13 +19,13 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 
 #### `bevy_rand` feature activation
 ```toml
-rand_core = "0.6"
+rand_core = "0.9"
 bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
-rand_core = "0.6"
+rand_core = "0.9"
 bevy_rand = "0.10"
 bevy_prng = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
@@ -133,12 +133,11 @@ fn setup_npc_from_source(
    mut commands: Commands,
    mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 ) {
-   let mut source = q_source.into_inner();
    for _ in 0..2 {
        commands
            .spawn((
                Npc,
-               source.fork_rng()
+               q_source.fork_rng()
            ));
    }
 }

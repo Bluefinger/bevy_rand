@@ -41,7 +41,7 @@ rust-version = { workspace = true }
 
 [features]
 default = ["serialize", "thread_local_entropy", "std"]
-compat = ["bevy_prng/compat"]
+compat = ["bevy_prng/compat", "dep:rand_core_06"]
 std = ["bevy_prng/std"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha", "std"]
@@ -61,6 +61,7 @@ bevy_prng = { path = "bevy_prng", version = "0.10" }
 # others
 getrandom = "0.3"
 rand_core.workspace = true
+rand_core_06 = { workspace = true, optional = true }
 rand_chacha = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
