@@ -155,6 +155,7 @@ fn setup_npc_from_source(
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
+- **`compat`** - This enables the old `RngCore` trait implementations on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 
 ## Supported Versions & MSRV
 
@@ -172,10 +173,10 @@ fn setup_npc_from_source(
 
 The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as follows:
 
-| `bevy_rand`   | `rand_core` | `rand` | `getrandom` |
-| ------------- | ----------- | ------ | ----------- |
-| v0.10         | v0.9        | 0.9    | v0.3        |
-| v0.1 -> v0.9  | v0.6        | v0.8   | v0.2        |
+| `bevy_rand`   | `rand_core` | `rand` | `getrandom` | `compat` feature               |
+| ------------- | ----------- | ------ | ----------- | ------------------------------ |
+| v0.10         | v0.9        | 0.9    | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.1 -> v0.9  | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## Migrations
 

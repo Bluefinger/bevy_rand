@@ -20,6 +20,7 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
 bevy_reflect = { git = "https://github.com/bevyengine/bevy", package = "bevy_reflect", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive"] }
 rand_core = { version = "0.9", features = ["os_rng"] }
+rand_core_06 = { version = "0.6", default-features = false, package = "rand_core" }
 rand_chacha = { version = "0.9", default-features = false }
 wyrand = "0.3"
 rand_pcg = "0.9"
@@ -40,6 +41,7 @@ rust-version = { workspace = true }
 
 [features]
 default = ["serialize", "thread_local_entropy", "std"]
+compat = ["bevy_prng/compat"]
 std = ["bevy_prng/std"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha", "std"]
