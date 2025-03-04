@@ -49,7 +49,7 @@ All PRNG backends should support `no_std` environments. Furthermore, `getrandom`
 From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
-[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
 bevy_rand = { version = "0.10", features = ["wasm_js"] }
 ```
 
@@ -155,7 +155,7 @@ fn setup_npc_from_source(
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
-- **`compat`** - This enables the old `RngCore` trait implementations on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 
 ## Supported Versions & MSRV
 
@@ -175,7 +175,7 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 | `bevy_rand`   | `rand_core` | `rand` | `getrandom` | `compat` feature               |
 | ------------- | ----------- | ------ | ----------- | ------------------------------ |
-| v0.10         | v0.9        | 0.9    | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.10         | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
 | v0.1 -> v0.9  | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## Migrations

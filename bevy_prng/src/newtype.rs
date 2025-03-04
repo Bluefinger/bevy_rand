@@ -40,7 +40,7 @@ macro_rules! newtype_prng {
                 ::rand_core::RngCore::next_u64(&mut self.0)
             }
 
-            #[inline]
+            #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
                 ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
             }
@@ -58,12 +58,12 @@ macro_rules! newtype_prng {
                 ::rand_core::RngCore::next_u64(&mut self.0)
             }
 
-            #[inline]
+            #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
                 ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
             }
 
-            #[inline]
+            #[inline(always)]
             fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), ::rand_core_06::Error> {
                 Ok(::rand_core::RngCore::fill_bytes(&mut self.0, dest))
             }
@@ -136,7 +136,7 @@ macro_rules! newtype_prng_remote {
                 ::rand_core::RngCore::next_u64(&mut self.0)
             }
 
-            #[inline]
+            #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
                 ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
             }

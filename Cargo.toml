@@ -85,7 +85,7 @@ bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "
 rand = "0.9"
 ron = { version = "0.8.0", features = ["integer128"] }
 
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
