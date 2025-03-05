@@ -82,6 +82,7 @@ bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", d
     "multi_threaded",
     "async_executor",
 ] }
+bevy_math = { git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
 bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }
 rand = "0.9"
 ron = { version = "0.8.0", features = ["integer128"] }
