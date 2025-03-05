@@ -10,7 +10,7 @@ use crate::{
 use bevy_ecs::prelude::{Component, ReflectComponent};
 use bevy_prng::EntropySource;
 use bevy_reflect::{Reflect, ReflectFromReflect};
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{RngCore, SeedableRng, TryRngCore};
 
 #[cfg(feature = "thread_local_entropy")]
 use crate::thread_local_entropy::ThreadLocalEntropy;
@@ -129,7 +129,15 @@ impl<R: EntropySource + 'static> Entropy<R> {
 impl<R: EntropySource + 'static> Default for Entropy<R> {
     #[inline]
     fn default() -> Self {
-        Self::from_os_rng()
+        #[cfg(feature = "thread_local_entropy")]
+        {
+            let mut local = ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
+            Self::from_rng(&mut local)
+        }
+        #[cfg(not(feature = "thread_local_entropy"))]
+        {
+            Self::from_os_rng()
+        }
     }
 }
 
@@ -187,20 +195,9 @@ impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
         Self::new(R::from_rng(rng))
     }
 
-    /// Creates a new instance of the RNG seeded via [`ThreadLocalEntropy`]. This method is the recommended way
-    /// to construct non-deterministic PRNGs since it is convenient and secure. It overrides the standard
-    /// [`SeedableRng::from_os_rng`] method while the `thread_local_entropy` feature is enabled.
-    ///
-    /// # Panics
-    ///
-    /// If [`ThreadLocalEntropy`] cannot get initialised because `getrandom` is unable to provide secure entropy,
-    /// this method will panic.
-    #[cfg(feature = "thread_local_entropy")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
-    fn from_os_rng() -> Self {
-        let mut rng = ThreadLocalEntropy::new();
-        // This operation should never yield Err on any supported PRNGs
-        Self::from_rng(&mut rng)
+    #[inline]
+    fn try_from_rng<T: TryRngCore>(rng: &mut T) -> Result<Self, T::Error> {
+        Ok(Self::new(R::try_from_rng(rng)?))
     }
 }
 

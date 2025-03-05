@@ -1,5 +1,5 @@
 use bevy_prng::EntropySource;
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{OsRng, RngCore, SeedableRng, TryRngCore};
 
 /// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
@@ -227,27 +227,59 @@ where
     fn clone_seed(&self) -> R::Seed;
 
     /// Initialize a [`SeedSource`] from a `seed` value obtained from a
-    /// OS-level or user-space RNG source.
-    fn from_entropy() -> Self
+    /// user-space RNG source.
+    #[cfg(feature = "thread_local_entropy")]
+    fn try_from_local_entropy() -> Result<Self, std::thread::AccessError>
     where
         Self: Sized,
     {
         let mut dest = R::Seed::default();
 
-        #[cfg(feature = "thread_local_entropy")]
-        {
-            use crate::thread_local_entropy::ThreadLocalEntropy;
+        crate::thread_local_entropy::ThreadLocalEntropy::new()?.fill_bytes(dest.as_mut());
 
-            ThreadLocalEntropy::new().fill_bytes(dest.as_mut());
-        }
-        #[cfg(not(feature = "thread_local_entropy"))]
-        {
-            use getrandom::fill;
+        Ok(Self::from_seed(dest))
+    }
 
-            fill(dest.as_mut()).expect("Unable to source entropy for seeding");
-        }
+    /// Initialize a [`SeedSource`] from a `seed` value obtained from a
+    /// user-space RNG source.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if for whatever reason it is unable to source entropy
+    /// from the User-Space source.
+    #[cfg(feature = "thread_local_entropy")]
+    fn from_local_entropy() -> Self
+    where
+        Self: Sized,
+    {
+        Self::try_from_local_entropy().expect("Unable to source entropy for seeding")
+    }
 
-        Self::from_seed(dest)
+    /// Initialize a [`SeedSource`] from a `seed` value obtained from an
+    /// OS/Hardware RNG source.
+    fn try_from_os_rng() -> Result<Self, rand_core::OsError>
+    where
+        Self: Sized,
+    {
+        let mut dest = R::Seed::default();
+
+        OsRng.try_fill_bytes(dest.as_mut())?;
+
+        Ok(Self::from_seed(dest))
+    }
+
+    /// Initialize a [`SeedSource`] from a `seed` value obtained from an
+    /// OS/Hardware RNG source.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if for whatever reason it is unable to source entropy
+    /// from an OS/Hardware source.
+    fn from_os_rng() -> Self
+    where
+        Self: Sized,
+    {
+        Self::try_from_os_rng().expect("Unable to source entropy for seeding")
     }
 }
 

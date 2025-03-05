@@ -264,9 +264,7 @@ pub fn generic_observer_reseeding_from_parent() {
     .add_systems(
         Update,
         |mut commands: Commands, query: Single<RngEntity<WyRand>, With<Target>>| {
-            commands
-                .rng_entity(&query)
-                .reseed_from_source();
+            commands.rng_entity(&query).reseed_from_source();
         },
     )
     .add_systems(
@@ -338,12 +336,15 @@ pub fn generic_observer_reseeding_children() {
                 });
         },
     )
-    .add_systems(PreUpdate, |query: Single<&RngSeed<WyRand>, With<Source>>| {
-        let expected = 2484862625678185386u64;
-        let seeds = u64::from_ne_bytes(query.clone_seed());
+    .add_systems(
+        PreUpdate,
+        |query: Single<&RngSeed<WyRand>, With<Source>>| {
+            let expected = 2484862625678185386u64;
+            let seeds = u64::from_ne_bytes(query.clone_seed());
 
-        assert_eq!(expected, seeds, "Expected seeds to match");
-    })
+            assert_eq!(expected, seeds, "Expected seeds to match");
+        },
+    )
     .add_systems(
         Update,
         |mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>| {

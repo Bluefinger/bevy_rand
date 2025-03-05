@@ -82,6 +82,11 @@ macro_rules! newtype_prng {
             fn from_rng(source: &mut impl ::rand_core::RngCore) -> Self {
                 Self::new(<$rng>::from_rng(source))
             }
+
+            #[inline]
+            fn try_from_rng<T: ::rand_core::TryRngCore>(source: &mut T) -> Result<Self, T::Error> {
+                Ok(Self::new(<$rng>::try_from_rng(source)?))
+            }
         }
 
         impl From<$rng> for $newtype {
@@ -178,6 +183,11 @@ macro_rules! newtype_prng_remote {
             #[inline]
             fn from_rng(source: &mut impl ::rand_core::RngCore) -> Self {
                 Self::new(<$rng>::from_rng(source))
+            }
+
+            #[inline]
+            fn try_from_rng<T: ::rand_core::TryRngCore>(source: &mut T) -> Result<Self, T::Error> {
+                Ok(Self::new(<$rng>::try_from_rng(source)?))
             }
         }
 

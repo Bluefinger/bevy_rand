@@ -120,12 +120,47 @@ where
         self
     }
 
-    /// Reseeds the current `Rng` with a new seed drawn from OS or userspace entropy sources.
+    /// Reseeds the current `Rng` with a new seed drawn from userspace entropy sources.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it is unable to source entropy from a user-space source.
     #[inline]
+    #[cfg(feature = "thread_local_entropy")]
     pub fn reseed_from_entropy(&mut self) -> &mut Self {
-        self.commands.insert(RngSeed::<Rng>::from_entropy());
+        self.commands.insert(RngSeed::<Rng>::from_local_entropy());
 
         self
+    }
+
+    /// Reseeds the current `Rng` with a new seed drawn from userspace entropy sources.
+    #[inline]
+    #[cfg(feature = "thread_local_entropy")]
+    pub fn try_reseed_from_entropy(&mut self) -> Result<&mut Self, std::thread::AccessError> {
+        self.commands
+            .insert(RngSeed::<Rng>::try_from_local_entropy()?);
+
+        Ok(self)
+    }
+
+    /// Reseeds the current `Rng` with a new seed drawn from OS sources.
+    ///
+    /// # Panics
+    ///
+    /// Panics if it is unable to source entropy from an OS/Hardware source.
+    #[inline]
+    pub fn reseed_from_os_rng(&mut self) -> &mut Self {
+        self.commands.insert(RngSeed::<Rng>::from_os_rng());
+
+        self
+    }
+
+    /// Reseeds the current `Rng` with a new seed drawn from OS sources.
+    #[inline]
+    pub fn try_reseed_from_os_rng(&mut self) -> Result<&mut Self, rand_core::OsError> {
+        self.commands.insert(RngSeed::<Rng>::try_from_os_rng()?);
+
+        Ok(self)
     }
 }
 
