@@ -75,15 +75,10 @@ where
 
         world.register_component_hooks::<RngSeed<Rng>>();
 
-        #[cfg(feature = "thread_local_entropy")]
-        let from_entropy = RngSeed::<Rng>::from_local_entropy;
-        #[cfg(not(feature = "thread_local_entropy"))]
-        let from_entropy = RngSeed::<Rng>::from_os_rng;
-
         world.spawn((
             self.seed
                 .clone()
-                .map_or_else(from_entropy, RngSeed::<Rng>::from_seed),
+                .map_or_else(RngSeed::<Rng>::default, RngSeed::<Rng>::from_seed),
             Global,
         ));
 
