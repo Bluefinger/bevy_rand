@@ -39,7 +39,7 @@ pub trait RngEntityCommandsExt<'a> {
     ///
     /// fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     ///     for target in &q_targets {
-    ///         commands.entity(target).rng::<WyRand>().reseed_from_entropy();
+    ///         commands.entity(target).rng::<WyRand>().reseed_from_local_entropy();
     ///     }
     /// }
     /// ```
