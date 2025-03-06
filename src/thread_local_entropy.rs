@@ -24,13 +24,14 @@ impl ThreadLocalEntropy {
     /// Create a new [`ThreadLocalEntropy`] instance.
     #[inline]
     pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
-        // SAFETY: Constructing `NonNull` from a `&T` is safe as it will never be a
+        // SAFETY: Constructing `NonNull` from a `&UnsafeCell<T>` is safe as it will never be a
         // null pointer, and the contents of the reference will always be initialised.
         SOURCE.try_with(|source| unsafe { Self(NonNull::new_unchecked(source.get())) })
     }
 
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
     /// closure.
+    #[inline(always)]
     fn access_local_source<F, O>(&mut self, f: F) -> O
     where
         F: FnOnce(&mut ChaCha8Rng) -> O,
@@ -48,14 +49,17 @@ impl core::fmt::Debug for ThreadLocalEntropy {
 }
 
 impl RngCore for ThreadLocalEntropy {
+    #[inline]
     fn next_u32(&mut self) -> u32 {
         self.access_local_source(RngCore::next_u32)
     }
 
+    #[inline]
     fn next_u64(&mut self) -> u64 {
         self.access_local_source(RngCore::next_u64)
     }
 
+    #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.access_local_source(|rng| rng.fill_bytes(dest));
     }

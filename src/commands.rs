@@ -127,7 +127,7 @@ where
     /// Panics if it is unable to source entropy from a user-space source.
     #[inline]
     #[cfg(feature = "thread_local_entropy")]
-    pub fn reseed_from_entropy(&mut self) -> &mut Self {
+    pub fn reseed_from_local_entropy(&mut self) -> &mut Self {
         self.commands.insert(RngSeed::<Rng>::from_local_entropy());
 
         self
@@ -136,7 +136,7 @@ where
     /// Reseeds the current `Rng` with a new seed drawn from userspace entropy sources.
     #[inline]
     #[cfg(feature = "thread_local_entropy")]
-    pub fn try_reseed_from_entropy(&mut self) -> Result<&mut Self, std::thread::AccessError> {
+    pub fn try_reseed_from_local_entropy(&mut self) -> Result<&mut Self, std::thread::AccessError> {
         self.commands
             .insert(RngSeed::<Rng>::try_from_local_entropy()?);
 

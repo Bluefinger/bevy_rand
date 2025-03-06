@@ -228,6 +228,29 @@ where
 
     /// Initialize a [`SeedSource`] from a `seed` value obtained from a
     /// user-space RNG source.
+    ///
+    /// # Panics
+    ///
+    /// This method panics if for whatever reason it is unable to source entropy
+    /// from the User-Space/OS/Hardware source.
+    #[deprecated = "use either `SeedSource::from_local_entropy` or `SeedSource::from_os_rng` instead"]
+    fn from_entropy() -> Self
+    where
+        Self: Sized,
+    {
+        #[cfg(feature = "thread_local_entropy")]
+        {
+            Self::from_local_entropy()
+        }
+        #[cfg(not(feature = "thread_local_entropy"))]
+        {
+            Self::from_os_rng()
+        }
+    }
+
+    /// Initialize a [`SeedSource`] from a `seed` value obtained from a
+    /// user-space RNG source. This is usually much, much faster than sourcing
+    /// entropy from OS/Hardware sources.
     #[cfg(feature = "thread_local_entropy")]
     fn try_from_local_entropy() -> Result<Self, std::thread::AccessError>
     where
@@ -241,7 +264,8 @@ where
     }
 
     /// Initialize a [`SeedSource`] from a `seed` value obtained from a
-    /// user-space RNG source.
+    /// user-space RNG source. This is usually much, much faster than sourcing
+    /// entropy from OS/Hardware sources.
     ///
     /// # Panics
     ///
@@ -252,7 +276,7 @@ where
     where
         Self: Sized,
     {
-        Self::try_from_local_entropy().expect("Unable to source entropy for seeding")
+        Self::try_from_local_entropy().expect("Unable to source user-space entropy for seeding")
     }
 
     /// Initialize a [`SeedSource`] from a `seed` value obtained from an
@@ -279,7 +303,7 @@ where
     where
         Self: Sized,
     {
-        Self::try_from_os_rng().expect("Unable to source entropy for seeding")
+        Self::try_from_os_rng().expect("Unable to source os/hardware entropy for seeding")
     }
 }
 

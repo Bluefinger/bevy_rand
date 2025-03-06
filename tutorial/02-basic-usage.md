@@ -12,7 +12,27 @@ fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
 }
 ```
 
-In addition, the `rand` crate can be optionally pulled in and used with `bevy_rand`, benefitting from the full suite of methods and utilities.
+In addition, the `rand` crate can be optionally pulled in and used with `bevy_rand`, benefitting from the full suite of methods and utilities. This allows full compatibility with all the distribution utilities within `rand` and also with `bevy_math`.
+
+```rust
+use bevy_math::{ShapeSample, primitives::Circle};
+use bevy_prng::ChaCha8Rng;
+use bevy_rand::prelude::GlobalEntropy;
+use rand::Rng;
+
+fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
+    println!("Random u128 value: {}", rng.random::<u128>());
+}
+
+fn sample_from_circle(mut rng: GlobalEntropy<ChaCha8Rng>) {
+    let circle = Circle::new(42.0);
+
+    let boundary = circle.sample_boundary(rng.as_mut());
+    let interior = circle.sample_interior(rng.as_mut());
+
+    println!("Sampled values from Circle: {boundary:?}, {interior:?}");
+}
+```
 
 ## Determinism when using `GlobalEntropy`
 

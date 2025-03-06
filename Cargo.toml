@@ -40,7 +40,7 @@ exclude = ["/.*"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std"]
+default = ["serialize", "thread_local_entropy", "std", "compat"]
 compat = ["bevy_prng/compat", "dep:rand_core_06"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
