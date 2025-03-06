@@ -46,7 +46,7 @@ All PRNG backends should support `no_std` environments. Furthermore, `getrandom`
 
 #### Usage within Web WASM environments
 
-From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
+From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a web environment when compiled for WASM. To enable that in `v0.10`, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
@@ -154,7 +154,7 @@ fn setup_npc_from_source(
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
-- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions. **Currently enabled by default in order to support `bevy_math`, which is still using `rand` v0.8**.
 
 ## Supported Versions & MSRV
 
