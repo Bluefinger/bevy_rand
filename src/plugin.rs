@@ -78,7 +78,7 @@ where
         world.spawn((
             self.seed
                 .clone()
-                .map_or_else(RngSeed::<Rng>::from_entropy, RngSeed::<Rng>::from_seed),
+                .map_or_else(RngSeed::<Rng>::default, RngSeed::<Rng>::from_seed),
             Global,
         ));
 

@@ -16,20 +16,22 @@ default = []
 std = ["rand_chacha?/std"]
 serialize = [
     "dep:serde",
-    "rand_core/serde1",
-    "rand_chacha?/serde1",
-    "rand_pcg?/serde1",
-    "rand_xoshiro?/serde1",
+    "rand_core/serde",
+    "rand_chacha?/serde",
+    "rand_pcg?/serde",
+    "rand_xoshiro?/serde",
     "wyrand?/serde1",
 ]
 rand_chacha = ["dep:rand_chacha"]
 wyrand = ["dep:wyrand"]
 rand_pcg = ["dep:rand_pcg"]
 rand_xoshiro = ["dep:rand_xoshiro"]
+compat = ["dep:rand_core_06"]
 
 [dependencies]
 bevy_reflect.workspace = true
 rand_core.workspace = true
+rand_core_06 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 rand_chacha = { workspace = true, optional = true }
 wyrand = { workspace = true, optional = true }

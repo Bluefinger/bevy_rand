@@ -1,10 +1,6 @@
-use crate::{
-    EntropySource,
-    newtype::{newtype_prng, newtype_prng_remote},
-};
+use crate::newtype::{newtype_prng, newtype_prng_remote};
 
 use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};
-use rand_core::{RngCore, SeedableRng};
 
 #[cfg(feature = "serialize")]
 use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
@@ -15,6 +11,12 @@ use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 #[derive(Debug, Default, Clone)]
 #[reflect(Debug, Default)]
 pub struct Seed512(pub [u8; 64]);
+
+impl AsRef<[u8]> for Seed512 {
+    fn as_ref(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+}
 
 impl AsMut<[u8]> for Seed512 {
     fn as_mut(&mut self) -> &mut [u8] {

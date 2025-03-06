@@ -136,7 +136,7 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     Source::Seed: Send + Sync + Clone,
     Target::Seed: Send + Sync + Clone,
 {
-    if let Some(mut entity) = commands.get_entity(trigger.target()) {
+    if let Ok(mut entity) = commands.get_entity(trigger.target()) {
         entity.insert(source.fork_as_seed::<Target>());
     }
 }
@@ -154,11 +154,13 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
 {
     let target = trigger.target();
 
-    if let Ok(mut rng) = q_linked
+    if let Ok(rng) = q_linked
         .get(target)
         .and_then(|parent| q_parents.get_mut(parent.entity()))
+        .map(|mut rng| rng.fork_as_seed::<Target>())
     {
-        commands.entity(target).insert(rng.fork_as_seed::<Target>());
+        // This won't panic, because we've already checked in the .get above whether `target` exists.
+        commands.entity(target).insert(rng);
     }
 }
 
@@ -196,7 +198,10 @@ pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
 {
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
-    if let Ok(source) = q_source.get(trigger.target()) {
-        commands.rng_entity(&source).reseed_linked_as::<Target>();
+    if let Ok(mut rng_source) = q_source
+        .get(trigger.target())
+        .map(|source| commands.rng_entity(&source))
+    {
+        rng_source.reseed_linked_as::<Target>();
     }
 }

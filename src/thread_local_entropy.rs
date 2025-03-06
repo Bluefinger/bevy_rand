@@ -1,5 +1,5 @@
 use alloc::rc::Rc;
-use core::{cell::UnsafeCell, marker::PhantomData, ptr::NonNull};
+use core::{cell::UnsafeCell, ptr::NonNull};
 
 use std::thread_local;
 
@@ -8,7 +8,7 @@ use rand_core::{CryptoRng, RngCore, SeedableRng};
 
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
-    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = Rc::new(UnsafeCell::new(ChaCha8Rng::from_entropy()));
+    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = Rc::new(UnsafeCell::new(ChaCha8Rng::from_os_rng()));
 }
 
 /// [`ThreadLocalEntropy`] uses thread local [`ChaCha8Rng`] instances to provide faster alternative for
@@ -18,36 +18,27 @@ thread_local! {
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
-pub(crate) struct ThreadLocalEntropy(PhantomData<*mut ()>);
+pub(crate) struct ThreadLocalEntropy(NonNull<ChaCha8Rng>);
 
 impl ThreadLocalEntropy {
     /// Create a new [`ThreadLocalEntropy`] instance.
     #[inline]
-    #[must_use]
-    pub(crate) fn new() -> Self {
-        Self(PhantomData)
+    pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
+        // SAFETY: Constructing `NonNull` from a `&UnsafeCell<T>` is safe as it will never be a
+        // null pointer, and the contents of the reference will always be initialised.
+        SOURCE.try_with(|source| unsafe { Self(NonNull::new_unchecked(source.get())) })
     }
 
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
     /// closure.
-    ///
-    /// # Panics
-    ///
-    /// This method will panic if the thread destructor is running or has been previously run.
-    #[inline]
+    #[inline(always)]
     fn access_local_source<F, O>(&mut self, f: F) -> O
     where
         F: FnOnce(&mut ChaCha8Rng) -> O,
     {
-        SOURCE.with(|source| {
-            // SAFETY: Constructing `NonNull` from a `&T` is safe as it will never be a
-            // null pointer, and the contents of the reference will always be initialised.
-            let mut ptr = unsafe { NonNull::new_unchecked(source.get()) };
-
-            // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
-            // for the thread local access.
-            unsafe { f(ptr.as_mut()) }
-        })
+        // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
+        // for the thread local access.
+        unsafe { f(self.0.as_mut()) }
     }
 }
 
@@ -58,12 +49,12 @@ impl core::fmt::Debug for ThreadLocalEntropy {
 }
 
 impl RngCore for ThreadLocalEntropy {
-    #[inline(always)]
+    #[inline]
     fn next_u32(&mut self) -> u32 {
         self.access_local_source(RngCore::next_u32)
     }
 
-    #[inline(always)]
+    #[inline]
     fn next_u64(&mut self) -> u64 {
         self.access_local_source(RngCore::next_u64)
     }
@@ -71,11 +62,6 @@ impl RngCore for ThreadLocalEntropy {
     #[inline]
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.access_local_source(|rng| rng.fill_bytes(dest));
-    }
-
-    #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.access_local_source(|rng| rng.try_fill_bytes(dest))
     }
 }
 
@@ -88,9 +74,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn smoke_test() {
-        let mut rng1 = ThreadLocalEntropy::new();
-        let mut rng2 = ThreadLocalEntropy::new();
+    fn smoke_test() -> Result<(), std::thread::AccessError> {
+        let mut rng1 = ThreadLocalEntropy::new()?;
+        let mut rng2 = ThreadLocalEntropy::new()?;
 
         // Neither instance should interfere with each other
         rng1.next_u32();
@@ -105,6 +91,8 @@ mod tests {
         // ThreadLocalEntropy instances won't output the same entropy as the
         // underlying thread local source gets mutated each access.
         assert_ne!(&bytes1, &bytes2);
+
+        Ok(())
     }
 
     #[test]
@@ -119,7 +107,8 @@ mod tests {
             let a = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
-                let mut rng = ThreadLocalEntropy::new();
+                let mut rng =
+                    ThreadLocalEntropy::new().expect("Should not fail when accessing local source");
 
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
@@ -129,7 +118,8 @@ mod tests {
             let b = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
-                let mut rng = ThreadLocalEntropy::new();
+                let mut rng =
+                    ThreadLocalEntropy::new().expect("Should not fail when accessing local source");
 
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
@@ -159,7 +149,7 @@ mod tests {
     #[test]
     fn non_leaking_debug() {
         assert_eq!(
-            "ThreadLocalEntropy",
+            "Ok(ThreadLocalEntropy)",
             format!("{:?}", ThreadLocalEntropy::new())
         );
     }

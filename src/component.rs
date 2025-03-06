@@ -10,7 +10,7 @@ use crate::{
 use bevy_ecs::prelude::{Component, ReflectComponent};
 use bevy_prng::EntropySource;
 use bevy_reflect::{Reflect, ReflectFromReflect};
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{RngCore, SeedableRng, TryRngCore};
 
 #[cfg(feature = "thread_local_entropy")]
 use crate::thread_local_entropy::ThreadLocalEntropy;
@@ -81,9 +81,9 @@ use serde::Deserialize;
 ///
 /// fn setup_npc_from_source(
 ///    mut commands: Commands,
-///    mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+///    mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 /// ) {
-///    let mut source = q_source.single_mut();
+///    let mut source = q_source.into_inner();
 ///
 ///    for _ in 0..2 {
 ///        commands
@@ -129,7 +129,15 @@ impl<R: EntropySource + 'static> Entropy<R> {
 impl<R: EntropySource + 'static> Default for Entropy<R> {
     #[inline]
     fn default() -> Self {
-        Self::from_entropy()
+        #[cfg(feature = "thread_local_entropy")]
+        {
+            let mut local = ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
+            Self::from_rng(&mut local)
+        }
+        #[cfg(not(feature = "thread_local_entropy"))]
+        {
+            Self::from_os_rng()
+        }
     }
 }
 
@@ -148,10 +156,29 @@ impl<R: EntropySource + 'static> RngCore for Entropy<R> {
     fn fill_bytes(&mut self, dest: &mut [u8]) {
         self.0.fill_bytes(dest);
     }
+}
+
+#[cfg(feature = "compat")]
+impl<R: EntropySource + 'static> rand_core_06::RngCore for Entropy<R> {
+    #[inline]
+    fn next_u32(&mut self) -> u32 {
+        self.0.next_u32()
+    }
 
     #[inline]
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
-        self.0.try_fill_bytes(dest)
+    fn next_u64(&mut self) -> u64 {
+        self.0.next_u64()
+    }
+
+    #[inline]
+    fn fill_bytes(&mut self, dest: &mut [u8]) {
+        self.0.fill_bytes(dest);
+    }
+
+    #[inline]
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core_06::Error> {
+        self.0.fill_bytes(dest);
+        Ok(())
     }
 }
 
@@ -164,23 +191,13 @@ impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     }
 
     #[inline]
-    fn from_rng<S: RngCore>(rng: S) -> Result<Self, rand_core::Error> {
-        R::from_rng(rng).map(Self::new)
+    fn from_rng(rng: &mut impl RngCore) -> Self {
+        Self::new(R::from_rng(rng))
     }
 
-    /// Creates a new instance of the RNG seeded via [`ThreadLocalEntropy`]. This method is the recommended way
-    /// to construct non-deterministic PRNGs since it is convenient and secure. It overrides the standard
-    /// [`SeedableRng::from_entropy`] method while the `thread_local_entropy` feature is enabled.
-    ///
-    /// # Panics
-    ///
-    /// If [`ThreadLocalEntropy`] cannot get initialised because `getrandom` is unable to provide secure entropy,
-    /// this method will panic.
-    #[cfg(feature = "thread_local_entropy")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
-    fn from_entropy() -> Self {
-        // This operation should never yield Err on any supported PRNGs
-        Self::from_rng(ThreadLocalEntropy::new()).unwrap()
+    #[inline]
+    fn try_from_rng<T: TryRngCore>(rng: &mut T) -> Result<Self, T::Error> {
+        Ok(Self::new(R::try_from_rng(rng)?))
     }
 }
 

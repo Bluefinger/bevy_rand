@@ -1,4 +1,7 @@
 #![allow(clippy::type_complexity)]
+#[cfg(feature = "compat")]
+#[path = "integration/bevy_math.rs"]
+pub mod bevy_math;
 #[path = "integration/determinism.rs"]
 pub mod determinism;
 #[path = "integration/reseeding.rs"]

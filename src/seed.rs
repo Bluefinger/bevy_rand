@@ -99,7 +99,14 @@ where
 {
     #[inline]
     fn default() -> Self {
-        Self::from_entropy()
+        #[cfg(feature = "thread_local_entropy")]
+        {
+            Self::from_local_entropy()
+        }
+        #[cfg(not(feature = "thread_local_entropy"))]
+        {
+            Self::from_os_rng()
+        }
     }
 }
 

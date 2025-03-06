@@ -19,13 +19,13 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 
 #### `bevy_rand` feature activation
 ```toml
-rand_core = "0.6"
+rand_core = "0.9"
 bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
-rand_core = "0.6"
+rand_core = "0.9"
 bevy_rand = "0.10"
 bevy_prng = { version = "0.10", features = ["rand_chacha", "wyrand"] }
 ```
@@ -42,18 +42,26 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 bevy_rand = { version = "0.10", default-features = false, features = ["rand_chacha", "wyrand"] }
 ```
 
-All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/0.2.15/getrandom/index.html#custom-implementations).
+All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
 
 #### Usage within Web WASM environments
 
 From `v0.9`, `bevy_rand` will no longer assume that `bevy` will be run in a web environment when compiled for WASM. To enable that, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
-[target.'cfg(all(any(target_arch = "wasm32", target_arch = "wasm64"), target_os = "unknown"))'.dependencies]
-getrandom = { version = "0.2", features = ["js"] }
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+bevy_rand = { version = "0.10", features = ["wasm_js"] }
 ```
 
-This is in preparation for the newer versions of `getrandom`, which will force users to select the correct entropy backend for their application, something that can no longer be done by library crates.
+This enables the `wasm_js` backend to be made available for `getrandom`, but it doesn't actually build. The next step is to either edit your `.cargo/config.toml` with the below configuration:
+
+```toml
+# It's recommended to set the flag on a per-target basis:
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
+```
+
+Or pass an environment variable: `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`. This then enables the `getrandom` WASM backend to get built correctly.
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -123,14 +131,13 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 ) {
-   let mut source = q_source.single_mut();
    for _ in 0..2 {
        commands
            .spawn((
                Npc,
-               source.fork_rng()
+               q_source.fork_rng()
            ));
    }
 }
@@ -145,7 +152,9 @@ fn setup_npc_from_source(
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
-- **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this will expose utilities for making use of observers for reseeding sources.
+- **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
+- **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
+- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 
 ## Supported Versions & MSRV
 
@@ -163,9 +172,10 @@ fn setup_npc_from_source(
 
 The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as follows:
 
-| `bevy_rand`   | `rand_core` | `rand` |
-| ------------- | ----------- | ------ |
-| v0.1 -> v0.10 | v0.6        | v0.8   |
+| `bevy_rand`   | `rand_core` | `rand` | `getrandom` | `compat` feature               |
+| ------------- | ----------- | ------ | ----------- | ------------------------------ |
+| v0.10         | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.1 -> v0.9  | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## Migrations
 

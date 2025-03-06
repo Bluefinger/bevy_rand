@@ -101,14 +101,13 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Query<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
 ) {
-   let mut source = q_source.single_mut();
    for _ in 0..10 {
        commands
            .spawn((
                Npc,
-               source.fork_rng() // This will yield a new `Entropy<WyRand>`
+               q_source.fork_rng() // This will yield a new `Entropy<WyRand>`
            ));
    }
 }

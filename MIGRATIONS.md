@@ -62,7 +62,13 @@ struct Source;
 
 ## Migrating from v0.9 to v0.10
 
-To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs.
+To begin with, the `experimental` feature no longer does anything, as the observers/commands API is now exposed by default. The feature hasn't been removed, as it may be used for future experimental APIs. There is now a `wasm_js` feature to help configure `getrandom` for WASM, though there's additional steps needed to build for WASM [outlined here](README#usage-within-web-wasm-environments).
+
+Due to the upgrade to `rand`/`rand_core` v0.9, a lot of crates in the wider `rand` ecosystem have yet to fully transition over to the latest version. As such, there's a new `compat` feature that enables the old `RngCore` trait implementations on the PRNGs in `bevy_prng`, allowing for backwards compatibility. Doing so will pull the older `rand_core` v0.6 as a dependency, but it is enabled without any default features. **NOTE:** This is currently enabled by default, due to `bevy_math` still using the older `rand` versions.
+
+```toml
+bevy_rand = { version = "0.10", features = ["wyrand", "compat"] }
+```
 
 `GlobalSource` and `GlobalSeed` have been removed and now is represented by a `GlobalRngEntity` SystemParam. All uses of `GlobalSource` & `GlobalSeed` can be replaced by `GlobalRngEntity`.
 
