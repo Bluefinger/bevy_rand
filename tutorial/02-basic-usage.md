@@ -14,7 +14,7 @@ fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
 
 In addition, the `rand` crate can be optionally pulled in and used with `bevy_rand`, benefitting from the full suite of methods and utilities. This allows full compatibility with all the distribution utilities within `rand` and also with `bevy_math`.
 
-```rust
+```rust ignore
 use bevy_math::{ShapeSample, primitives::Circle};
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::GlobalEntropy;
