@@ -10,6 +10,9 @@ on:
 env:
   RUSTFLAGS: -D warnings
   RUST_BACKTRACE: 1
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
   test:
@@ -21,15 +24,7 @@ jobs:
         rust: [nightly, beta, stable]
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-test-${{ matrix.rust }}-${{ hashFiles('**/Cargo.toml') }}
+      - uses: Swatinem/rust-cache@v2
       - name: Install Rust
         # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
         run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
@@ -67,15 +62,7 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-miri-nightly-${{ hashFiles('**/Cargo.toml') }}
+      - uses: Swatinem/rust-cache@v2
       - name: Install Miri
         run: |
           rustup toolchain install nightly --component miri
@@ -97,15 +84,7 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-msrv-stable-${{ hashFiles('**/Cargo.toml') }}
+      - uses: Swatinem/rust-cache@v2
       - name: get MSRV
         run: |
           msrv=`cargo metadata --no-deps --format-version 1 | jq --raw-output '.packages[] | select(.name=="wyrand") | .rust_version'`
