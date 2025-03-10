@@ -73,13 +73,13 @@ serde = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.10" }
 
 [dev-dependencies]
+critical-section = { version = "1.2", features = ["std"] }
 bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
     "bevy_reflect",
 ] }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
     "bevy_reflect",
-    "multi_threaded",
-    "async_executor",
+    "critical-section"
 ] }
 bevy_math = { git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
 bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }

@@ -100,14 +100,6 @@ fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {
 fn test_parallel_determinism() {
     let mut app = App::new();
 
-    #[cfg(not(target_arch = "wasm32"))]
-    app.edit_schedule(Update, |schedule| {
-        use bevy_ecs::schedule::ExecutorKind;
-
-        // Ensure the Update schedule is Multithreaded on non-WASM platforms
-        schedule.set_executor_kind(ExecutorKind::MultiThreaded);
-    });
-
     app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
         .add_systems(Startup, setup_sources)
         .add_systems(
