@@ -89,6 +89,7 @@ ron = { version = "0.8.0", features = ["integer128"] }
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
     "bevy_reflect",
 ] }
