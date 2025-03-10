@@ -75,7 +75,6 @@ bevy_prng = { path = "bevy_prng", version = "=0.10" }
 [dev-dependencies]
 bevy_app = { git = "https://github.com/bevyengine/bevy", package = "bevy_app", default-features = false, features = [
     "bevy_reflect",
-    "bevy_tasks",
 ] }
 bevy_ecs = { git = "https://github.com/bevyengine/bevy", package = "bevy_ecs", default-features = false, features = [
     "bevy_reflect",
