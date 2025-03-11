@@ -11,7 +11,7 @@ env:
   RUSTFLAGS: -D warnings
   RUST_BACKTRACE: 1
   CARGO_TERM_COLOR: always
-  CARGO_INCREMENTAL: 1
+  CARGO_INCREMENTAL: 0
   CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
@@ -39,21 +39,21 @@ jobs:
         uses: taiki-e/install-action@wasm-pack
         if: startsWith(matrix.os, 'ubuntu')
       - name: Run clippy
-        run: cargo clippy --workspace --all-features --all-targets -- -Dwarnings
+        run: cargo clippy --locked --workspace --all-features --all-targets -- -Dwarnings
         if: startsWith(matrix.rust, 'nightly')
       - name: No Default Feature checks
-        run: cargo check --no-default-features --workspace
+        run: cargo check --locked --no-default-features --workspace
       - name: Test with all features enabled
-        run: cargo test --all-features
+        run: cargo test --locked --all-features
       - name: Test wasm
         env:
           RUSTFLAGS: --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --chrome --firefox -- --all-features
+        run: wasm-pack test --headless --chrome --firefox -- --locked --all-features
         if: startsWith(matrix.os, 'ubuntu')
       - name: Test wasm (no default features)
         env:
           RUSTFLAGS: --cfg getrandom_backend="wasm_js"
-        run: wasm-pack test --headless --chrome --firefox -- --no-default-features
+        run: wasm-pack test --headless --chrome --firefox -- --locked --no-default-features
         if: startsWith(matrix.os, 'ubuntu')
   miri:
     name: "Miri"
@@ -69,7 +69,7 @@ jobs:
           rustup override set nightly
           cargo miri setup
       - name: Test with Miri
-        run: cargo miri test
+        run: cargo miri test --locked
         env:
           # -Zrandomize-layout makes sure we dont rely on the layout of anything that might change
           RUSTFLAGS: -Zrandomize-layout
@@ -93,4 +93,4 @@ jobs:
         run: rustup update ${{ env.MSRV }} --no-self-update && rustup default ${{ env.MSRV }}
       - name: Run cargo check
         id: check
-        run: cargo check
+        run: cargo check --locked
