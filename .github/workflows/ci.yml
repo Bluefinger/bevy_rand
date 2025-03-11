@@ -62,14 +62,14 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
       - name: Install Miri
         run: |
           rustup toolchain install nightly --component miri
           rustup override set nightly
           cargo miri setup
-      - uses: Swatinem/rust-cache@v2
       - name: Test with Miri
-        run: cargo miri test
+        run: cargo miri test --locked
         env:
           # -Zrandomize-layout makes sure we dont rely on the layout of anything that might change
           RUSTFLAGS: -Zrandomize-layout
