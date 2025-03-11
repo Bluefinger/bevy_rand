@@ -36,7 +36,7 @@ repository = { workspace = true }
 license = { workspace = true }
 keywords = ["game", "bevy", "rand", "rng"]
 categories = ["game-engines", "algorithms"]
-exclude = ["/.*"]
+exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
