@@ -24,10 +24,10 @@ jobs:
         rust: [nightly, beta, stable]
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: Install Rust
         # --no-self-update is necessary because the windows environment cannot self-update rustup.exe.
         run: rustup update ${{ matrix.rust }} --no-self-update && rustup default ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@v2
         # Install Clippy if we are on a nightly run.
       - name: Install Clippy
         run: rustup component add clippy
@@ -62,12 +62,12 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: Install Miri
         run: |
           rustup toolchain install nightly --component miri
           rustup override set nightly
           cargo miri setup
+      - uses: Swatinem/rust-cache@v2
       - name: Test with Miri
         run: cargo miri test --locked
         env:
@@ -84,13 +84,13 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v3
-      - uses: Swatinem/rust-cache@v2
       - name: get MSRV
         run: |
           msrv=`cargo metadata --no-deps --format-version 1 | jq --raw-output '.packages[] | select(.name=="wyrand") | .rust_version'`
           echo "MSRV=$msrv" >> $GITHUB_ENV
       - name: Install Rust
         run: rustup update ${{ env.MSRV }} --no-self-update && rustup default ${{ env.MSRV }}
+      - uses: Swatinem/rust-cache@v2
       - name: Run cargo check
         id: check
         run: cargo check --locked
