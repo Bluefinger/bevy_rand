@@ -208,6 +208,10 @@ where
     R: EntropySource + 'static,
 {
     type Output = Entropy<R>;
+
+    fn fork_rng(&mut self) -> Self::Output {
+        Self::Output::from_rng(self)
+    }
 }
 
 impl<R> ForkableAsRng for Entropy<R>
