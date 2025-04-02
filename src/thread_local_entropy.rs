@@ -18,14 +18,12 @@ thread_local! {
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
-pub(crate) struct ThreadLocalEntropy(NonNull<ChaCha8Rng>);
+pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
 impl ThreadLocalEntropy {
     /// Create a new [`ThreadLocalEntropy`] instance.
     pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
-        // SAFETY: Constructing `NonNull` from a `&UnsafeCell<T>` is safe as it will never be a
-        // null pointer, and the contents of the reference will always be initialised.
-        SOURCE.try_with(|source| unsafe { Self(NonNull::new_unchecked(source.get())) })
+        Ok(Self(SOURCE.try_with(Rc::clone)?))
     }
 
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
@@ -35,9 +33,12 @@ impl ThreadLocalEntropy {
     where
         F: FnOnce(&mut ChaCha8Rng) -> O,
     {
+        // SAFETY: Constructing `NonNull` from a `Rc<UnsafeCell<T>>` is safe as it will never be a
+        // null pointer, and the contents of the reference will always be initialised.
+        let mut ptr = unsafe { NonNull::new_unchecked(self.0.get()) };
         // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
         // for the thread local access.
-        unsafe { f(self.0.as_mut()) }
+        unsafe { f(ptr.as_mut()) }
     }
 }
 
