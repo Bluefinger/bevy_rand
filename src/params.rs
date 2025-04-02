@@ -21,16 +21,19 @@ where
     Rng::Seed: Debug + Clone,
 {
     /// Return the [`Entity`] of the data
+    #[inline]
     pub fn entity(&self) -> Entity {
         self.entity
     }
 
     /// Get a reference to the [`RngSeed`] component for the given data
+    #[inline]
     pub fn seed(&self) -> &RngSeed<Rng> {
         self.seed
     }
 
     /// Clone the seed from the data
+    #[inline]
     pub fn clone_seed(&self) -> Rng::Seed {
         self.seed.clone_seed()
     }

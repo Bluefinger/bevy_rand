@@ -58,6 +58,7 @@ where
 {
     type Target = RngEntityItem<'w, Rng>;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.data
     }

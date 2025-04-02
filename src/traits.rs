@@ -32,6 +32,7 @@ pub trait ForkableRng: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_rng(&mut self) -> Self::Output {
         Self::Output::from_rng(self)
     }
@@ -64,6 +65,7 @@ pub trait ForkableAsRng: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_as<T: EntropySource>(&mut self) -> Self::Output<T> {
         Self::Output::<_>::from_rng(self)
     }
@@ -97,6 +99,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     ///     do_random_action(&mut source);
     /// }
     /// ```
+    #[inline]
     fn fork_inner(&mut self) -> Self::Output {
         Self::Output::from_rng(self)
     }
@@ -130,6 +133,7 @@ where
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_seed(&mut self) -> Self::Output {
         let mut seed = S::Seed::default();
 
@@ -168,6 +172,7 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_as_seed<T: EntropySource>(&mut self) -> Self::Output<T>
     where
         T::Seed: Send + Sync + Clone,
@@ -208,6 +213,7 @@ where
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_inner_seed(&mut self) -> Self::Output {
         let mut seed = Self::Output::default();
 
@@ -278,6 +284,7 @@ where
     /// This method panics if for whatever reason it is unable to source entropy
     /// from the User-Space source.
     #[cfg(feature = "thread_local_entropy")]
+    #[inline]
     fn from_local_entropy() -> Self
     where
         Self: Sized,
@@ -305,6 +312,7 @@ where
     ///
     /// This method panics if for whatever reason it is unable to source entropy
     /// from an OS/Hardware source.
+    #[inline]
     fn from_os_rng() -> Self
     where
         Self: Sized,
@@ -354,6 +362,7 @@ impl ForkRngExt for &mut World {
     type Output<Rng> = Result<Rng, Self::Error>;
 
     /// Forks an [`Entropy`] component from the [`Global`] source.
+    #[inline]
     fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Entropy<Target>> {
         self.fork_as::<Target, Target>()
     }
@@ -380,6 +389,7 @@ impl ForkSeedExt for &mut World {
     type Output<Rng> = Result<Rng, Self::Error>;
 
     /// Forks a [`RngSeed`] component from the [`Global`] source.
+    #[inline]
     fn fork_seed<Target: EntropySource>(&mut self) -> Self::Output<RngSeed<Target>> {
         self.fork_as_seed::<Target, Target>()
     }

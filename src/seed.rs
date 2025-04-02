@@ -116,6 +116,7 @@ where
 {
     type Target = R::Seed;
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         self.get_seed()
     }

@@ -22,7 +22,6 @@ pub(crate) struct ThreadLocalEntropy(NonNull<ChaCha8Rng>);
 
 impl ThreadLocalEntropy {
     /// Create a new [`ThreadLocalEntropy`] instance.
-    #[inline]
     pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
         // SAFETY: Constructing `NonNull` from a `&UnsafeCell<T>` is safe as it will never be a
         // null pointer, and the contents of the reference will always be initialised.
