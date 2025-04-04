@@ -6,8 +6,8 @@ pub use crate::params::{RngEntity, RngEntityItem};
 pub use crate::plugin::{EntropyPlugin, EntropyRelationsPlugin};
 pub use crate::seed::RngSeed;
 pub use crate::traits::{
-    ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed, ForkableRng, ForkableSeed,
-    SeedSource,
+    ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
+    ForkableRng, ForkableSeed, SeedSource,
 };
 #[cfg(feature = "wyrand")]
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]

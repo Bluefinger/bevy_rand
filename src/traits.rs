@@ -1,5 +1,11 @@
+use bevy_ecs::{
+    query::{QuerySingleError, With},
+    world::World,
+};
 use bevy_prng::EntropySource;
 use rand_core::{OsRng, RngCore, SeedableRng, TryRngCore};
+
+use crate::{global::Global, prelude::Entropy, seed::RngSeed};
 
 /// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
@@ -26,6 +32,7 @@ pub trait ForkableRng: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_rng(&mut self) -> Self::Output {
         Self::Output::from_rng(self)
     }
@@ -58,6 +65,7 @@ pub trait ForkableAsRng: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_as<T: EntropySource>(&mut self) -> Self::Output<T> {
         Self::Output::<_>::from_rng(self)
     }
@@ -91,6 +99,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     ///     do_random_action(&mut source);
     /// }
     /// ```
+    #[inline]
     fn fork_inner(&mut self) -> Self::Output {
         Self::Output::from_rng(self)
     }
@@ -124,6 +133,7 @@ where
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_seed(&mut self) -> Self::Output {
         let mut seed = S::Seed::default();
 
@@ -162,6 +172,7 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_as_seed<T: EntropySource>(&mut self) -> Self::Output<T>
     where
         T::Seed: Send + Sync + Clone,
@@ -202,6 +213,7 @@ where
     ///         ));
     /// }
     /// ```
+    #[inline]
     fn fork_inner_seed(&mut self) -> Self::Output {
         let mut seed = Self::Output::default();
 
@@ -272,6 +284,7 @@ where
     /// This method panics if for whatever reason it is unable to source entropy
     /// from the User-Space source.
     #[cfg(feature = "thread_local_entropy")]
+    #[inline]
     fn from_local_entropy() -> Self
     where
         Self: Sized,
@@ -299,11 +312,102 @@ where
     ///
     /// This method panics if for whatever reason it is unable to source entropy
     /// from an OS/Hardware source.
+    #[inline]
     fn from_os_rng() -> Self
     where
         Self: Sized,
     {
         Self::try_from_os_rng().expect("Unable to source os/hardware entropy for seeding")
+    }
+}
+
+/// Extension trait to allow implementing forking on more types. By default, it is implemented
+/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+pub trait ForkRngExt {
+    /// The Error type returned for the queries used to extract and fork from.
+    type Error: core::error::Error;
+    /// The Output type for the resulting fork methods. Usually will be a `Result`.
+    type Output<Rng>;
+
+    /// Forks an [`Entropy`] component from the source.
+    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Entropy<Target>>;
+    /// Forks an [`Entropy`] component from the source as the given `Target` Rng kind.
+    fn fork_as<Source: EntropySource, Target: EntropySource>(
+        &mut self,
+    ) -> Self::Output<Entropy<Target>>;
+    /// Forks the inner Rng from the source.
+    fn fork_inner<Target: EntropySource>(&mut self) -> Self::Output<Target>;
+}
+
+/// Extension trait to allow implementing forking seeds on more types. By default, it is implemented
+/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+pub trait ForkSeedExt {
+    /// The Error type returned for the queries used to extract and fork from.
+    type Error: core::error::Error;
+    /// The Output type for the resulting fork methods. Usually will be a `Result`.
+    type Output<Rng>;
+
+    /// Forks a [`RngSeed`] component from the source.
+    fn fork_seed<Target: EntropySource>(&mut self) -> Self::Output<RngSeed<Target>>;
+    /// Forks an [`RngSeed`] component from the source as the given `Target` Rng kind.
+    fn fork_as_seed<Source: EntropySource, Target: EntropySource>(
+        &mut self,
+    ) -> Self::Output<RngSeed<Target>>;
+    /// Forks a new Seed from the source.
+    fn fork_inner_seed<Target: EntropySource>(&mut self) -> Self::Output<Target::Seed>;
+}
+
+impl ForkRngExt for &mut World {
+    type Error = QuerySingleError;
+    type Output<Rng> = Result<Rng, Self::Error>;
+
+    /// Forks an [`Entropy`] component from the [`Global`] source.
+    #[inline]
+    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Entropy<Target>> {
+        self.fork_as::<Target, Target>()
+    }
+
+    /// Forks an [`Entropy`] component from the [`Global`] source as the given `Target` Rng kind.
+    fn fork_as<Source: EntropySource, Target: EntropySource>(
+        &mut self,
+    ) -> Self::Output<Entropy<Target>> {
+        self.query_filtered::<&mut Entropy<Source>, With<Global>>()
+            .single_mut(self)
+            .map(|mut global| global.fork_as::<Target>())
+    }
+
+    /// Forks the inner Rng from the [`Global`] source.
+    fn fork_inner<Target: EntropySource>(&mut self) -> Self::Output<Target> {
+        self.query_filtered::<&mut Entropy<Target>, With<Global>>()
+            .single_mut(self)
+            .map(|mut global| global.fork_inner())
+    }
+}
+
+impl ForkSeedExt for &mut World {
+    type Error = QuerySingleError;
+    type Output<Rng> = Result<Rng, Self::Error>;
+
+    /// Forks a [`RngSeed`] component from the [`Global`] source.
+    #[inline]
+    fn fork_seed<Target: EntropySource>(&mut self) -> Self::Output<RngSeed<Target>> {
+        self.fork_as_seed::<Target, Target>()
+    }
+
+    /// Forks an [`RngSeed`] component from the [`Global`] source as the given `Target` Rng kind.
+    fn fork_as_seed<Source: EntropySource, Target: EntropySource>(
+        &mut self,
+    ) -> Self::Output<RngSeed<Target>> {
+        self.query_filtered::<&mut Entropy<Source>, With<Global>>()
+            .single_mut(self)
+            .map(|mut global| global.fork_as_seed::<Target>())
+    }
+
+    /// Forks a new Seed from the [`Global`] source.
+    fn fork_inner_seed<Target: EntropySource>(&mut self) -> Self::Output<Target::Seed> {
+        self.query_filtered::<&mut Entropy<Target>, With<Global>>()
+            .single_mut(self)
+            .map(|mut global| global.fork_inner_seed())
     }
 }
 

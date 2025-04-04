@@ -25,14 +25,17 @@ impl<Source: EntropySource, Target: EntropySource> RelationshipTarget for RngLin
     type Collection = Vec<Entity>;
     const LINKED_SPAWN: bool = false;
 
+    #[inline]
     fn collection(&self) -> &Self::Collection {
         &self.0
     }
 
+    #[inline]
     fn collection_mut_risky(&mut self) -> &mut Self::Collection {
         &mut self.0
     }
 
+    #[inline]
     fn from_collection_risky(collection: Self::Collection) -> Self {
         Self(collection, PhantomData, PhantomData)
     }
@@ -50,6 +53,7 @@ impl<Source: EntropySource, Target: EntropySource> Component for RngLinks<Source
 }
 
 impl<Source: EntropySource, Target: EntropySource> Default for RngLinks<Source, Target> {
+    #[inline]
     fn default() -> Self {
         Self(Vec::new(), PhantomData, PhantomData)
     }
@@ -73,10 +77,12 @@ impl<Source: EntropySource, Target: EntropySource> Component for RngSource<Sourc
 impl<Source: EntropySource, Target: EntropySource> Relationship for RngSource<Source, Target> {
     type RelationshipTarget = RngLinks<Source, Target>;
 
+    #[inline]
     fn get(&self) -> Entity {
         self.0
     }
 
+    #[inline]
     fn from(entity: Entity) -> Self {
         Self(entity, PhantomData, PhantomData)
     }
@@ -84,11 +90,13 @@ impl<Source: EntropySource, Target: EntropySource> Relationship for RngSource<So
 
 impl<Source: EntropySource, Target: EntropySource> RngSource<Source, Target> {
     /// Initialises the relation component with the parent entity
+    #[inline]
     pub fn new(parent: Entity) -> Self {
         Self(parent, PhantomData, PhantomData)
     }
 
     /// Get the parent source entity
+    #[inline]
     pub fn entity(&self) -> Entity {
         self.0
     }
@@ -100,6 +108,7 @@ impl<Source: EntropySource, Target: EntropySource> RngSource<Source, Target> {
 pub struct SeedFromGlobal<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedFromGlobal<Source, Target> {
+    #[inline]
     fn default() -> Self {
         Self(PhantomData, PhantomData)
     }
@@ -111,6 +120,7 @@ impl<Source: EntropySource, Target: EntropySource> Default for SeedFromGlobal<So
 pub struct SeedLinked<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedLinked<Source, Target> {
+    #[inline]
     fn default() -> Self {
         Self(PhantomData, PhantomData)
     }
@@ -122,6 +132,7 @@ impl<Source: EntropySource, Target: EntropySource> Default for SeedLinked<Source
 pub struct SeedFromSource<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedFromSource<Source, Target> {
+    #[inline]
     fn default() -> Self {
         Self(PhantomData, PhantomData)
     }

@@ -1,5 +1,5 @@
 use alloc::rc::Rc;
-use core::{cell::UnsafeCell, ptr::NonNull};
+use core::cell::UnsafeCell;
 
 use std::thread_local;
 
@@ -18,15 +18,12 @@ thread_local! {
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
-pub(crate) struct ThreadLocalEntropy(NonNull<ChaCha8Rng>);
+pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
 impl ThreadLocalEntropy {
     /// Create a new [`ThreadLocalEntropy`] instance.
-    #[inline]
     pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
-        // SAFETY: Constructing `NonNull` from a `&UnsafeCell<T>` is safe as it will never be a
-        // null pointer, and the contents of the reference will always be initialised.
-        SOURCE.try_with(|source| unsafe { Self(NonNull::new_unchecked(source.get())) })
+        Ok(Self(SOURCE.try_with(Rc::clone)?))
     }
 
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
@@ -36,9 +33,9 @@ impl ThreadLocalEntropy {
     where
         F: FnOnce(&mut ChaCha8Rng) -> O,
     {
-        // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
-        // for the thread local access.
-        unsafe { f(self.0.as_mut()) }
+        // SAFETY: The `&mut` reference constructed here will never outlive the closure
+        // for the thread local access. It is also will never be a null pointer and is aligned.
+        unsafe { f(&mut *self.0.get()) }
     }
 }
 

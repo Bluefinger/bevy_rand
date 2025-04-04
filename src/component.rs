@@ -131,7 +131,8 @@ impl<R: EntropySource + 'static> Default for Entropy<R> {
     fn default() -> Self {
         #[cfg(feature = "thread_local_entropy")]
         {
-            let mut local = ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
+            let mut local =
+                ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
             Self::from_rng(&mut local)
         }
         #[cfg(not(feature = "thread_local_entropy"))]
