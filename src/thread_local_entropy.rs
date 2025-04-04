@@ -1,5 +1,5 @@
 use alloc::rc::Rc;
-use core::{cell::UnsafeCell, ptr::NonNull};
+use core::cell::UnsafeCell;
 
 use std::thread_local;
 
@@ -33,12 +33,9 @@ impl ThreadLocalEntropy {
     where
         F: FnOnce(&mut ChaCha8Rng) -> O,
     {
-        // SAFETY: Constructing `NonNull` from a `Rc<UnsafeCell<T>>` is safe as it will never be a
-        // null pointer, and the contents of the reference will always be initialised.
-        let mut ptr = unsafe { NonNull::new_unchecked(self.0.get()) };
-        // SAFETY: The `&mut` reference constructed from `NonNull` will never outlive the closure
-        // for the thread local access.
-        unsafe { f(ptr.as_mut()) }
+        // SAFETY: The `&mut` reference constructed here will never outlive the closure
+        // for the thread local access. It is also will never be a null pointer and is aligned.
+        unsafe { f(&mut *self.0.get()) }
     }
 }
 
