@@ -11,13 +11,13 @@ version = "0.10.0"
 rust-version = "1.85.0"
 
 [workspace.dependencies]
-bevy_app = { version = "=0.16.0-rc.5", default-features = false, features = [
+bevy_app = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_ecs = { version = "=0.16.0-rc.5", default-features = false, features = [
+bevy_ecs = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_reflect = { version = "=0.16.0-rc.5", default-features = false }
+bevy_reflect = { version = "0.16.0", default-features = false }
 serde = { version = "1.0.218", default-features = false, features = ["derive"] }
 rand_core = { version = "0.9.3", features = ["os_rng"] }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
@@ -73,14 +73,17 @@ serde = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.10" }
 
 [dev-dependencies]
-bevy_app = { version = "=0.16.0-rc.5", default-features = false, features = [
+bevy_app = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_ecs = { version = "=0.16.0-rc.5", default-features = false, features = [
+bevy_ecs = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_math = { version = "=0.16.0-rc.5", package = "bevy_math" }
-bevy_prng = { path = "bevy_prng", version = "0.10", features = ["rand_chacha", "wyrand"] }
+bevy_math = { version = "0.16.0", package = "bevy_math" }
+bevy_prng = { path = "bevy_prng", version = "0.10", features = [
+    "rand_chacha",
+    "wyrand",
+] }
 rand = "0.9"
 ron = { version = "0.8.0", features = ["integer128"] }
 
@@ -88,7 +91,7 @@ ron = { version = "0.8.0", features = ["integer128"] }
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
-bevy_ecs = { version = "=0.16.0-rc.5", default-features = false, features = [
+bevy_ecs = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
 
