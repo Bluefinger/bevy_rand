@@ -279,8 +279,8 @@ mod tests {
 
         let rng2 = rng1.fork_as::<ChaCha8Rng>();
 
-        let rng1 = format!("{:?}", rng1);
-        let rng2 = format!("{:?}", rng2);
+        let rng1 = format!("{rng1:?}");
+        let rng2 = format!("{rng2:?}");
 
         assert_ne!(&rng1, &rng2, "forked Entropys should not match each other");
     }

@@ -226,7 +226,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
         &mut self,
         targets: impl IntoIterator<Item = impl Bundle>,
     ) -> &mut Self {
-        self.commands.with_related(
+        self.commands.with_related_entities(
             |related: &mut RelatedSpawnerCommands<'_, RngSource<Rng, Target>>| {
                 targets.into_iter().for_each(|bundle| {
                     related.spawn(bundle);
