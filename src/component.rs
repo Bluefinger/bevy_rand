@@ -7,15 +7,18 @@ use crate::{
         ForkableRng, ForkableSeed,
     },
 };
-use bevy_ecs::prelude::{Component, ReflectComponent};
+use bevy_ecs::prelude::Component;
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::prelude::ReflectComponent;
 use bevy_prng::EntropySource;
+#[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{Reflect, ReflectFromReflect};
 use rand_core::{RngCore, SeedableRng, TryRngCore};
 
 #[cfg(feature = "thread_local_entropy")]
 use crate::thread_local_entropy::ThreadLocalEntropy;
 
-#[cfg(feature = "serialize")]
+#[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
 use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
 #[cfg(feature = "serialize")]
@@ -94,23 +97,24 @@ use serde::Deserialize;
 ///    }
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Component, Reflect)]
+#[derive(Debug, Clone, PartialEq, Eq, Component)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
 #[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
     feature = "serialize",
     serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
 )]
 #[cfg_attr(
-    all(feature = "serialize"),
+    all(feature = "serialize", feature = "bevy_reflect"),
     reflect(Debug, PartialEq, Component, FromReflect, Serialize, Deserialize)
 )]
 #[cfg_attr(
-    all(not(feature = "serialize")),
+    all(not(feature = "serialize"), feature = "bevy_reflect"),
     reflect(Debug, PartialEq, Component, FromReflect)
 )]
-pub struct Entropy<R: EntropySource + 'static>(R);
+pub struct Entropy<R: EntropySource>(R);
 
-impl<R: EntropySource + 'static> Entropy<R> {
+impl<R: EntropySource> Entropy<R> {
     /// Create a new component from an `RngCore` instance.
     #[inline]
     #[must_use]
@@ -126,7 +130,7 @@ impl<R: EntropySource + 'static> Entropy<R> {
     }
 }
 
-impl<R: EntropySource + 'static> Default for Entropy<R> {
+impl<R: EntropySource> Default for Entropy<R> {
     #[inline]
     fn default() -> Self {
         #[cfg(feature = "thread_local_entropy")]
@@ -142,7 +146,7 @@ impl<R: EntropySource + 'static> Default for Entropy<R> {
     }
 }
 
-impl<R: EntropySource + 'static> RngCore for Entropy<R> {
+impl<R: EntropySource> RngCore for Entropy<R> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
         self.0.next_u32()
@@ -160,7 +164,7 @@ impl<R: EntropySource + 'static> RngCore for Entropy<R> {
 }
 
 #[cfg(feature = "compat")]
-impl<R: EntropySource + 'static> rand_core_06::RngCore for Entropy<R> {
+impl<R: EntropySource> rand_core_06::RngCore for Entropy<R> {
     #[inline]
     fn next_u32(&mut self) -> u32 {
         self.0.next_u32()
@@ -183,7 +187,7 @@ impl<R: EntropySource + 'static> rand_core_06::RngCore for Entropy<R> {
     }
 }
 
-impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
+impl<R: EntropySource> SeedableRng for Entropy<R> {
     type Seed = R::Seed;
 
     #[inline]
@@ -202,18 +206,18 @@ impl<R: EntropySource + 'static> SeedableRng for Entropy<R> {
     }
 }
 
-impl<R: EntropySource + 'static> EcsEntropy for Entropy<R> {}
+impl<R: EntropySource> EcsEntropy for Entropy<R> {}
 
 impl<R> ForkableRng for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
 {
     type Output = Entropy<R>;
 }
 
 impl<R> ForkableAsRng for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
 {
     type Output<T>
         = Entropy<T>
@@ -223,14 +227,14 @@ where
 
 impl<R> ForkableInnerRng for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
 {
     type Output = R;
 }
 
 impl<R> ForkableSeed<R> for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
     R::Seed: Send + Sync + Clone,
 {
     type Output = RngSeed<R>;
@@ -238,7 +242,7 @@ where
 
 impl<R> ForkableAsSeed<R> for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
 {
     type Output<T>
         = RngSeed<T>
@@ -249,7 +253,7 @@ where
 
 impl<R> ForkableInnerSeed<R> for Entropy<R>
 where
-    R: EntropySource + 'static,
+    R: EntropySource,
     R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
 {
     type Output = R::Seed;
@@ -260,7 +264,6 @@ mod tests {
     use alloc::format;
 
     use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
-    use bevy_reflect::TypePath;
 
     use super::*;
 
@@ -297,8 +300,11 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "bevy_reflect")]
     #[test]
     fn type_paths() {
+        use bevy_reflect::TypePath;
+
         assert_eq!(
             "bevy_rand::component::Entropy<bevy_prng::ChaCha8Rng>",
             Entropy::<ChaCha8Rng>::type_path()
@@ -310,7 +316,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serialize")]
+    #[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
     #[test]
     fn rng_untyped_serialization() {
         use bevy_reflect::{
@@ -358,7 +364,7 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "serialize")]
+    #[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
     #[test]
     fn rng_typed_serialization() {
         use bevy_reflect::{

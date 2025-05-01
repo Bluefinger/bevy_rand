@@ -34,28 +34,19 @@ pub type GlobalEntropy<'w, T> = Single<'w, &'static mut Entropy<T>, With<Global>
 /// }
 /// ```
 #[derive(SystemParam)]
-pub struct GlobalRngEntity<'w, 's, Rng: EntropySource>
-where
-    Rng::Seed: Debug + Clone + Send + Sync,
-{
+pub struct GlobalRngEntity<'w, 's, Rng: EntropySource> {
     commands: Commands<'w, 's>,
     data: Single<'w, RngEntity<Rng>, With<Global>>,
 }
 
-impl<Rng: EntropySource> GlobalRngEntity<'_, '_, Rng>
-where
-    Rng::Seed: Debug + Send + Sync + Clone,
-{
+impl<Rng: EntropySource> GlobalRngEntity<'_, '_, Rng> {
     /// Creates a [`Global`]'s [`RngEntityCommands`].
     pub fn rng_commands(&mut self) -> RngEntityCommands<'_, Rng> {
         self.commands.entity(self.data.entity()).rng()
     }
 }
 
-impl<'w, Rng: EntropySource> Deref for GlobalRngEntity<'w, '_, Rng>
-where
-    Rng::Seed: Debug + Clone + Send + Sync,
-{
+impl<'w, Rng: EntropySource> Deref for GlobalRngEntity<'w, '_, Rng> {
     type Target = RngEntityItem<'w, Rng>;
 
     #[inline]

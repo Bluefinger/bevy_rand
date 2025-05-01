@@ -1,6 +1,6 @@
-use core::{fmt::Debug, marker::PhantomData};
+use core::marker::PhantomData;
 
-use crate::{component::Entropy, global::Global, seed::RngSeed, traits::SeedSource};
+use crate::{global::Global, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, EntropySource};
 
@@ -33,10 +33,7 @@ pub struct EntropyPlugin<Rng: EntropySource + 'static> {
     seed: Option<Rng::Seed>,
 }
 
-impl<Rng: EntropySource + 'static> EntropyPlugin<Rng>
-where
-    Rng::Seed: Send + Sync + Clone,
-{
+impl<Rng: EntropySource + 'static> EntropyPlugin<Rng> {
     /// Creates a new plugin instance configured for randomised,
     /// non-deterministic seeding of the global entropy resource.
     #[inline]
@@ -53,10 +50,7 @@ where
     }
 }
 
-impl<Rng: EntropySource + 'static> Default for EntropyPlugin<Rng>
-where
-    Rng::Seed: Send + Sync + Clone,
-{
+impl<Rng: EntropySource + 'static> Default for EntropyPlugin<Rng> {
     fn default() -> Self {
         Self::new()
     }
@@ -67,7 +61,8 @@ where
     Rng::Seed: EntropySeed,
 {
     fn build(&self, app: &mut App) {
-        app.register_type::<Entropy<Rng>>()
+        #[cfg(feature = "bevy_reflect")]
+        app.register_type::<crate::component::Entropy<Rng>>()
             .register_type::<RngSeed<Rng>>()
             .register_type::<Rng::Seed>();
 
@@ -127,10 +122,8 @@ impl<Source: EntropySource, Target: EntropySource> Default
     }
 }
 
-impl<Source: EntropySource, Target: EntropySource> Plugin for EntropyRelationsPlugin<Source, Target>
-where
-    Source::Seed: Debug + Send + Sync + Clone,
-    Target::Seed: Debug + Send + Sync + Clone,
+impl<Source: EntropySource, Target: EntropySource> Plugin
+    for EntropyRelationsPlugin<Source, Target>
 {
     fn build(&self, app: &mut App) {
         let world = app.world_mut();

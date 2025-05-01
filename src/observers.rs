@@ -143,10 +143,7 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<SeedFromGlobal<Source, Target>>,
     mut source: GlobalEntropy<Source>,
     mut commands: Commands,
-) where
-    Source::Seed: Send + Sync + Clone,
-    Target::Seed: Send + Sync + Clone,
-{
+) {
     if let Ok(mut entity) = commands.get_entity(trigger.target()) {
         entity.insert(source.fork_as_seed::<Target>());
     }
@@ -159,10 +156,7 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
     q_linked: Query<&RngSource<Source, Target>>,
     mut q_parents: Query<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
-) where
-    Source::Seed: Send + Sync + Clone,
-    Target::Seed: Send + Sync + Clone,
-{
+) {
     let target = trigger.target();
 
     if let Ok(rng) = q_linked
@@ -181,10 +175,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<SeedLinked<Source, Target>>,
     mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Target>)>,
     mut commands: Commands,
-) where
-    Source::Seed: Send + Sync + Clone,
-    Target::Seed: Send + Sync + Clone,
-{
+) {
     if let Ok((mut rng, targets)) = q_source.get_mut(trigger.target()) {
         let batched: Vec<_> = targets
             .0
@@ -203,10 +194,7 @@ pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
     trigger: Trigger<OnInsert, Entropy<Source>>,
     q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
-) where
-    Source::Seed: Debug + Send + Sync + Clone,
-    Target::Seed: Debug + Send + Sync + Clone,
-{
+) {
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
     if let Ok(mut rng_source) = q_source

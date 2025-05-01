@@ -1,22 +1,23 @@
 macro_rules! newtype_prng {
     ($newtype:tt, $rng:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, PartialEq, Reflect)]
-        #[reflect(opaque)]
+        #[derive(Debug, Clone, PartialEq)]
+        #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+        #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
         #[cfg_attr(
             feature = "serialize",
             derive(::serde::Serialize, ::serde::Deserialize)
         )]
         #[cfg_attr(
-            all(feature = "serialize"),
+            all(feature = "serialize", feature = "bevy_reflect"),
             reflect(opaque, Debug, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
-            all(not(feature = "serialize")),
+            all(not(feature = "serialize"), feature = "bevy_reflect"),
             reflect(opaque, Debug, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
-        #[type_path = "bevy_prng"]
+        #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
         #[repr(transparent)]
         pub struct $newtype($rng);
 

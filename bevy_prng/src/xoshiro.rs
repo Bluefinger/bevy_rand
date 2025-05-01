@@ -1,8 +1,9 @@
 use crate::newtype::{newtype_prng, newtype_prng_remote};
 
+#[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};
 
-#[cfg(feature = "serialize")]
+#[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
 use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
 /// Remote reflected version of [`rand_xoshiro::Seed512`], needed to support
