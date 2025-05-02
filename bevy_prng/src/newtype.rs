@@ -101,25 +101,27 @@ macro_rules! newtype_prng {
     };
 }
 
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
 macro_rules! newtype_prng_remote {
     ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, PartialEq, Reflect)]
+        #[derive(Debug, Clone, PartialEq)]
+        #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+        #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
         #[cfg_attr(
             feature = "serialize",
             derive(::serde::Serialize, ::serde::Deserialize)
         )]
         #[cfg_attr(
-            all(feature = "serialize"),
+            all(feature = "serialize", feature = "bevy_reflect"),
             reflect(opaque, Debug, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
-            all(not(feature = "serialize")),
+            all(not(feature = "serialize"), feature = "bevy_reflect"),
             reflect(opaque, Debug, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
-        #[type_path = "bevy_prng"]
+        #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
         #[repr(transparent)]
         pub struct $newtype($rng);
 
@@ -204,5 +206,5 @@ macro_rules! newtype_prng_remote {
 }
 
 pub(crate) use newtype_prng;
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
 pub(crate) use newtype_prng_remote;

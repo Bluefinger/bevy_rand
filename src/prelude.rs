@@ -24,7 +24,14 @@ pub use bevy_prng::{Pcg32, Pcg64, Pcg64Mcg};
 #[cfg(feature = "rand_xoshiro")]
 #[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]
 pub use bevy_prng::{
-    Seed512, Xoroshiro64Star, Xoroshiro64StarStar, Xoroshiro128Plus, Xoroshiro128PlusPlus,
+    Xoroshiro64Star, Xoroshiro64StarStar, Xoroshiro128Plus, Xoroshiro128PlusPlus,
     Xoroshiro128StarStar, Xoshiro128Plus, Xoshiro128PlusPlus, Xoshiro128StarStar, Xoshiro256Plus,
     Xoshiro256PlusPlus, Xoshiro256StarStar, Xoshiro512Plus, Xoshiro512PlusPlus, Xoshiro512StarStar,
 };
+
+#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "rand_xoshiro", feature = "rand_xoshiro")))
+)]
+pub use bevy_prng::Seed512;
