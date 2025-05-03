@@ -2,9 +2,7 @@ use alloc::vec::Vec;
 use core::{fmt::Debug, marker::PhantomData};
 
 use bevy_ecs::{
-    component::{ComponentHooks, Immutable, Mutable, StorageType},
     prelude::{Commands, Component, Entity, Event, OnInsert, Trigger, With},
-    relationship::{Relationship, RelationshipTarget},
     system::Query,
 };
 
@@ -17,88 +15,51 @@ use crate::{
 };
 
 /// Component to denote a source has linked children entities
-#[derive(Debug)]
-pub struct RngLinks<Source, Target>(Vec<Entity>, PhantomData<Source>, PhantomData<Target>);
-
-impl<Source: EntropySource, Target: EntropySource> RelationshipTarget for RngLinks<Source, Target> {
-    type Relationship = RngSource<Source, Target>;
-    type Collection = Vec<Entity>;
-    const LINKED_SPAWN: bool = false;
-
-    #[inline]
-    fn collection(&self) -> &Self::Collection {
-        &self.0
-    }
-
-    #[inline]
-    fn collection_mut_risky(&mut self) -> &mut Self::Collection {
-        &mut self.0
-    }
-
-    #[inline]
-    fn from_collection_risky(collection: Self::Collection) -> Self {
-        Self(collection, PhantomData, PhantomData)
-    }
-}
-
-impl<Source: EntropySource, Target: EntropySource> Component for RngLinks<Source, Target> {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    type Mutability = Mutable;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_replace(<Self as RelationshipTarget>::on_replace);
-        hooks.on_despawn(<Self as RelationshipTarget>::on_despawn);
-    }
+#[derive(Debug, Component)]
+#[relationship_target(relationship = RngSource<Source, Target>)]
+pub struct RngLinks<Source: EntropySource, Target: EntropySource> {
+    #[relationship]
+    related: Vec<Entity>,
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
 }
 
 impl<Source: EntropySource, Target: EntropySource> Default for RngLinks<Source, Target> {
     #[inline]
     fn default() -> Self {
-        Self(Vec::new(), PhantomData, PhantomData)
+        Self {
+            related: Vec::new(),
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 }
 
 /// Component to denote that the current Entity has a relation to a parent Rng source entity.
-#[derive(Debug)]
-pub struct RngSource<Source, Target>(Entity, PhantomData<Source>, PhantomData<Target>);
-
-impl<Source: EntropySource, Target: EntropySource> Component for RngSource<Source, Target> {
-    const STORAGE_TYPE: StorageType = StorageType::Table;
-
-    type Mutability = Immutable;
-
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_insert(<Self as Relationship>::on_insert);
-        hooks.on_replace(<Self as Relationship>::on_replace);
-    }
-}
-
-impl<Source: EntropySource, Target: EntropySource> Relationship for RngSource<Source, Target> {
-    type RelationshipTarget = RngLinks<Source, Target>;
-
-    #[inline]
-    fn get(&self) -> Entity {
-        self.0
-    }
-
-    #[inline]
-    fn from(entity: Entity) -> Self {
-        Self(entity, PhantomData, PhantomData)
-    }
+#[derive(Debug, Component)]
+#[relationship(relationship_target = RngLinks<Source, Target>)]
+pub struct RngSource<Source: EntropySource, Target: EntropySource> {
+    #[relationship]
+    linked: Entity,
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
 }
 
 impl<Source: EntropySource, Target: EntropySource> RngSource<Source, Target> {
     /// Initialises the relation component with the parent entity
     #[inline]
     pub fn new(parent: Entity) -> Self {
-        Self(parent, PhantomData, PhantomData)
+        Self {
+            linked: parent,
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 
     /// Get the parent source entity
     #[inline]
     pub fn entity(&self) -> Entity {
-        self.0
+        self.linked
     }
 }
 
@@ -178,7 +139,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
 ) {
     if let Ok((mut rng, targets)) = q_source.get_mut(trigger.target()) {
         let batched: Vec<_> = targets
-            .0
+            .related
             .iter()
             .copied()
             .map(|target| (target, rng.fork_as_seed::<Target>()))

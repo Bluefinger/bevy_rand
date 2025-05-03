@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - v0.15
+      - v0.16
 
 env:
   RUSTFLAGS: -D warnings
@@ -32,9 +32,6 @@ jobs:
       - name: Install Clippy
         run: rustup component add clippy
         if: startsWith(matrix.rust, 'nightly')
-      - name: Install alsa and udev
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
-        if: startsWith(matrix.os, 'ubuntu')
       - name: Install wasm-pack
         uses: taiki-e/install-action@wasm-pack
         if: startsWith(matrix.os, 'ubuntu')
@@ -45,6 +42,8 @@ jobs:
         run: cargo check --locked --no-default-features --features rand_xoshiro,rand_pcg --workspace
       - name: Test with all features enabled
         run: cargo test --locked --all-features
+      - name: Test Docs
+        run: cargo doc --locked
       - name: Test wasm
         env:
           RUSTFLAGS: --cfg getrandom_backend="wasm_js"
