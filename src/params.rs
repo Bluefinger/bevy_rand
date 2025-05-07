@@ -8,18 +8,12 @@ use crate::{seed::RngSeed, traits::SeedSource};
 /// A smart query data wrapper that selects for entities that match the `Rng` type,
 /// returning read-only data for the seed and the entity.
 #[derive(Debug, QueryData)]
-pub struct RngEntity<Rng: EntropySource>
-where
-    Rng::Seed: Debug + Clone + Send + Sync,
-{
+pub struct RngEntity<Rng: EntropySource> {
     seed: &'static RngSeed<Rng>,
     entity: Entity,
 }
 
-impl<Rng: EntropySource> RngEntityItem<'_, Rng>
-where
-    Rng::Seed: Debug + Clone,
-{
+impl<Rng: EntropySource> RngEntityItem<'_, Rng> {
     /// Return the [`Entity`] of the data
     #[inline]
     pub fn entity(&self) -> Entity {

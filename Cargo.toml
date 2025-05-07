@@ -7,16 +7,12 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.10.0"
+version = "0.11.0"
 rust-version = "1.85.0"
 
 [workspace.dependencies]
-bevy_app = { version = "0.16.0", default-features = false, features = [
-    "bevy_reflect",
-] }
-bevy_ecs = { version = "0.16.0", default-features = false, features = [
-    "bevy_reflect",
-] }
+bevy_app = { version = "0.16.0", default-features = false }
+bevy_ecs = { version = "0.16.0", default-features = false }
 bevy_reflect = { version = "0.16.0", default-features = false }
 serde = { version = "1.0.218", default-features = false, features = ["derive"] }
 rand_core = { version = "0.9.3", features = ["os_rng"] }
@@ -40,7 +36,13 @@ exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std", "compat"]
+default = ["serialize", "thread_local_entropy", "std", "compat", "bevy_reflect"]
+bevy_reflect = [
+    "dep:bevy_reflect",
+    "bevy_app/bevy_reflect",
+    "bevy_ecs/bevy_reflect",
+    "bevy_prng/bevy_reflect",
+]
 compat = ["bevy_prng/compat", "dep:rand_core_06"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
@@ -55,8 +57,8 @@ wasm_js = ["getrandom/wasm_js"]
 [dependencies]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
-bevy_reflect.workspace = true
-bevy_prng = { path = "bevy_prng", version = "0.10" }
+bevy_reflect = { workspace = true, optional = true }
+bevy_prng = { path = "bevy_prng", version = "0.11" }
 
 # others
 getrandom = "0.3.1"
@@ -70,7 +72,7 @@ serde = { workspace = true, optional = true }
 # cannot be out of step with bevy_rand due to dependencies on traits
 # and implementations between the two crates.
 [target.'cfg(any())'.dependencies]
-bevy_prng = { path = "bevy_prng", version = "=0.10" }
+bevy_prng = { path = "bevy_prng", version = "=0.11" }
 
 [dev-dependencies]
 bevy_app = { version = "0.16.0", default-features = false, features = [
@@ -80,7 +82,7 @@ bevy_ecs = { version = "0.16.0", default-features = false, features = [
     "bevy_reflect",
 ] }
 bevy_math = { version = "0.16.0", package = "bevy_math" }
-bevy_prng = { path = "bevy_prng", version = "0.10", features = [
+bevy_prng = { path = "bevy_prng", version = "0.11", default-features = false, features = [
     "rand_chacha",
     "wyrand",
 ] }

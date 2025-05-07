@@ -75,3 +75,13 @@ bevy_rand = { version = "0.10", features = ["wyrand", "compat"] }
 Various observer events have been removed and replaced with Bevy's relations APIs. `LinkRngSourceToTarget`, `ReseedRng`, `RngChildren` and `RngParent` no longer exist. Instead, for queries, `RngLinks` and `RngSource` are the relations components, and `SeedFromGlobal`, `SeedFromSource`, and `SeedLinked` are the new observer events. For the most part, it is recommended to use the new Commands APIs provided by `RngCommandsExt` & `RngEntityCommandsExt`.
 
 To enable the full relations API and features, make sure to add the `EntropyRelationsPlugin` to your bevy app.
+
+## Migrating from v0.10 to v0.11
+
+The breaking change here is that when `bevy_rand` has `default-features` set to `false`, it won't bring in `bevy_reflect` support any more. This is so that for more resource constrained `no_std` platforms, reflection support can be opted out in order to conserve memory usage. Reflection support can then be added back in by explicitly specifying `bevy_reflect` as a feature:
+
+```toml
+bevy_rand = { version = "0.11", default-features = false, features = ["bevy_reflect", "wyrand"] }
+```
+
+This change does not affect default/`std` usage of `bevy_rand`, which includes `bevy_reflect` support out of the box.

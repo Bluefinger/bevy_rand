@@ -1,5 +1,4 @@
 use core::{
-    fmt::Debug,
     marker::PhantomData,
     ops::{Deref, DerefMut},
 };
@@ -89,19 +88,14 @@ pub trait RngCommandsExt {
     fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, Rng>,
-    ) -> RngEntityCommands<'_, Rng>
-    where
-        Rng::Seed: Debug + Clone + Send + Sync;
+    ) -> RngEntityCommands<'_, Rng>;
 }
 
 impl RngCommandsExt for Commands<'_, '_> {
     fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, Rng>,
-    ) -> RngEntityCommands<'_, Rng>
-    where
-        Rng::Seed: Debug + Clone + Send + Sync,
-    {
+    ) -> RngEntityCommands<'_, Rng> {
         self.entity(entity.entity()).rng()
     }
 }

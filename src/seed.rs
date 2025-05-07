@@ -5,6 +5,7 @@ use bevy_ecs::{
     prelude::Component,
 };
 use bevy_prng::EntropySource;
+#[cfg(feature = "bevy_reflect")]
 use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
 
@@ -34,10 +35,11 @@ use crate::{component::Entropy, traits::SeedSource};
 ///         ));
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
 pub struct RngSeed<R: EntropySource> {
     seed: R::Seed,
-    #[reflect(ignore)]
+    #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     rng: PhantomData<R>,
 }
 
@@ -65,7 +67,7 @@ where
     }
 }
 
-impl<R: EntropySource> Component for RngSeed<R>
+impl<R: EntropySource + 'static> Component for RngSeed<R>
 where
     R::Seed: Sync + Send + Clone,
 {
@@ -124,7 +126,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    #[cfg(feature = "serialize")]
+    #[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
     #[test]
     fn reflection_serialization_round_trip_works() {
         use super::*;

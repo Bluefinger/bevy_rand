@@ -22,6 +22,7 @@ mod xoshiro;
 
 use core::fmt::Debug;
 
+#[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
 #[cfg(feature = "serialize")]
@@ -36,19 +37,50 @@ pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]
 pub use xoshiro::*;
 
+/// Trait for handling `SeedableRng` requirements, imposing constraints
+/// depending on whether reflection support is enabled or not
+#[cfg(feature = "bevy_reflect")]
+pub trait TypedSeed: SeedableRng<Seed: Typed + Debug + Send + Sync + Clone> {}
+
+#[cfg(feature = "bevy_reflect")]
+impl<T: SeedableRng<Seed: Typed + Debug + Send + Sync + Clone>> TypedSeed for T {}
+
+/// Trait for handling `SeedableRng` requirements, imposing constraints
+/// depending on whether reflection support is enabled or not
+#[cfg(not(feature = "bevy_reflect"))]
+pub trait TypedSeed: SeedableRng<Seed: Debug + Send + Sync + Clone> {}
+
+#[cfg(not(feature = "bevy_reflect"))]
+impl<T: SeedableRng<Seed: Debug + Send + Sync + Clone>> TypedSeed for T {}
+
+/// Trait for handling contraints for valid implementations of [`EntropySource`]
+/// depending on whether reflection support is enabled or not
+#[cfg(feature = "bevy_reflect")]
+pub trait RngReflectable: FromReflect + Reflectable {}
+
+#[cfg(feature = "bevy_reflect")]
+impl<T: FromReflect + Reflectable> RngReflectable for T {}
+
+/// Trait for handling contraints for valid implementations of [`EntropySource`]
+/// depending on whether reflection support is enabled or not
+#[cfg(not(feature = "bevy_reflect"))]
+pub trait RngReflectable: 'static {}
+
+#[cfg(not(feature = "bevy_reflect"))]
+impl<T: 'static> RngReflectable for T {}
+
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
 #[cfg(feature = "serialize")]
 pub trait EntropySource:
     RngCore
-    + SeedableRng<Seed: Typed>
+    + RngReflectable
+    + TypedSeed
     + Clone
     + Debug
     + PartialEq
     + Sync
     + Send
-    + FromReflect
-    + Reflectable
     + Serialize
     + for<'a> Deserialize<'a>
     + private::SealedSeedable
@@ -66,8 +98,7 @@ pub trait EntropySeed:
     + Clone
     + Sync
     + Send
-    + Reflectable
-    + FromReflect
+    + RngReflectable
     + Serialize
     + for<'a> Deserialize<'a>
 {
@@ -82,8 +113,7 @@ impl<
         + Clone
         + Sync
         + Send
-        + Reflectable
-        + FromReflect
+        + RngReflectable
         + Serialize
         + for<'a> Deserialize<'a>,
 > EntropySeed for T
@@ -95,12 +125,11 @@ impl<
 #[cfg(not(feature = "serialize"))]
 pub trait EntropySource:
     RngCore
-    + SeedableRng<Seed: Typed>
+    + TypedSeed
     + Clone
     + Debug
     + PartialEq
-    + Reflectable
-    + FromReflect
+    + RngReflectable
     + Sync
     + Send
     + private::SealedSeedable
@@ -111,12 +140,12 @@ pub trait EntropySource:
 /// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 pub trait EntropySeed:
-    Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect
+    Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngReflectable
 {
 }
 
 #[cfg(not(feature = "serialize"))]
-impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + Reflectable + FromReflect>
+impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngReflectable>
     EntropySeed for T
 {
 }
