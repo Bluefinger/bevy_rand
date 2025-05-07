@@ -7,7 +7,7 @@ If you need a TL;DR of this section, then select `wyrand` for the fastest PRNG w
 All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 ```toml
-bevy_rand = { version = "0.10", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.11", features = ["rand_chacha", "wyrand"] }
 ```
 ```rust ignore
 use bevy::prelude::*;
@@ -15,8 +15,8 @@ use bevy_rand::prelude::{ChaCha8Rng, WyRand};
 ```
 or
 ```toml
-bevy_rand = "0.10"
-bevy_prng = { version = "0.10", features = ["rand_chacha", "wyrand"] }
+bevy_rand = "0.11"
+bevy_prng = { version = "0.11", features = ["rand_chacha", "wyrand"] }
 ```
 ```rust ignore
 use bevy::prelude::*;

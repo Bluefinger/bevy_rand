@@ -13,7 +13,7 @@ extern crate std;
 
 /// Command extensions for relating groups of RNGs.
 pub mod commands;
-/// Components for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
+/// Components for integrating [`rand_core::RngCore`] PRNGs into bevy. Must be newtyped to support [`bevy_reflect::Reflect`].
 pub mod component;
 /// Global [`crate::component::Entropy`] sources, with query helpers.
 pub mod global;
@@ -21,15 +21,15 @@ pub mod global;
 pub mod observers;
 /// Utility query/system parameters for accessing RNGs.
 pub mod params;
-/// Plugin for integrating [`RngCore`] PRNGs into bevy. Must be newtyped to support [`Reflect`].
+/// Plugin for integrating [`rand_core::RngCore`] PRNGs into bevy. Must be newtyped to support [`bevy_reflect::Reflect`].
 pub mod plugin;
 /// Prelude for providing all necessary types for easy use.
 pub mod prelude;
-/// Seed Resource for seeding [`crate::resource::GlobalEntropy`].
+/// Seed Components for seeding [`crate::component::Entropy`].
 pub mod seed;
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
-/// Traits for enabling utility methods for [`crate::component::Entropy`] and [`crate::resource::GlobalEntropy`].
+/// Traits for enabling utility methods for [`crate::component::Entropy`].
 pub mod traits;
 #[cfg(doc)]
 pub mod tutorial;

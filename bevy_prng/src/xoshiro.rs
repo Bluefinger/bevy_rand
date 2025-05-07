@@ -1,29 +1,37 @@
-use crate::newtype::{newtype_prng, newtype_prng_remote};
+use crate::newtype::newtype_prng;
 
+#[cfg(feature = "bevy_reflect")]
+use crate::newtype::newtype_prng_remote;
+
+#[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};
 
-#[cfg(feature = "serialize")]
+#[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
 use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
+#[cfg(feature = "bevy_reflect")]
 /// Remote reflected version of [`rand_xoshiro::Seed512`], needed to support
 /// proper reflection for the 512 bit variants of the Xoshiro PRNG.
-#[reflect_remote(::rand_xoshiro::Seed512)]
+#[cfg_attr(feature = "bevy_reflect", reflect_remote(::rand_xoshiro::Seed512))]
 #[derive(Debug, Default, Clone)]
 #[reflect(Debug, Default)]
 pub struct Seed512(pub [u8; 64]);
 
+#[cfg(feature = "bevy_reflect")]
 impl AsRef<[u8]> for Seed512 {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()
     }
 }
 
+#[cfg(feature = "bevy_reflect")]
 impl AsMut<[u8]> for Seed512 {
     fn as_mut(&mut self) -> &mut [u8] {
         self.0.as_mut()
     }
 }
 
+#[cfg(feature = "bevy_reflect")]
 newtype_prng_remote!(
     Xoshiro512StarStar,
     ::rand_xoshiro::Xoshiro512StarStar,
@@ -32,6 +40,15 @@ newtype_prng_remote!(
     "rand_xoshiro"
 );
 
+#[cfg(not(feature = "bevy_reflect"))]
+newtype_prng!(
+    Xoshiro512StarStar,
+    ::rand_xoshiro::Xoshiro512StarStar,
+    "A newtyped [`rand_xoshiro::Xoshiro512StarStar`] RNG",
+    "rand_xoshiro"
+);
+
+#[cfg(feature = "bevy_reflect")]
 newtype_prng_remote!(
     Xoshiro512PlusPlus,
     ::rand_xoshiro::Xoshiro512PlusPlus,
@@ -40,10 +57,27 @@ newtype_prng_remote!(
     "rand_xoshiro"
 );
 
+#[cfg(not(feature = "bevy_reflect"))]
+newtype_prng!(
+    Xoshiro512PlusPlus,
+    ::rand_xoshiro::Xoshiro512PlusPlus,
+    "A newtyped [`rand_xoshiro::Xoshiro512PlusPlus`] RNG",
+    "rand_xoshiro"
+);
+
+#[cfg(feature = "bevy_reflect")]
 newtype_prng_remote!(
     Xoshiro512Plus,
     ::rand_xoshiro::Xoshiro512Plus,
     Seed512,
+    "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
+    "rand_xoshiro"
+);
+
+#[cfg(not(feature = "bevy_reflect"))]
+newtype_prng!(
+    Xoshiro512Plus,
+    ::rand_xoshiro::Xoshiro512Plus,
     "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
     "rand_xoshiro"
 );

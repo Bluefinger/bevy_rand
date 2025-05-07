@@ -15,6 +15,7 @@ This crate is `no_std` compatible.
 
 By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you require is explicitly defined. In order to gain access to a newtyped PRNG struct, you'll have activate one of the following features:
 
+- **`bevy_reflect`** - Enables reflection support for all `bevy_prng` types.
 - **`std`** - This enables some `std` specific functionality in some PRNGs, particularly in `rand_chacha`. Only for `std` environments.
 - **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
@@ -48,26 +49,27 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 `bevy_prng` uses the same MSRV as `bevy`.
 
-| `bevy` | `bevy_prng`  |
-| ------ | ------------ |
-| v0.16  | v0.10        |
-| v0.15  | v0.8 -> v0.9 |
-| v0.14  | v0.7 -> v0.8 |
-| v0.13  | v0.5 -> v0.6 |
-| v0.12  | v0.2         |
-| v0.11  | v0.1         |
+| `bevy` | `bevy_prng`   |
+| ------ | ------------- |
+| v0.16  | v0.10 - v0.11 |
+| v0.15  | v0.8 - v0.9   |
+| v0.14  | v0.7 - v0.8   |
+| v0.13  | v0.5 - v0.6   |
+| v0.12  | v0.2          |
+| v0.11  | v0.1          |
 
 The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as follows:
 
-| `bevy_prng`   | `rand_core` | `rand` |
-| ------------- | ----------- | ------ |
-| v0.1 -> v0.10 | v0.6        | v0.8   |
+| `bevy_prng`    | `rand_core` | `rand` | `getrandom` | `compat` feature               |
+| -------------- | ----------- | ------ | ----------- | ------------------------------ |
+| v0.10 -> v0.11 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## License
 
 Licensed under either of
 
-- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
-- MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or <http://www.apache.org/licenses/LICENSE-2.0>)
+- MIT license ([LICENSE-MIT](LICENSE-MIT) or <http://opensource.org/licenses/MIT>)
 
 at your option.
