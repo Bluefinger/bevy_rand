@@ -74,24 +74,26 @@ where
     const STORAGE_TYPE: StorageType = StorageType::Table;
     type Mutability = Immutable;
 
-    fn register_component_hooks(hooks: &mut bevy_ecs::component::ComponentHooks) {
-        hooks
-            .on_insert(|mut world, context| {
-                let seed = world
-                    .get::<RngSeed<R>>(context.entity)
-                    .map(|seed| seed.clone_seed())
-                    .unwrap();
-                world
-                    .commands()
-                    .entity(context.entity)
-                    .insert(Entropy::<R>::from_seed(seed));
-            })
-            .on_remove(|mut world, context| {
-                world
-                    .commands()
-                    .entity(context.entity)
-                    .remove::<Entropy<R>>();
-            });
+    fn on_insert() -> Option<bevy_ecs::component::ComponentHook> {
+        Some(|mut world, context| {
+            let seed = world
+                .get::<RngSeed<R>>(context.entity)
+                .map(|seed| seed.clone_seed())
+                .unwrap();
+            world
+                .commands()
+                .entity(context.entity)
+                .insert(Entropy::<R>::from_seed(seed));
+        })
+    }
+
+    fn on_remove() -> Option<bevy_ecs::component::ComponentHook> {
+        Some(|mut world, context| {
+            world
+                .commands()
+                .entity(context.entity)
+                .remove::<Entropy<R>>();
+        })
     }
 }
 
