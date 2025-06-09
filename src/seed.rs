@@ -9,7 +9,11 @@ use bevy_prng::EntropySource;
 use bevy_reflect::Reflect;
 use rand_core::SeedableRng;
 
-use crate::{component::Entropy, traits::SeedSource};
+use crate::{
+    component::{Entropy, FastEntropy},
+    prngs::{FastRngBackend, FastSeed},
+    traits::SeedSource,
+};
 
 /// The initial seed/state for an [`Entropy`]. Adding this component to an `Entity` will cause
 /// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
@@ -123,6 +127,64 @@ where
     #[inline]
     fn deref(&self) -> &Self::Target {
         self.get_seed()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+pub struct FastRngSeed {
+    seed: FastSeed,
+}
+
+impl FastRngSeed {
+    /// Create a new instance of [`FastRngSeed`] from a given `seed` value.
+    #[inline]
+    pub fn from_seed(seed: FastSeed) -> Self {
+        Self { seed }
+    }
+
+    pub fn from_entropy<V: Fn(Prng::Seed, PhantomData<Prng>) -> FastSeed, Prng: SeedableRng>(
+        seed: V,
+    ) -> Self {
+        Self {
+            seed: FastSeed::with_entropy(seed),
+        }
+    }
+
+    #[inline]
+    pub fn get_seed(&self) -> &FastSeed {
+        &self.seed
+    }
+
+    #[inline]
+    pub fn clone_seed(&self) -> FastSeed {
+        self.seed.clone()
+    }
+}
+
+impl Component for FastRngSeed {
+    const STORAGE_TYPE: StorageType = StorageType::Table;
+    type Mutability = Immutable;
+
+    fn on_insert() -> Option<bevy_ecs::component::ComponentHook> {
+        Some(|mut world, context| {
+            let seed = world
+                .get::<FastRngSeed>(context.entity)
+                .map(|seed| seed.clone_seed())
+                .unwrap();
+            world.commands().entity(context.entity).insert(FastEntropy {
+                backend: FastRngBackend::from(seed),
+            });
+        })
+    }
+
+    fn on_remove() -> Option<bevy_ecs::component::ComponentHook> {
+        Some(|mut world, context| {
+            world
+                .commands()
+                .entity(context.entity)
+                .remove::<FastEntropy>();
+        })
     }
 }
 

@@ -1,11 +1,10 @@
 use core::fmt::Debug;
 
 use crate::{
-    seed::RngSeed,
-    traits::{
+    prngs::FastRngBackend, seed::RngSeed, traits::{
         EcsEntropy, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
         ForkableRng, ForkableSeed,
-    },
+    }
 };
 use bevy_ecs::prelude::Component;
 #[cfg(feature = "bevy_reflect")]
@@ -257,6 +256,12 @@ where
     R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
 {
     type Output = R::Seed;
+}
+
+#[derive(Debug, Clone, PartialEq, Component)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+pub struct FastEntropy {
+    pub(crate) backend: FastRngBackend,
 }
 
 #[cfg(test)]
