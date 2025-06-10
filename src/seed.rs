@@ -74,7 +74,7 @@ where
     const STORAGE_TYPE: StorageType = StorageType::Table;
     type Mutability = Immutable;
 
-    fn on_insert() -> Option<bevy_ecs::component::ComponentHook> {
+    fn on_insert() -> Option<bevy_ecs::lifecycle::ComponentHook> {
         Some(|mut world, context| {
             let seed = world
                 .get::<RngSeed<R>>(context.entity)
@@ -87,7 +87,7 @@ where
         })
     }
 
-    fn on_remove() -> Option<bevy_ecs::component::ComponentHook> {
+    fn on_remove() -> Option<bevy_ecs::lifecycle::ComponentHook> {
         Some(|mut world, context| {
             world
                 .commands()
