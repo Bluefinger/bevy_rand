@@ -13,7 +13,7 @@ pub struct RngEntity<Rng: EntropySource> {
     entity: Entity,
 }
 
-impl<Rng: EntropySource> RngEntityItem<'_, Rng> {
+impl<Rng: EntropySource> RngEntityItem<'_, '_, Rng> {
     /// Return the [`Entity`] of the data
     #[inline]
     pub fn entity(&self) -> Entity {

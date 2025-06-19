@@ -87,14 +87,14 @@ pub trait RngCommandsExt {
     /// ```
     fn rng_entity<Rng: EntropySource>(
         &mut self,
-        entity: &RngEntityItem<'_, Rng>,
+        entity: &RngEntityItem<'_, '_, Rng>,
     ) -> RngEntityCommands<'_, Rng>;
 }
 
 impl RngCommandsExt for Commands<'_, '_> {
     fn rng_entity<Rng: EntropySource>(
         &mut self,
-        entity: &RngEntityItem<'_, Rng>,
+        entity: &RngEntityItem<'_, '_, Rng>,
     ) -> RngEntityCommands<'_, Rng> {
         self.entity(entity.entity()).rng()
     }
