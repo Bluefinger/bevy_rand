@@ -17,6 +17,8 @@ fn prng_compatibility() {
     let boundary = circle.sample_boundary(&mut source);
     let interior = circle.sample_interior(&mut source);
 
+    // Reduce the precision of the check to account for Miri's randomness, which simulates
+    // the undefined precision of some float operations
     assert!(boundary.abs_diff_eq(Vec2::new(-40.885902, 9.609526), f32::EPSILON * 1000.0));
     assert!(interior.abs_diff_eq(Vec2::new(-15.362211, 32.41336), f32::EPSILON * 1000.0));
 }
@@ -32,6 +34,8 @@ fn component_compatibility() {
             let boundary = circle.sample_boundary(source.as_mut());
             let interior = circle.sample_interior(source.as_mut());
 
+            // Reduce the precision of the check to account for Miri's randomness, which simulates
+            // the undefined precision of some float operations
             assert!(boundary.abs_diff_eq(Vec2::new(-40.885902, 9.609526), f32::EPSILON * 1000.0));
             assert!(interior.abs_diff_eq(Vec2::new(-15.362211, 32.41336), f32::EPSILON * 1000.0));
         })
