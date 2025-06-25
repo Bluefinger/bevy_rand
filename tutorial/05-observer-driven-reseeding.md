@@ -1,6 +1,6 @@
 # Observer-driven and Command-based Reseeding
 
-Managing the seeding of related RNGs manually can be complex and also boilerplate-y, so `bevy_rand` provides a commands API powered by observers and bevy relations to make it much more easy to setup and maintain. This way, pushing a new seed to a single "source" RNG will then automatically push out new seeds to all linked "target" RNGs. It can also be set up for seeding between different kinds of PRNG, but it does require the addition of an extra plugin in order to facilitate this particular case.
+Managing the seeding of related RNGs manually can be complex and also boilerplate-y, so `bevy_rand` provides a commands API powered by observers and bevy relations to make it much easier to setup and maintain. This way, pushing a new seed to a single "source" RNG will then automatically push out new seeds to all linked "target" RNGs. It can also be set up for seeding between different kinds of PRNG, but it does require the addition of an extra plugin in order to facilitate this particular case.
 
 The nature of the relations are strictly either One to One or One to Many. Many to Many relations are **not** supported, as it does not make sense for PRNG to have multiple source PRNGs.
 
@@ -83,7 +83,7 @@ The commands API takes an `EntityCommands` and extends it to provide an `rng()` 
 
 For entities that already have `RngSeed` attached to them, you can make use of `RngEntity` to query them. `Commands` also has a `rng()` method provided that takes a `&RngEntity` to give a `RngEntityCommands` without needing to explicitly provide the generics parameter to yield the correct PRNG target.
 
-These command APIs are designed to alleviate or reduce some of the generic typing around the Rng components, so to make it less error prone and more robust that you are targetting the correct PRNG type, and also to make it easier on querying and managing more complex relations of dependencies between RNGs for seeding.
+These command APIs are designed to alleviate or reduce some of the generic typing around the Rng components, so to make it less error prone and more robust that you are targeting the correct PRNG type, and also to make it easier on querying and managing more complex relations of dependencies between RNGs for seeding.
 
 Once the relations are created, it becomes easy to pull new seeds from sources/global using the commands API:
 
@@ -157,7 +157,7 @@ fn pull_seed_from_parent(mut commands: Commands, mut q_targets: Query<Entity, Wi
 
 ## Note about relations between PRNG types
 
-As covered in Chapter One: "Selecting and using PRNG Algorithms", when creating relationship between different PRNG types, do not seed a stronger PRNG from a weaker one. CSPRNGs like `ChaCha8` should be seeded by either other `ChaCha8` sources or "stronger" sources like `ChaCha12` or `ChaCha20`, never from ones like `WyRand` or `Xoshiro256StarStar`. Always go from stronger to weaker, or same to same, never from weaker to stronger. Doing so makes it easier to predict the seeded PRNG, and reduces the advantage of using a CSPRNG in the first place.
+As covered in Chapter One: "Selecting and using PRNG Algorithms", when creating relationships between different PRNG types, do not seed a stronger PRNG from a weaker one. CSPRNGs like `ChaCha8` should be seeded by either other `ChaCha8` sources or "stronger" sources like `ChaCha12` or `ChaCha20`, never from ones like `WyRand` or `Xoshiro256StarStar`. Always go from stronger to weaker, or same to same, never from weaker to stronger. Doing so makes it easier to predict the seeded PRNG, and reduces the advantage of using a CSPRNG in the first place.
 
 So in summary:
 
@@ -167,5 +167,5 @@ So in summary:
 | `ChaCha12` / `ChaCha20`              | `ChaCha8`                            | ✅ Good |
 | `ChaCha8`                            | `ChaCha8`                            | ✅ Good |
 | `WyRand`                             | `WyRand`                             | ✅ Good |
-| `Wyrand` /`Xoshiro256StarStar`       | `ChaCha8` / `ChaCha12` / `ChaCha20`  | ❌ Bad  |
+| `WyRand` /`Xoshiro256StarStar`       | `ChaCha8` / `ChaCha12` / `ChaCha20`  | ❌ Bad  |
 | `ChaCha8`                            | `ChaCha12` / `ChaCha20`              | ❌ Bad  |
