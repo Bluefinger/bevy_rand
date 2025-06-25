@@ -66,7 +66,7 @@ fn spawn_randomised_npcs(mut commands: Commands, mut rng: GlobalEntropy<WyRand>)
 }
 ```
 
-The above system will iterate a set number of times, and will yield 10 randomis `u32` values, leaving the PRNG in a determined state. Any system that then accesses `GlobalEntropy<WyRand>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
+The above system will iterate a set number of times, and will yield 10 randomised `u32` values, leaving the PRNG in a determined state. Any system that then accesses `GlobalEntropy<WyRand>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
 
 However, iterating over queries will **not** yield deterministic output, as queries are not guaranteed to iterate over collected entities in the same order every time the system is ran. Therefore, the below example will not have deterministic output.
 

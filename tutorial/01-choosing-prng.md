@@ -50,7 +50,7 @@ use bevy_rand::prelude::EntropyPlugin;
 use rand_core::RngCore;
 
 fn main() {
-    let seed: u64 = 234; // How you source this is upto you.
+    let seed: u64 = 234; // How you source this is up to you.
     
     App::new()
         .add_plugins(EntropyPlugin::<WyRand>::with_seed(seed.to_ne_bytes()))
@@ -63,7 +63,7 @@ fn main() {
 The current set of PRNG algorithms that are supported out of the box in `bevy_prng` are as follows:
 
 - `wyrand`: This provides newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
-- `rand_xoshiro`: This provides newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
+- `rand_xoshiro`: This provides newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` to allow setting up `Xoshiro512StarStar` and so forth.
 - `rand_pcg`: This provides newtyped `Pcg*` structs from `rand_pcg`.
 - `rand_chacha`: This provides newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
 
@@ -75,4 +75,4 @@ Trying to use PRNGs directly as resources/components from the `rand_*` crates is
 
 As a whole, which algorithm should be used/selected is dependent on a range of factors. Cryptographically Secure PRNGs (CSPRNGs) produce very hard to predict output (very high quality entropy), but in general are slow. The ChaCha algorithm can be sped up by using versions with less rounds (iterations of the algorithm), but this in turn reduces the quality of the output (making it easier to predict), or by compiling with CPU features enabled such as SIMD (AVX2 support in particular). However, `ChaCha8Rng` is still far stronger than what is feasible to be attacked, and is considerably faster as a source of entropy than the full `ChaCha20Rng`. `rand` uses `ChaCha12Rng` as a balance between security/quality of output and speed for its `StdRng`. CSPRNGs are important for cases when you _really_ don't want your output to be predictable and you need that extra level of assurance, such as doing any cryptography/authentication/security tasks. Do note however, `rand` is not intended to be a cryptography crate, nor used for cryptography purposes, and that should be delegated towards crates designed for that purpose.
 
-If that extra level of randomness is not necessary (which will be most cases within a game), but there is still need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256StarStar` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be. PRNGs like `WyRand` also have small state sizes, which makes them take less memory per instance compared to CSPRNGs like `ChaCha8Rng`.
+If that extra level of randomness is not necessary (which will be most cases within a game), but there is still a need for extra speed while maintaining good enough randomness, other PRNG algorithms exist for this purpose. These algorithms still try to output as high quality entropy as possible, but the level of entropy is not enough for cryptographic purposes. These algorithms should **never be used in situations that demand security**. Algorithms like `WyRand` and `Xoshiro256StarStar` are tuned for maximum throughput, while still possessing _good enough_ entropy for use as a source of randomness for non-security purposes. It still matters that the output is not predictable, but not to the same extent as CSPRNGs are required to be. PRNGs like `WyRand` also have small state sizes, which makes them take less memory per instance compared to CSPRNGs like `ChaCha8Rng`.
