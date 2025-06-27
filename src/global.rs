@@ -2,16 +2,14 @@ use core::fmt::Debug;
 
 use bevy_ecs::{
     component::Component,
-    entity::Entity,
     query::With,
     system::{Commands, Single, SystemParam},
 };
 use bevy_prng::EntropySource;
 
 use crate::{
-    params::RngEntity,
+    params::{RngEntity, RngEntityItem},
     prelude::{Entropy, RngEntityCommands, RngEntityCommandsExt},
-    seed::RngSeed,
 };
 
 /// A marker component to signify a global source. Warning: there should only be **one** entity per
@@ -46,19 +44,12 @@ impl<Rng: EntropySource> GlobalRngEntity<'_, '_, Rng> {
     pub fn rng_commands(&mut self) -> RngEntityCommands<'_, Rng> {
         self.commands.entity(self.data.entity()).rng()
     }
+}
 
-    /// Return the [`Entity`] of the data
-    pub fn entity(&self) -> Entity {
-        self.data.entity()
-    }
+impl<'w, 's, Rng: EntropySource> core::ops::Deref for GlobalRngEntity<'w, 's, Rng> {
+    type Target = RngEntityItem<'w, 's, Rng>;
 
-    /// Get a reference to the [`RngSeed`] component for the given data
-    pub fn seed(&self) -> &RngSeed<Rng> {
-        self.data.seed()
-    }
-
-    /// Clone the seed from the data
-    pub fn clone_seed(&self) -> Rng::Seed {
-        self.data.clone_seed()
+    fn deref(&self) -> &Self::Target {
+        &self.data
     }
 }

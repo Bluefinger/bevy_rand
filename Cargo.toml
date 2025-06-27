@@ -11,9 +11,9 @@ version = "0.11.0"
 rust-version = "1.86.0"
 
 [workspace.dependencies]
-bevy_app = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
-bevy_ecs = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
-bevy_reflect = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
+bevy_app = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
+bevy_ecs = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
+bevy_reflect = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 serde = { version = "1.0.218", default-features = false, features = ["derive"] }
 rand_core = { version = "0.9.3", features = ["os_rng"] }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
@@ -75,13 +75,13 @@ serde = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.11" }
 
 [dev-dependencies]
-bevy_app = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy_app = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_ecs = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy_ecs = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
     "bevy_reflect",
 ] }
-bevy_math = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
+bevy_math = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
 bevy_prng = { path = "bevy_prng", version = "0.11", default-features = false, features = [
     "rand_chacha",
     "wyrand",
@@ -93,7 +93,7 @@ ron = { version = "0.8.0", features = ["integer128"] }
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
-bevy_ecs = { version = "0.16.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy_ecs = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
     "bevy_reflect",
 ] }
 
