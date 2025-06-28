@@ -13,7 +13,7 @@ Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS
 
 ### Tutorial
 
-> There's now a tutorial section, [**go to here**](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.
+**There's now a tutorial section, [go to here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.**
 
 Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `rand_chacha` directly will not work as these don't implement the necessary traits to support bevy's reflection.
 
