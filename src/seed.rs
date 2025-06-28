@@ -92,7 +92,7 @@ where
             world
                 .commands()
                 .entity(context.entity)
-                .remove::<Entropy<R>>();
+                .try_remove::<Entropy<R>>();
         })
     }
 }
