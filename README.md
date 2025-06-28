@@ -11,7 +11,9 @@ Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS
 
 ## Using Bevy Rand
 
-> There's now a tutorial, [go to here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`.
+### Tutorial
+
+> There's now a tutorial section, [**go to here**](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.
 
 Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `rand_chacha` directly will not work as these don't implement the necessary traits to support bevy's reflection.
 
@@ -95,14 +97,14 @@ fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
 }
 ```
 
-### Forking RNGs
+### Forking RNGs/Seeds
 
-For seeding `Entropy`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `Entropy` instances.
+For seeding `Entropy`s from a global source, it is best to make use of forking instead of generating the seed value directly. `GlobalEntropy` can only exist as a singular instance, so when forking normally, it will always fork as `Entropy` instances. More usefully, you can fork just the seeds as `RngSeed`, which will then initialise `Entropy` for you.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
+use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
 
 #[derive(Component)]
 struct Source;
@@ -111,7 +113,7 @@ fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
     commands
         .spawn((
             Source,
-            global.fork_rng(),
+            global.fork_seed(),
         ));
 }
 ```
@@ -121,7 +123,7 @@ fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableRng};
+use bevy_rand::prelude::{Entropy, ForkableSeed};
 
 #[derive(Component)]
 struct Npc;
@@ -137,7 +139,7 @@ fn setup_npc_from_source(
        commands
            .spawn((
                Npc,
-               q_source.fork_rng()
+               q_source.fork_seed()
            ));
    }
 }
