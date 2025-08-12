@@ -68,8 +68,6 @@ where
 
         let world = app.world_mut();
 
-        world.register_component_hooks::<RngSeed<Rng>>();
-
         world.spawn((
             self.seed
                 .clone()

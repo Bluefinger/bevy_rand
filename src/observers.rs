@@ -6,7 +6,7 @@ use bevy_ecs::{
     event::EntityEvent,
     lifecycle::Insert,
     observer::On,
-    prelude::{Commands, Component, Entity, Event, With},
+    prelude::{Commands, Component, Entity, With},
     system::Query,
 };
 
@@ -69,7 +69,7 @@ impl<Source: EntropySource, Target: EntropySource> RngSource<Source, Target> {
 
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
-#[derive(Debug, Event, EntityEvent)]
+#[derive(Debug, EntityEvent)]
 pub struct SeedFromGlobal<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedFromGlobal<Source, Target> {
@@ -81,7 +81,7 @@ impl<Source: EntropySource, Target: EntropySource> Default for SeedFromGlobal<So
 
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
-#[derive(Debug, Event, EntityEvent)]
+#[derive(Debug, EntityEvent)]
 pub struct SeedLinked<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedLinked<Source, Target> {
@@ -93,7 +93,7 @@ impl<Source: EntropySource, Target: EntropySource> Default for SeedLinked<Source
 
 /// Observer event for triggering an entity to pull a new seed value from a
 /// linked parent entity.
-#[derive(Debug, Event, EntityEvent)]
+#[derive(Debug, EntityEvent)]
 pub struct SeedFromSource<Source, Target>(PhantomData<Source>, PhantomData<Target>);
 
 impl<Source: EntropySource, Target: EntropySource> Default for SeedFromSource<Source, Target> {
