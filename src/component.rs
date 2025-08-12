@@ -12,7 +12,7 @@ use bevy_ecs::prelude::Component;
 use bevy_ecs::prelude::ReflectComponent;
 use bevy_prng::EntropySource;
 #[cfg(feature = "bevy_reflect")]
-use bevy_reflect::{Reflect, ReflectFromReflect};
+use bevy_reflect::{Reflect, ReflectFromReflect, prelude::ReflectDefault};
 use rand_core::{RngCore, SeedableRng, TryRngCore};
 
 #[cfg(feature = "thread_local_entropy")]
@@ -106,11 +106,19 @@ use serde::Deserialize;
 )]
 #[cfg_attr(
     all(feature = "serialize", feature = "bevy_reflect"),
-    reflect(Debug, PartialEq, Component, FromReflect, Serialize, Deserialize)
+    reflect(
+        Debug,
+        PartialEq,
+        Component,
+        FromReflect,
+        Default,
+        Serialize,
+        Deserialize
+    )
 )]
 #[cfg_attr(
     all(not(feature = "serialize"), feature = "bevy_reflect"),
-    reflect(Debug, PartialEq, Component, FromReflect)
+    reflect(Debug, PartialEq, Component, FromReflect, Default)
 )]
 pub struct Entropy<R: EntropySource>(R);
 
