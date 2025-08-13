@@ -112,13 +112,14 @@ use serde::Deserialize;
         Component,
         FromReflect,
         Default,
+        Clone,
         Serialize,
         Deserialize
     )
 )]
 #[cfg_attr(
     all(not(feature = "serialize"), feature = "bevy_reflect"),
-    reflect(Debug, PartialEq, Component, FromReflect, Default)
+    reflect(Debug, PartialEq, Component, FromReflect, Default, Clone)
 )]
 pub struct Entropy<R: EntropySource>(R);
 
