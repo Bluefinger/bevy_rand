@@ -1,0 +1,13 @@
+[package]
+name = "bevy_rand_examples"
+authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
+edition = "2024"
+repository = "https://github.com/Bluefinger/bevy_rand"
+license = "MIT OR Apache-2.0"
+version = "0.12.0"
+rust-version = "1.86.0"
+
+[dependencies]
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy" }
+bevy_rand = { path = "..", version = "0.12", features = ["wyrand"] }
+rand = "0.9"

@@ -7,14 +7,15 @@ use bevy_ecs::{
     lifecycle::Insert,
     observer::On,
     prelude::{Commands, Component, Entity, With},
-    system::Query,
+    system::{Query, Single},
 };
 
 use bevy_prng::EntropySource;
 
 use crate::{
+    global::GlobalRng,
     params::RngEntity,
-    prelude::{Entropy, GlobalEntropy, RngCommandsExt},
+    prelude::{Entropy, RngCommandsExt},
     traits::ForkableAsSeed,
 };
 
@@ -106,7 +107,7 @@ impl<Source: EntropySource, Target: EntropySource> Default for SeedFromSource<So
 /// Observer System for pulling in a new seed from a GlobalEntropy source
 pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     trigger: On<SeedFromGlobal<Source, Target>>,
-    mut source: GlobalEntropy<Source>,
+    mut source: Single<&mut Entropy<Source>, With<GlobalRng>>,
     mut commands: Commands,
 ) -> Result {
     let target = trigger.target();

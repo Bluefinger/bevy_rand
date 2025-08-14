@@ -202,6 +202,7 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_math",
+ "bevy_platform",
  "bevy_prng",
  "bevy_reflect",
  "getrandom 0.2.16",
