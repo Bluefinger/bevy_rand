@@ -1,6 +1,6 @@
 [workspace]
 members = ["bevy_prng"]
-exclude = ["bevy_rand_examples"]
+exclude = ["examples"]
 resolver = "3"
 
 [workspace.package]

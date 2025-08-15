@@ -135,8 +135,7 @@ fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
                 RngLinks::<WyRand, WyRand>::default(),
                 Children::spawn(SpawnWith(child_spawner)),
             ),
-        ])
-        .reseed_linked();
+        ]).reseed_linked();
 }
 
 fn observer_setup(
@@ -163,8 +162,10 @@ fn next_turn(
     >,
     mut global: Single<&mut Entropy<WyRand>, (With<GlobalRng>, Without<Character>)>,
     mut commands: Commands,
+    mut global_rng: GlobalRngEntity<WyRand>,
 ) {
     info!("Next turn!\n");
+
     let mut order: Vec<_> = characters.iter_mut().collect();
 
     order.shuffle(&mut global);
@@ -183,6 +184,10 @@ fn next_turn(
                 entity,
             )
         });
+    
+    // Do note *when* the events kick in. This event will take effect *after* the turn
+    // has completed, even if you were to place it at the top of the function.
+    global_rng.rng_commands().reseed_linked();
 }
 
 /// An observer system that takes a charater's turn to attack a piece of the enemy's armor. Who is attacked

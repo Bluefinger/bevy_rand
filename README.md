@@ -158,7 +158,22 @@ fn setup_npc_from_source(
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
-- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions. **Currently enabled by default in order to support `bevy_math`, which is still using `rand` v0.8**.
+- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+
+## Examples
+
+Examples are found in the `/examples` folder, located within `src/bin`. To run the examples, follow the instructions below:
+
+1. Change directory to the examples folder
+```sh
+cd examples
+```
+2. Run the example with the following command. You can substitute the `--bin` value with the filename of any example within `src/bin` to run it.
+```sh
+cargo run --release --bin mine_clicker
+```
+
+More info about the examples can be [found here](examples/README.md).
 
 ## Supported Versions & MSRV
 
