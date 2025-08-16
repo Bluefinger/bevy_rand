@@ -5,7 +5,7 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 use rand_core::{OsRng, RngCore, SeedableRng, TryRngCore};
 
-use crate::{global::Global, prelude::Entropy, seed::RngSeed};
+use crate::{global::GlobalRng, prelude::Entropy, seed::RngSeed};
 
 /// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
@@ -19,12 +19,12 @@ pub trait ForkableRng: EcsEntropy {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
+    /// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -51,13 +51,13 @@ pub trait ForkableAsRng: EcsEntropy {
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsRng};
+    /// use bevy_rand::prelude::{Entropy, ForkableAsRng, GlobalRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha12Rng>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha12Rng>, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -82,7 +82,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     /// This method yields the inner PRNG instance directly as a forked instance.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerRng};
+    /// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableInnerRng};
     /// use bevy_prng::ChaCha8Rng;
     /// use rand_core::RngCore;
     ///
@@ -93,7 +93,7 @@ pub trait ForkableInnerRng: EcsEntropy {
     ///     println!("Random value: {}", source.next_u32());
     /// }
     ///
-    /// fn access_source(mut global: GlobalEntropy<ChaCha8Rng>) {
+    /// fn access_source(mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     ///     let mut source = global.fork_inner();
     ///
     ///     do_random_action(&mut source);
@@ -117,12 +117,12 @@ pub trait ForkableSeed<S: EntropySource>: EcsEntropy {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
+    /// use bevy_rand::prelude::{Entropy, ForkableSeed, GlobalRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -154,13 +154,13 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     /// This method allows one to specify the RNG algorithm to be used for the forked seed.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableAsSeed};
+    /// use bevy_rand::prelude::{Entropy, ForkableAsSeed, GlobalRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha12Rng>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -190,12 +190,12 @@ pub trait ForkableInnerSeed<S: EntropySource>: EcsEntropy {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{GlobalEntropy, ForkableInnerSeed, SeedSource, RngSeed};
+    /// use bevy_rand::prelude::{Entropy, ForkableInnerSeed, GlobalRng, SeedSource, RngSeed};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -358,14 +358,14 @@ impl ForkRngExt for &mut World {
     fn fork_as<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<Entropy<Target>> {
-        self.query_filtered::<&mut Entropy<Source>, With<Global>>()
+        self.query_filtered::<&mut Entropy<Source>, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_as::<Target>())
     }
 
     /// Forks the inner Rng from the [`Global`] source.
     fn fork_inner<Target: EntropySource>(&mut self) -> Self::Output<Target> {
-        self.query_filtered::<&mut Entropy<Target>, With<Global>>()
+        self.query_filtered::<&mut Entropy<Target>, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_inner())
     }
@@ -385,14 +385,14 @@ impl ForkSeedExt for &mut World {
     fn fork_as_seed<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<RngSeed<Target>> {
-        self.query_filtered::<&mut Entropy<Source>, With<Global>>()
+        self.query_filtered::<&mut Entropy<Source>, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_as_seed::<Target>())
     }
 
     /// Forks a new Seed from the [`Global`] source.
     fn fork_inner_seed<Target: EntropySource>(&mut self) -> Self::Output<Target::Seed> {
-        self.query_filtered::<&mut Entropy<Target>, With<Global>>()
+        self.query_filtered::<&mut Entropy<Target>, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_inner_seed())
     }

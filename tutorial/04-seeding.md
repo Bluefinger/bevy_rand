@@ -56,12 +56,12 @@ It also means all the previous examples about forking `Entropy` components can b
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableSeed};
+use bevy_rand::prelude::{Entropy, GlobalRng, ForkableSeed};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -97,13 +97,13 @@ Reinsertions do not invoke archetype moves, so this will not cause any extra ove
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalEntropy, RngEntity, RngCommandsExt};
+use bevy_rand::prelude::{Entropy, GlobalRng, RngEntity, RngCommandsExt};
 use rand::Rng;
 
 #[derive(Component)]
 struct Source;
 
-fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: GlobalEntropy<WyRand>) {
+fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
     for rng_entity in q_sources.iter() {
         commands.rng_entity(&rng_entity).reseed(global.random());
     }

@@ -2,8 +2,8 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
 use bevy_rand::prelude::{
-    Entropy, EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed,
-    GlobalEntropy, GlobalRngEntity,
+    Entropy, EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed, GlobalRng,
+    GlobalRngEntity,
 };
 use rand::prelude::Rng;
 
@@ -70,7 +70,10 @@ fn random_output_e(mut rng: Single<&mut Entropy<WyRand>, With<SourceE>>) {
     );
 }
 
-fn setup_sources(mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>) {
+fn setup_sources(
+    mut commands: Commands,
+    mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>,
+) {
     commands.spawn((SourceA, rng.fork_rng()));
 
     commands.spawn((SourceB, rng.fork_seed()));

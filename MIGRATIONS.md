@@ -85,3 +85,50 @@ bevy_rand = { version = "0.11", default-features = false, features = ["bevy_refl
 ```
 
 This change does not affect default/`std` usage of `bevy_rand`, which includes `bevy_reflect` support out of the box.
+
+## Migrating from v0.11 to v0.12
+
+The breaking changes here are that for `RngEntityCommands`, `with_target_rng` and `with_target_rngs_as` no longer automatically send a reseed event after spawning. This will need to be done manually with `reseed_linked` or `reseed_linked_as` after a spawn, like so:
+
+```diff
+use bevy_ecs::prelude::*;
+use bevy_rand::prelude::*;
+use bevy_prng::{ChaCha8Rng, WyRand};
+
+#[derive(Component)]
+struct Source;
+#[derive(Component)]
+struct Target;
+
+fn setup_rng_sources(mut global: GlobalRngEntity<ChaCha8Rng>) {
+    global
+        .rng_commands()
+        .with_target_rngs_as::<WyRand>([(
+            Source,
+            RngLinks::<WyRand, WyRand>::spawn((
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+                Spawn(Target),
+            )),
+-       )]);
++       )])
++       .reseed_linked_as::<WyRand>();
+}
+```
+
+The `Global` marker struct is now `GlobalRng`, and the type helper `GlobalEntropy` is no longer provided. Feel free to make your own type alias for the `Single` query.
+
+```diff
++use bevy_ecs::prelude::*;
+use bevy_prng::ChaCha8Rng;
+-use bevy_rand::prelude::GlobalEntropy;
++use bevy_rand::prelude::{Entropy, GlobalRng};
+use rand_core::RngCore;
+
+-fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
++fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+    println!("Random value: {}", rng.next_u32());
+}
+```

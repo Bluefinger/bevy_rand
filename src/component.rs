@@ -57,12 +57,12 @@ use serde::Deserialize;
 /// ```
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::ChaCha8Rng;
-/// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
+/// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
 ///
 /// #[derive(Component)]
 /// struct Source;
 ///
-/// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+/// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
 ///     commands
 ///         .spawn((
 ///             Source,
