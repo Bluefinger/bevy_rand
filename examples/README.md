@@ -25,3 +25,13 @@ This example showcases how more complex relations can help maintain determinism,
 This example uses a set seed to showcase deterministic outcomes for complex RNG relations/configurations.
 
 To run: `cargo run --release --bin turn_based`
+
+## Building/Running the examples with Bevy CLI
+
+If you are using the [Bevy CLI](https://github.com/TheBevyFlock/bevy_cli), you can run the examples directly using the CLI, and can even build them for the web. So for example, to run `mine_clicker` on the web with the CLI, use the following command:
+
+```sh
+bevy run --release --bin mine_clicker web
+```
+
+This should then compile and host the example to be run in the browser.
