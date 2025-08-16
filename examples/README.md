@@ -10,6 +10,8 @@ This is adapted from [Bevy's ECS Observers](https://github.com/bevyengine/bevy/b
 
 As a further addition, right clicking demonstrates the power of sending just one event to the GlobalRng to reseed, which then automatically reseeds all its linked RNGs in turn, doing so deterministically.
 
+This example uses fully randomised initial state.
+
 To run: `cargo run --release --bin mine_clicker`
 
 ### `turn_based`
@@ -19,5 +21,7 @@ This is adapted from Bevy's ECS Observer propagation example, but combined with 
 During a turn, a `Character` uses its own RNG state to select a hostile target and which armor piece to attack. This targetted armor piece then has its own RNG state to roll a chance for the attack to glance off, doing no damage. The order of which `Character` does an attack is randomised per turn, and at the end of each turn, the RNG states of all entities are reseeded.
 
 This example showcases how more complex relations can help maintain determinism, so that not just GlobalRng can be used to keep RNG states in sync, but also Parent-Child related entities as well.
+
+This example uses a set seed to showcase deterministic outcomes for complex RNG relations/configurations.
 
 To run: `cargo run --release --bin turn_based`

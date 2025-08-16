@@ -8,7 +8,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()),
+            EntropyPlugin::<WyRand>::new(),
             EntropyRelationsPlugin::<WyRand, WyRand>::default(),
         ))
         .init_resource::<SpatialIndex>()
