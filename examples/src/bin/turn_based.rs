@@ -201,7 +201,7 @@ fn attack_target(
     let target_kind = trigger.kind;
 
     // Check if character has been killed already.
-    if !characters.contains(trigger.target()) {
+    if !characters.contains(trigger.entity()) {
         return;
     }
 
@@ -226,7 +226,7 @@ fn attack_target(
 }
 
 fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
-    if let Ok(name) = name.get(trigger.target()) {
+    if let Ok(name) = name.get(trigger.entity()) {
         info!("Attack hit {}", name);
     }
 }
@@ -234,7 +234,7 @@ fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
 /// A callback placed on [`Armor`], checking if the blow glanced off or if it absorbed all the [`Attack`] damage.
 /// Here, the Armor has its own RNG state to calculate whether a blow glances off it, not relying on the parent RNG state.
 fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut Entropy<WyRand>, &Armor, &Name)>) {
-    if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.target()) {
+    if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.entity()) {
         let attack = trigger.event_mut();
         let glance = rng.random_bool(0.1);
 
@@ -269,14 +269,14 @@ fn take_damage(
     mut app_exit: EventWriter<AppExit>,
 ) {
     let attack = trigger.event();
-    let (mut health, name) = hp.get_mut(trigger.target()).unwrap();
+    let (mut health, name) = hp.get_mut(trigger.entity()).unwrap();
     health.points = health.points.saturating_sub(attack.damage);
 
     if health.points > 0 {
         info!("{} has {:.1} HP", name, health.points);
     } else {
         warn!("💀 {} has died a gruesome death", name);
-        commands.entity(trigger.target()).despawn();
+        commands.entity(trigger.entity()).despawn();
         app_exit.write(AppExit::Success);
     }
 
