@@ -9,19 +9,15 @@ use bevy_prng::EntropySource;
 
 use crate::{
     params::{RngEntity, RngEntityItem},
-    prelude::{Entropy, RngEntityCommands, RngEntityCommandsExt},
+    prelude::{RngEntityCommands, RngEntityCommandsExt},
 };
 
 /// A marker component to signify a global source. Warning: there should only be **one** entity per
 /// PRNG type that qualifies as the `Global` source.
 #[derive(Debug, Component)]
-pub struct Global;
+pub struct GlobalRng;
 
-/// A helper query to yield the [`Global`] source for a given [`bevy_prng::EntropySource`]. This returns the
-/// [`Entropy`] component to generate new random numbers from.
-pub type GlobalEntropy<'w, 's, T> = Single<'w, 's, &'static mut Entropy<T>, With<Global>>;
-
-/// A helper [`SystemParam`] to obtain the [`Global`] entity & seed of a given `Rng`. This yields
+/// A helper [`SystemParam`] to obtain the [`GlobalRng`] entity & seed of a given `Rng`. This yields
 /// read-only access to the global entity and its seed, and also allows constructing a
 /// [`RngEntityCommands`] directly from it.
 /// ```
@@ -36,11 +32,11 @@ pub type GlobalEntropy<'w, 's, T> = Single<'w, 's, &'static mut Entropy<T>, With
 #[derive(SystemParam)]
 pub struct GlobalRngEntity<'w, 's, Rng: EntropySource> {
     commands: Commands<'w, 's>,
-    data: Single<'w, 's, RngEntity<Rng>, With<Global>>,
+    data: Single<'w, 's, RngEntity<Rng>, With<GlobalRng>>,
 }
 
 impl<Rng: EntropySource> GlobalRngEntity<'_, '_, Rng> {
-    /// Creates a [`Global`]'s [`RngEntityCommands`].
+    /// Creates a [`GlobalRng`]'s [`RngEntityCommands`].
     pub fn rng_commands(&mut self) -> RngEntityCommands<'_, Rng> {
         self.commands.entity(self.data.entity()).rng()
     }
