@@ -15,7 +15,6 @@ rust-version = "1.86.0"
 bevy_app = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 bevy_ecs = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 bevy_reflect = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
-bevy_platform = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 serde = { version = "1.0.218", default-features = false, features = ["derive"] }
 rand_core = { version = "0.9.3", features = ["os_rng"] }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
@@ -83,7 +82,6 @@ bevy_app = { workspace = true, features = [
 bevy_ecs = { workspace = true, features = [
     "bevy_reflect",
 ] }
-bevy_platform = { workspace = true }
 bevy_math = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
 bevy_prng = { path = "bevy_prng", version = "0.12", default-features = false, features = [
     "rand_chacha",
