@@ -10,11 +10,11 @@ macro_rules! newtype_prng {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(opaque, Debug, Clone, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
@@ -114,11 +114,11 @@ macro_rules! newtype_prng_remote {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(opaque, Debug, Clone, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]

@@ -67,7 +67,7 @@ checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
 [[package]]
 name = "bevy_app"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_derive",
  "bevy_ecs",
@@ -85,7 +85,7 @@ dependencies = [
 [[package]]
 name = "bevy_derive"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_macro_utils",
  "quote",
@@ -95,7 +95,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_ecs_macros",
  "bevy_platform",
@@ -120,7 +120,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs_macros"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_macro_utils",
  "proc-macro2",
@@ -131,7 +131,7 @@ dependencies = [
 [[package]]
 name = "bevy_macro_utils"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "parking_lot",
  "proc-macro2",
@@ -143,7 +143,7 @@ dependencies = [
 [[package]]
 name = "bevy_math"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "approx",
  "bevy_reflect",
@@ -161,7 +161,7 @@ dependencies = [
 [[package]]
 name = "bevy_platform"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "critical-section",
  "foldhash",
@@ -193,7 +193,7 @@ dependencies = [
 [[package]]
 name = "bevy_ptr"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 
 [[package]]
 name = "bevy_rand"
@@ -218,7 +218,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "assert_type_match",
  "bevy_platform",
@@ -243,7 +243,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect_derive"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_macro_utils",
  "indexmap",
@@ -256,7 +256,7 @@ dependencies = [
 [[package]]
 name = "bevy_tasks"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "async-channel",
  "async-task",
@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "bevy_utils"
 version = "0.17.0-dev"
-source = "git+https://github.com/bevyengine/bevy#5058f8a9e67182f202f6a9945681964598280872"
+source = "git+https://github.com/bevyengine/bevy#94612afb5f7c8e7643d6d5e23afb4b591f136a2f"
 dependencies = [
  "bevy_platform",
  "disqualified",
@@ -280,9 +280,9 @@ dependencies = [
 
 [[package]]
 name = "bitflags"
-version = "2.9.2"
+version = "2.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a65b545ab31d687cff52899d4890855fec459eb6afe0da6417b8a18da87aa29"
+checksum = "2261d10cca569e4643e526d8dc2e62e433cc8aba21ab764233731f8d369bf394"
 dependencies = [
  "serde",
 ]
@@ -321,10 +321,11 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "cc"
-version = "1.2.33"
+version = "1.2.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ee0f8803222ba5a7e2777dd72ca451868909b1ac410621b676adf07280e9b5f"
+checksum = "590f9024a68a8c40351881787f1934dc11afd69090f5edb6831464694d836ea3"
 dependencies = [
+ "find-msvc-tools",
  "shlex",
 ]
 
@@ -394,9 +395,9 @@ checksum = "c9c272297e804878a2a4b707cfcfc6d2328b5bb936944613b4fdf2b9269afdfd"
 
 [[package]]
 name = "downcast-rs"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea8a8b81cacc08888170eef4d13b775126db426d0b348bee9d18c2c1eaf123cf"
+checksum = "117240f60069e65410b3ae1bb213295bd828f707b5bec6596a1afc8793ce0cbc"
 
 [[package]]
 name = "either"
@@ -440,6 +441,12 @@ dependencies = [
  "event-listener",
  "pin-project-lite",
 ]
+
+[[package]]
+name = "find-msvc-tools"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e178e4fba8a2726903f6ba98a6d221e76f9c12c650d5dc0e6afdc50677b49650"
 
 [[package]]
 name = "fixedbitset"
@@ -501,7 +508,7 @@ dependencies = [
  "js-sys",
  "libc",
  "r-efi",
- "wasi 0.14.2+wasi-0.2.4",
+ "wasi 0.14.3+wasi-0.2.4",
  "wasm-bindgen",
 ]
 
@@ -548,9 +555,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.10.0"
+version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe4cd85333e22411419a0bcae1297d25e58c9443848b11dc6a86fefe8c78a661"
+checksum = "f2481980430f9f78649238835720ddccc57e52df14ffce1c6f37391d61b563e9"
 dependencies = [
  "equivalent",
  "hashbrown",
@@ -960,9 +967,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.23.3"
+version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17d3b47e6b7a040216ae5302712c94d1cf88c95b47efa80e2c59ce96c878267e"
+checksum = "7211ff1b8f0d3adae1663b7da9ffe396eabe1ca25f0b0bee42b0da29a9ddce93"
 dependencies = [
  "indexmap",
  "toml_datetime",
@@ -999,9 +1006,9 @@ checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
 name = "uuid"
-version = "1.18.0"
+version = "1.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f33196643e165781c20a5ead5582283a7dacbb87855d867fbc2df3f81eddc1be"
+checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
 dependencies = [
  "getrandom 0.3.3",
  "js-sys",
@@ -1044,11 +1051,11 @@ checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "wasi"
-version = "0.14.2+wasi-0.2.4"
+version = "0.14.3+wasi-0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
+checksum = "6a51ae83037bdd272a9e28ce236db8c07016dd0d50c27038b3f407533c030c95"
 dependencies = [
- "wit-bindgen-rt",
+ "wit-bindgen",
 ]
 
 [[package]]
@@ -1326,21 +1333,18 @@ checksum = "271414315aff87387382ec3d271b52d7ae78726f5d44ac98b4f4030c91880486"
 
 [[package]]
 name = "winnow"
-version = "0.7.12"
+version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3edebf492c8125044983378ecb5766203ad3b4c2f7a922bd7dd207f6d443e95"
+checksum = "21a0236b59786fed61e2a80582dd500fe61f18b5dca67a4a067d0bc9039339cf"
 dependencies = [
  "memchr",
 ]
 
 [[package]]
-name = "wit-bindgen-rt"
-version = "0.39.0"
+name = "wit-bindgen"
+version = "0.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
-dependencies = [
- "bitflags",
-]
+checksum = "052283831dbae3d879dc7f51f3d92703a316ca49f91540417d38591826127814"
 
 [[package]]
 name = "wyrand"

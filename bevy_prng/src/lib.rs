@@ -25,8 +25,6 @@ use core::fmt::Debug;
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
-#[cfg(feature = "serialize")]
-use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "rand_chacha")]
 pub use chacha::*;
@@ -71,7 +69,6 @@ impl<T: 'static> RngReflectable for T {}
 
 /// A marker trait to define the required trait bounds for a seedable PRNG to
 /// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
-#[cfg(feature = "serialize")]
 pub trait EntropySource:
     RngCore
     + RngReflectable
@@ -81,62 +78,10 @@ pub trait EntropySource:
     + PartialEq
     + Sync
     + Send
-    + Serialize
-    + for<'a> Deserialize<'a>
     + private::SealedSeedable
 {
 }
 
-/// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
-/// apply to all suitable types that meet the trait criteria.
-#[cfg(feature = "serialize")]
-pub trait EntropySeed:
-    Debug
-    + Default
-    + PartialEq
-    + AsMut<[u8]>
-    + Clone
-    + Sync
-    + Send
-    + RngReflectable
-    + Serialize
-    + for<'a> Deserialize<'a>
-{
-}
-
-#[cfg(feature = "serialize")]
-impl<
-    T: Debug
-        + Default
-        + PartialEq
-        + AsMut<[u8]>
-        + Clone
-        + Sync
-        + Send
-        + RngReflectable
-        + Serialize
-        + for<'a> Deserialize<'a>,
-> EntropySeed for T
-{
-}
-
-/// A marker trait to define the required trait bounds for a seedable PRNG to
-/// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
-#[cfg(not(feature = "serialize"))]
-pub trait EntropySource:
-    RngCore
-    + TypedSeed
-    + Clone
-    + Debug
-    + PartialEq
-    + RngReflectable
-    + Sync
-    + Send
-    + private::SealedSeedable
-{
-}
-
-#[cfg(not(feature = "serialize"))]
 /// Marker trait for a suitable seed for [`EntropySource`]. This is an auto trait which will
 /// apply to all suitable types that meet the trait criteria.
 pub trait EntropySeed:
@@ -144,7 +89,6 @@ pub trait EntropySeed:
 {
 }
 
-#[cfg(not(feature = "serialize"))]
 impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngReflectable>
     EntropySeed for T
 {

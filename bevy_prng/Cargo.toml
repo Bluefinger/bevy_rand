@@ -33,7 +33,7 @@ compat = ["dep:rand_core_06"]
 bevy_reflect = { workspace = true, optional = true }
 rand_core.workspace = true
 rand_core_06 = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
+serde = { workspace = true, optional = true, features = ["derive"] }
 rand_chacha = { workspace = true, optional = true }
 wyrand = { workspace = true, optional = true }
 rand_pcg = { workspace = true, optional = true }

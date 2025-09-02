@@ -15,7 +15,7 @@ rust-version = "1.86.0"
 bevy_app = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 bevy_ecs = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
 bevy_reflect = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false }
-serde = { version = "1.0.218", default-features = false, features = ["derive"] }
+serde = { version = "1.0.218", default-features = false }
 rand_core = { version = "0.9.3", features = ["os_rng"] }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
 rand_chacha = { version = "0.9.0", default-features = false }
@@ -48,7 +48,7 @@ compat = ["bevy_prng/compat", "dep:rand_core_06"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
 thread_local_entropy = ["dep:rand_chacha", "std"]
-serialize = ["dep:serde", "rand_core/serde", "bevy_prng/serialize"]
+serialize = ["rand_core/serde", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
@@ -66,7 +66,6 @@ getrandom = "0.3.1"
 rand_core.workspace = true
 rand_core_06 = { workspace = true, optional = true }
 rand_chacha = { workspace = true, optional = true }
-serde = { workspace = true, optional = true }
 
 # This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
 # version in lockstep with bevy_rand, so that even minor versions
@@ -89,6 +88,7 @@ bevy_prng = { path = "bevy_prng", version = "0.12", default-features = false, fe
 ] }
 rand = "0.9"
 ron = { version = "0.8.0", features = ["integer128"] }
+serde = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
