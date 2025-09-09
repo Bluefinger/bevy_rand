@@ -1,12 +1,14 @@
 use core::{marker::PhantomData, ops::Deref};
 
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::prelude::ReflectComponent;
 use bevy_ecs::{
     component::{Immutable, StorageType},
     prelude::Component,
 };
 use bevy_prng::EntropySource;
 #[cfg(feature = "bevy_reflect")]
-use bevy_reflect::Reflect;
+use bevy_reflect::prelude::{Reflect, ReflectDefault, ReflectFromReflect};
 use rand_core::SeedableRng;
 
 use crate::{component::Entropy, traits::SeedSource};
@@ -35,8 +37,12 @@ use crate::{component::Entropy, traits::SeedSource};
 ///         ));
 /// }
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+#[cfg_attr(
+    feature = "bevy_reflect",
+    reflect(Debug, Component, PartialEq, Clone, FromReflect, Default)
+)]
 pub struct RngSeed<R: EntropySource> {
     seed: R::Seed,
     #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
@@ -45,7 +51,7 @@ pub struct RngSeed<R: EntropySource> {
 
 impl<R: EntropySource> SeedSource<R> for RngSeed<R>
 where
-    R::Seed: Sync + Send + Clone,
+    R::Seed: Sync + Send,
 {
     /// Create a new instance of [`RngSeed`] from a given `seed` value.
     #[inline]
@@ -69,7 +75,7 @@ where
 
 impl<R: EntropySource + 'static> Component for RngSeed<R>
 where
-    R::Seed: Sync + Send + Clone,
+    R::Seed: Sync + Send,
 {
     const STORAGE_TYPE: StorageType = StorageType::Table;
     type Mutability = Immutable;
@@ -99,7 +105,7 @@ where
 
 impl<R: EntropySource> Default for RngSeed<R>
 where
-    R::Seed: Sync + Send + Clone,
+    R::Seed: Sync + Send,
 {
     #[inline]
     fn default() -> Self {
@@ -116,7 +122,7 @@ where
 
 impl<R: EntropySource> Deref for RngSeed<R>
 where
-    R::Seed: Sync + Send + Clone,
+    R::Seed: Sync + Send,
 {
     type Target = R::Seed;
 
@@ -125,6 +131,17 @@ where
         self.get_seed()
     }
 }
+
+impl<R: EntropySource> PartialEq for RngSeed<R>
+where
+    R::Seed: Sync + Send,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.seed.as_ref() == other.seed.as_ref()
+    }
+}
+
+impl<R: EntropySource> Eq for RngSeed<R> where R::Seed: Sync + Send {}
 
 #[cfg(test)]
 mod tests {
@@ -143,7 +160,6 @@ mod tests {
 
         let mut registry = TypeRegistry::default();
         registry.register::<RngSeed<WyRand>>();
-        registry.register::<[u8; 8]>();
 
         let registered_type = RngSeed::<WyRand>::get_type_registration();
 

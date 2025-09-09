@@ -1,0 +1,28 @@
+[package]
+name = "bevy_rand_examples"
+authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
+edition = "2024"
+repository = "https://github.com/Bluefinger/bevy_rand"
+license = "MIT OR Apache-2.0"
+version = "0.12.0"
+rust-version = "1.86.0"
+
+[dependencies]
+bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+    "bevy_log",
+    "bevy_color",
+    "bevy_ui",
+    "bevy_ui_render",
+    "default_font",
+    "bevy_text",
+    "bevy_gizmos",
+    "bevy_winit",
+    "x11",
+    "wayland",
+    "webgl2",
+] }
+bevy_rand = { path = "..", version = "0.12", default-features = false, features = ["wyrand"] }
+rand = { version = "0.9", default-features = false }
+
+[profile.release]
+codegen-units = 1

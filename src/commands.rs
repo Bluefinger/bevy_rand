@@ -157,8 +157,8 @@ where
 }
 
 impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
-    /// Spawns entities related to the current `Source` Rng, linking them and then seeding
-    /// them automatically.
+    /// Spawns entities related to the current Source Rng, linking them so they can be seeded
+    /// automatically via [`Self::reseed_linked`].
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
@@ -170,16 +170,19 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// struct Target;
     ///
     /// fn setup_rng_sources(mut global: GlobalRngEntity<WyRand>) {
-    ///     global.rng_commands().with_target_rngs([(
-    ///     Source,
-    ///     RngLinks::<WyRand, WyRand>::spawn((
-    ///         Spawn(Target),
-    ///         Spawn(Target),
-    ///         Spawn(Target),
-    ///         Spawn(Target),
-    ///         Spawn(Target),
-    ///     )),
-    /// )]);
+    ///     global
+    ///         .rng_commands()
+    ///         .with_target_rngs([(
+    ///             Source,
+    ///             RngLinks::<WyRand, WyRand>::spawn((
+    ///               Spawn(Target),
+    ///               Spawn(Target),
+    ///               Spawn(Target),
+    ///               Spawn(Target),
+    ///               Spawn(Target),
+    ///             )),
+    ///         )])
+    ///         .reseed_linked();
     /// }
     /// ```
     #[inline]
@@ -190,8 +193,8 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
         self.with_target_rngs_as::<Rng>(targets)
     }
 
-    /// Spawns entities related to the current Source Rng, linking them and then seeding
-    /// them automatically with the specified `Target` Rng.
+    /// Spawns entities related to the current Source Rng, linking them so they can be seeded
+    /// automatically with the specified `Target` Rng via [`Self::reseed_linked_as`].
     ///
     /// ```
     /// use bevy_ecs::prelude::*;
@@ -204,16 +207,19 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// struct Target;
     ///
     /// fn setup_rng_sources(mut global: GlobalRngEntity<ChaCha8Rng>) {
-    ///     global.rng_commands().with_target_rngs_as::<WyRand>([(
-    ///         Source,
-    ///         RngLinks::<WyRand, WyRand>::spawn((
-    ///             Spawn(Target),
-    ///             Spawn(Target),
-    ///             Spawn(Target),
-    ///             Spawn(Target),
-    ///             Spawn(Target),
-    ///         )),
-    ///     )]);
+    ///     global
+    ///         .rng_commands()
+    ///         .with_target_rngs_as::<WyRand>([(
+    ///             Source,
+    ///             RngLinks::<WyRand, WyRand>::spawn((
+    ///                 Spawn(Target),
+    ///                 Spawn(Target),
+    ///                 Spawn(Target),
+    ///                 Spawn(Target),
+    ///                 Spawn(Target),
+    ///             )),
+    ///         )])
+    ///         .reseed_linked_as::<WyRand>();
     /// }
     /// ```
     pub fn with_target_rngs_as<Target: EntropySource>(
@@ -228,16 +234,30 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
             },
         );
 
-        self.reseed_linked_as::<Target>()
+        self
+    }
+
+    /// Links a target [`Entity`] to the current `Rng`, designating it
+    /// as the Source `Rng` for the Target to draw new seeds from.
+    #[inline]
+    pub fn link_target_rng(&mut self, target: Entity) -> &mut Self {
+        self.link_target_rng_as::<Rng>(target)
+    }
+
+    /// Links a [`Entity`] to the current `Rng` as the specified `Target` type,
+    /// designating it as the Source `Rng` for the Target to draw new seeds from.
+    pub fn link_target_rng_as<Target: EntropySource>(&mut self, target: Entity) -> &mut Self {
+        self.commands
+            .add_one_related::<RngSource<Rng, Target>>(target);
+
+        self
     }
 
     /// Links a list of target [`Entity`]s to the current `Rng`, designating it
     /// as the Source `Rng` for the Targets to draw new seeds from.
     #[inline]
     pub fn link_target_rngs(&mut self, targets: &[Entity]) -> &mut Self {
-        self.commands.add_related::<RngSource<Rng, Rng>>(targets);
-
-        self
+        self.link_target_rngs_as::<Rng>(targets)
     }
 
     /// Links a list of target [`Entity`]s to the current `Rng` as the specified `Target` type,
@@ -268,9 +288,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// type.
     #[inline]
     pub fn reseed_from_source(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromSource::<Rng, Rng>::default());
-
-        self
+        self.reseed_from_source_as::<Rng>()
     }
 
     /// Emits an event for the current `Rng` to pull a new seed from its linked
@@ -288,9 +306,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Global `Rng`.
     #[inline]
     pub fn reseed_from_global(&mut self) -> &mut Self {
-        self.commands.trigger(SeedFromGlobal::<Rng, Rng>::default());
-
-        self
+        self.reseed_from_global_as::<Rng>()
     }
 
     /// Emits an event for the current `Rng` to pull a new seed from the specified

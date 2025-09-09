@@ -1,6 +1,6 @@
 use core::marker::PhantomData;
 
-use crate::{global::Global, seed::RngSeed, traits::SeedSource};
+use crate::{global::GlobalRng, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, EntropySource};
 
@@ -12,7 +12,7 @@ use bevy_prng::{EntropySeed, EntropySource};
 /// use bevy_app::prelude::*;
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::{ChaCha8Rng, WyRand};
-/// use bevy_rand::prelude::{EntropyPlugin, GlobalEntropy};
+/// use bevy_rand::prelude::{Entropy, EntropyPlugin, GlobalRng};
 /// use rand_core::RngCore;
 ///
 /// fn main() {
@@ -25,7 +25,7 @@ use bevy_prng::{EntropySeed, EntropySource};
 ///    .run();
 /// }
 ///
-/// fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
+/// fn print_random_value(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
@@ -72,7 +72,7 @@ where
             self.seed
                 .clone()
                 .map_or_else(RngSeed::<Rng>::default, RngSeed::<Rng>::from_seed),
-            Global,
+            GlobalRng,
         ));
 
         world.flush();

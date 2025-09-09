@@ -3,11 +3,12 @@
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. This is because `GlobalEntropy` is a query to access a single entity with a mutable reference to the `Entropy` component. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
+use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::GlobalEntropy;
+use bevy_rand::prelude::{Entropy, GlobalRng};
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
+fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -15,16 +16,17 @@ fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
 In addition, the `rand` crate can be optionally pulled in and used with `bevy_rand`, benefitting from the full suite of methods and utilities. This allows full compatibility with all the distribution utilities within `rand` and also with `bevy_math`.
 
 ```rust ignore
+use bevy_ecs::prelude::*;
 use bevy_math::{ShapeSample, primitives::Circle};
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::GlobalEntropy;
+use bevy_rand::prelude::{Entropy, GlobalRng};
 use rand::Rng;
 
-fn print_random_value(mut rng: GlobalEntropy<ChaCha8Rng>) {
+fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     println!("Random u128 value: {}", rng.random::<u128>());
 }
 
-fn sample_from_circle(mut rng: GlobalEntropy<ChaCha8Rng>) {
+fn sample_from_circle(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     let circle = Circle::new(42.0);
 
     let boundary = circle.sample_boundary(rng.as_mut());
@@ -47,7 +49,7 @@ An example of a guaranteed deterministic system is perhaps spawning new entities
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::GlobalEntropy;
+use bevy_rand::prelude::{Entropy, GlobalRng};
 use rand_core::RngCore;
 
 #[derive(Component)]
@@ -56,7 +58,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn spawn_randomised_npcs(mut commands: Commands, mut rng: GlobalEntropy<WyRand>) {
+fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
     for _ in 0..10 {
         commands.spawn((
             Npc,
@@ -66,14 +68,14 @@ fn spawn_randomised_npcs(mut commands: Commands, mut rng: GlobalEntropy<WyRand>)
 }
 ```
 
-The above system will iterate a set number of times, and will yield 10 randomised `u32` values, leaving the PRNG in a determined state. Any system that then accesses `GlobalEntropy<WyRand>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
+The above system will iterate a set number of times, and will yield 10 randomised `u32` values, leaving the PRNG in a determined state. Any system that then accesses `Single<&mut Entropy<WyRand>, With<GlobalRng>>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
 
 However, iterating over queries will **not** yield deterministic output, as queries are not guaranteed to iterate over collected entities in the same order every time the system is ran. Therefore, the below example will not have deterministic output.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::GlobalEntropy;
+use bevy_rand::prelude::{Entropy, GlobalRng};
 use rand_core::RngCore;
 
 #[derive(Component)]
@@ -82,7 +84,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn randomise_npc_stat(mut rng: GlobalEntropy<WyRand>, mut q_npc: Query<&mut Stat, With<Npc>>) {
+fn randomise_npc_stat(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
     for mut stat in q_npc.iter_mut() {
         stat.0 = rng.next_u32();
     }

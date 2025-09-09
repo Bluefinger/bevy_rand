@@ -18,12 +18,6 @@ use rand_core::{RngCore, SeedableRng, TryRngCore};
 #[cfg(feature = "thread_local_entropy")]
 use crate::thread_local_entropy::ThreadLocalEntropy;
 
-#[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
-use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
-
-#[cfg(feature = "serialize")]
-use serde::Deserialize;
-
 /// An [`Entropy`] that wraps a random number generator that implements
 /// [`RngCore`] & [`SeedableRng`].
 ///
@@ -57,12 +51,12 @@ use serde::Deserialize;
 /// ```
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::ChaCha8Rng;
-/// use bevy_rand::prelude::{GlobalEntropy, ForkableRng};
+/// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
 ///
 /// #[derive(Component)]
 /// struct Source;
 ///
-/// fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+/// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
 ///     commands
 ///         .spawn((
 ///             Source,
@@ -99,27 +93,9 @@ use serde::Deserialize;
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq, Component)]
 #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
-#[cfg_attr(feature = "serialize", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(
-    feature = "serialize",
-    serde(bound(deserialize = "R: for<'a> Deserialize<'a>"))
-)]
-#[cfg_attr(
-    all(feature = "serialize", feature = "bevy_reflect"),
-    reflect(
-        Debug,
-        PartialEq,
-        Component,
-        FromReflect,
-        Default,
-        Clone,
-        Serialize,
-        Deserialize
-    )
-)]
-#[cfg_attr(
-    all(not(feature = "serialize"), feature = "bevy_reflect"),
-    reflect(Debug, PartialEq, Component, FromReflect, Default, Clone)
+    feature = "bevy_reflect",
+    reflect(Debug, Clone, PartialEq, Component, FromReflect, Default)
 )]
 pub struct Entropy<R: EntropySource>(R);
 

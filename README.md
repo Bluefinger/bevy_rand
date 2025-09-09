@@ -88,11 +88,12 @@ fn example_main() {
 At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. All systems that access `GlobalEntropy` will run serially to each other.
 
 ```rust
+use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::GlobalEntropy;
+use bevy_rand::prelude::{Entropy, GlobalRng};
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
+fn print_random_value(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -104,12 +105,12 @@ For seeding `Entropy`s from a global source, it is best to make use of forking i
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{GlobalEntropy, ForkableSeed};
+use bevy_rand::prelude::{Entropy, ForkableSeed, GlobalRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: GlobalEntropy<WyRand>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -157,7 +158,22 @@ fn setup_npc_from_source(
 - **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
-- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions. **Currently enabled by default in order to support `bevy_math`, which is still using `rand` v0.8**.
+- **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+
+## Examples
+
+Examples are found in the `/examples` folder, located within `src/bin`. To run the examples, follow the instructions below:
+
+1. Change directory to the examples folder
+```sh
+cd examples
+```
+2. Run the example with the following command. You can substitute the `--bin` value with the filename of any example within `src/bin` to run it.
+```sh
+cargo run --release --bin mine_clicker
+```
+
+More info about the examples can be [found here](examples/README.md).
 
 ## Supported Versions & MSRV
 

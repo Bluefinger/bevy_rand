@@ -53,12 +53,12 @@ Because PRNG algorithms are deterministic, forking is a deterministic process, a
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableRng};
+use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -72,12 +72,12 @@ We can even fork to different PRNG algorithms.
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
-use bevy_rand::prelude::{Entropy, GlobalEntropy, ForkableAsRng};
+use bevy_rand::prelude::{Entropy, GlobalRng, ForkableAsRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: GlobalEntropy<ChaCha8Rng>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
     commands
         .spawn((
             Source,

@@ -2,7 +2,7 @@ use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
 use bevy_rand::{
-    global::{Global, GlobalEntropy, GlobalRngEntity},
+    global::{GlobalRng, GlobalRngEntity},
     params::RngEntity,
     plugin::{EntropyPlugin, EntropyRelationsPlugin},
     prelude::{Entropy, RngLinks},
@@ -28,7 +28,7 @@ pub fn test_global_reseeding() {
     {
         let global_rng = app
             .world_mut()
-            .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
+            .query_filtered::<&Entropy<ChaCha8Rng>, With<GlobalRng>>()
             .single(app.world())
             .unwrap();
 
@@ -41,7 +41,7 @@ pub fn test_global_reseeding() {
     {
         let global_rng = app
             .world_mut()
-            .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
+            .query_filtered::<&Entropy<ChaCha8Rng>, With<GlobalRng>>()
             .single(app.world())
             .unwrap();
 
@@ -52,7 +52,7 @@ pub fn test_global_reseeding() {
     {
         let global = app
             .world_mut()
-            .query_filtered::<Entity, With<Global>>()
+            .query_filtered::<Entity, With<GlobalRng>>()
             .single(app.world())
             .unwrap();
 
@@ -66,7 +66,7 @@ pub fn test_global_reseeding() {
     {
         let global_rng = app
             .world_mut()
-            .query_filtered::<&Entropy<ChaCha8Rng>, With<Global>>()
+            .query_filtered::<&Entropy<ChaCha8Rng>, With<GlobalRng>>()
             .single(app.world())
             .unwrap();
 
@@ -85,7 +85,7 @@ pub fn component_fork_seed() {
     app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed(seed))
         .add_systems(
             PreStartup,
-            |mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>| {
+            |mut commands: Commands, mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>| {
                 for _ in 0..5 {
                     commands.spawn(rng.fork_seed());
                 }
@@ -93,7 +93,7 @@ pub fn component_fork_seed() {
         )
         .add_systems(
             Update,
-            |mut q_rng: Query<&mut Entropy<ChaCha8Rng>, Without<Global>>| {
+            |mut q_rng: Query<&mut Entropy<ChaCha8Rng>, Without<GlobalRng>>| {
                 let rngs = q_rng.iter_mut();
 
                 assert_eq!(rngs.size_hint().0, 5);
@@ -120,7 +120,7 @@ pub fn component_fork_as_seed() {
     app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed(seed))
         .add_systems(
             PreStartup,
-            |mut commands: Commands, mut rng: GlobalEntropy<ChaCha8Rng>| {
+            |mut commands: Commands, mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>| {
                 for _ in 0..5 {
                     commands.spawn(rng.fork_as_seed::<WyRand>());
                 }
@@ -128,7 +128,7 @@ pub fn component_fork_as_seed() {
         )
         .add_systems(
             Update,
-            |mut q_rng: Query<&mut Entropy<WyRand>, Without<Global>>| {
+            |mut q_rng: Query<&mut Entropy<WyRand>, Without<GlobalRng>>| {
                 let rngs = q_rng.iter_mut();
 
                 assert_eq!(rngs.size_hint().0, 5);
@@ -169,11 +169,14 @@ pub fn observer_global_reseeding() {
         EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
     .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
-        global.rng_commands().with_target_rngs([Target; 5]);
+        global
+            .rng_commands()
+            .with_target_rngs([Target; 5])
+            .reseed_linked();
     })
     .add_systems(
         PreUpdate,
-        |query: Query<RngEntity<WyRand>, Without<Global>>| {
+        |query: Query<RngEntity<WyRand>, Without<GlobalRng>>| {
             let expected = [
                 2484862625678185386u64,
                 10323237495534242118,
@@ -196,7 +199,7 @@ pub fn observer_global_reseeding() {
     })
     .add_systems(
         PostUpdate,
-        |query: Query<RngEntity<WyRand>, Without<Global>>| {
+        |query: Query<RngEntity<WyRand>, Without<GlobalRng>>| {
             let prev_expected = [
                 2484862625678185386u64,
                 10323237495534242118,
@@ -241,7 +244,8 @@ pub fn generic_observer_reseeding_from_parent() {
     .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
         global
             .rng_commands()
-            .with_target_rngs([(Source, RngLinks::<WyRand, WyRand>::spawn(Spawn(Target)))]);
+            .with_target_rngs([(Source, RngLinks::<WyRand, WyRand>::spawn(Spawn(Target)))])
+            .reseed_linked();
     })
     .add_systems(
         PreUpdate,
@@ -303,20 +307,23 @@ pub fn generic_observer_reseeding_children() {
         EntropyRelationsPlugin::<WyRand, WyRand>::default(),
     ))
     .add_systems(Startup, |mut global: GlobalRngEntity<WyRand>| {
-        global.rng_commands().with_target_rngs([(
-            Source,
-            RngLinks::<WyRand, WyRand>::spawn((
-                Spawn(Target),
-                Spawn(Target),
-                Spawn(Target),
-                Spawn(Target),
-                Spawn(Target),
-            )),
-        )]);
+        global
+            .rng_commands()
+            .with_target_rngs([(
+                Source,
+                RngLinks::<WyRand, WyRand>::spawn((
+                    Spawn(Target),
+                    Spawn(Target),
+                    Spawn(Target),
+                    Spawn(Target),
+                    Spawn(Target),
+                )),
+            )])
+            .reseed_linked();
     })
     .add_systems(
         PreUpdate,
-        |query: Query<&RngSeed<WyRand>, (With<Target>, Without<Global>)>| {
+        |query: Query<&RngSeed<WyRand>, (With<Target>, Without<GlobalRng>)>| {
             let expected = [
                 6445550333322662121u64,
                 14968821102299026759,
@@ -355,7 +362,7 @@ pub fn generic_observer_reseeding_children() {
     )
     .add_systems(
         PostUpdate,
-        |query: Query<&RngSeed<WyRand>, (With<Target>, Without<Global>)>| {
+        |query: Query<&RngSeed<WyRand>, (With<Target>, Without<GlobalRng>)>| {
             let prev_expected = [
                 6445550333322662121u64,
                 14968821102299026759,
@@ -397,7 +404,7 @@ pub fn generic_observer_reseeding_children() {
     .add_systems(
         Last,
         |source: Query<&RngSeed<WyRand>, With<Source>>,
-         children: Query<&RngSeed<WyRand>, (Without<Source>, Without<Global>)>| {
+         children: Query<&RngSeed<WyRand>, (Without<Source>, Without<GlobalRng>)>| {
             // Check we have the correct amount of allocated RNG entities
             assert_eq!(
                 source.iter().size_hint().0,
