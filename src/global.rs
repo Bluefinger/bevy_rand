@@ -37,8 +37,8 @@ pub struct GlobalRngEntity<'w, 's, Rng: EntropySource> {
 
 impl<Rng: EntropySource> GlobalRngEntity<'_, '_, Rng> {
     /// Creates a [`GlobalRng`]'s [`RngEntityCommands`].
-    pub fn rng_commands(&mut self) -> RngEntityCommands<'_, Rng> {
-        self.commands.entity(self.data.entity()).rng()
+    pub fn rng_commands(&mut self) -> RngEntityCommands<'_, '_, Rng> {
+        self.commands.rng(self.data.entity())
     }
 }
 

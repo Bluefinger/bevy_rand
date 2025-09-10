@@ -45,13 +45,13 @@ struct Character;
 /// An entity that can take damage.
 #[derive(Component)]
 struct Health {
-    points: u16
+    points: u16,
 }
 
 /// For damage to reach the wearer, it must exceed the armor.
 #[derive(Component)]
 struct Armor {
-    rating: u16
+    rating: u16,
 }
 
 // This event represents an attack we want to "bubble" up from the armor to the character.
@@ -67,8 +67,10 @@ struct Armor {
 // We can also choose whether or not this event will propagate by default when triggered. If this is
 // false, it will only propagate following a call to `On::propagate(true)`.
 #[derive(Clone, Component, EntityEvent)]
-#[entity_event(traversal = &'static ChildOf, auto_propagate)]
+#[entity_event(propagate = &'static ChildOf, auto_propagate)]
 struct Attack {
+    #[event_target]
+    target: Entity,
     damage: u16,
 }
 
@@ -76,6 +78,7 @@ struct Attack {
 // for a particular character to engage that attack
 #[derive(Clone, Component, EntityEvent)]
 struct Turn {
+    entity: Entity,
     rng: WyRand,
     character: Name,
     kind: Kind,
@@ -135,7 +138,8 @@ fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
                 RngLinks::<WyRand, WyRand>::default(),
                 Children::spawn(SpawnWith(child_spawner)),
             ),
-        ]).reseed_linked();
+        ])
+        .reseed_linked();
 }
 
 fn observer_setup(
@@ -175,16 +179,14 @@ fn next_turn(
         .for_each(|(entity, mut rng, character, &kind)| {
             // Each Character gets a turn event that sends their needed state to be used
             // to calculate their attack.
-            commands.trigger_targets(
-                Turn {
-                    rng: rng.fork_inner(),
-                    kind,
-                    character: character.clone(),
-                },
+            commands.trigger(Turn {
                 entity,
-            )
+                rng: rng.fork_inner(),
+                kind,
+                character: character.clone(),
+            })
         });
-    
+
     // Do note *when* the events kick in. This event will take effect *after* the turn
     // has completed, even if you were to place it at the top of the function.
     global_rng.rng_commands().reseed_linked();
@@ -201,7 +203,7 @@ fn attack_target(
     let target_kind = trigger.kind;
 
     // Check if character has been killed already.
-    if !characters.contains(trigger.entity()) {
+    if !characters.contains(trigger.entity) {
         return;
     }
 
@@ -217,7 +219,7 @@ fn attack_target(
             .and_then(|piece| armor_pieces.get(piece).ok())
     {
         let damage = trigger.rng.random_range(1..20);
-        commands.trigger_targets(Attack { damage }, target);
+        commands.trigger(Attack { target, damage });
         info!(
             "⚔️  {} Attacked {} for {} damage",
             trigger.character, chosen.1, damage
@@ -226,7 +228,7 @@ fn attack_target(
 }
 
 fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
-    if let Ok(name) = name.get(trigger.entity()) {
+    if let Ok(name) = name.get(trigger.target) {
         info!("Attack hit {}", name);
     }
 }
@@ -234,7 +236,7 @@ fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
 /// A callback placed on [`Armor`], checking if the blow glanced off or if it absorbed all the [`Attack`] damage.
 /// Here, the Armor has its own RNG state to calculate whether a blow glances off it, not relying on the parent RNG state.
 fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut Entropy<WyRand>, &Armor, &Name)>) {
-    if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.entity()) {
+    if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.target) {
         let attack = trigger.event_mut();
         let glance = rng.random_bool(0.1);
 
@@ -269,14 +271,14 @@ fn take_damage(
     mut app_exit: EventWriter<AppExit>,
 ) {
     let attack = trigger.event();
-    let (mut health, name) = hp.get_mut(trigger.entity()).unwrap();
+    let (mut health, name) = hp.get_mut(trigger.target).unwrap();
     health.points = health.points.saturating_sub(attack.damage);
 
     if health.points > 0 {
         info!("{} has {:.1} HP", name, health.points);
     } else {
         warn!("💀 {} has died a gruesome death", name);
-        commands.entity(trigger.entity()).despawn();
+        commands.entity(trigger.target).despawn();
         app_exit.write(AppExit::Success);
     }
 

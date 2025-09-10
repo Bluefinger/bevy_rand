@@ -20,13 +20,14 @@ use crate::{
 
 /// Commands for handling RNG specific operations with regards to seeding and
 /// linking.
-pub struct RngEntityCommands<'a, Rng: EntropySource> {
-    commands: EntityCommands<'a>,
+pub struct RngEntityCommands<'w, 's, Rng: EntropySource> {
+    commands: Commands<'w, 's>,
+    source: Entity,
     _rng: PhantomData<Rng>,
 }
 
 /// Extension trait for [`Commands`] for getting access to [`RngEntityCommands`].
-pub trait RngEntityCommandsExt<'a> {
+pub trait RngEntityCommandsExt {
     /// Takes an [`Entity`] and yields the [`RngEntityCommands`] for that entity.
     /// ```
     /// use bevy_ecs::prelude::*;
@@ -38,39 +39,13 @@ pub trait RngEntityCommandsExt<'a> {
     ///
     /// fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     ///     for target in &q_targets {
-    ///         commands.entity(target).rng::<WyRand>().reseed_from_os_rng();
+    ///         commands.rng::<WyRand>(target).reseed_from_os_rng();
     ///     }
     /// }
     /// ```
-    fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng>;
-}
+    fn rng<Rng: EntropySource>(&mut self, entity: Entity) -> RngEntityCommands<'_, '_, Rng>;
 
-impl<'a> RngEntityCommandsExt<'a> for EntityCommands<'a> {
-    fn rng<Rng: EntropySource>(self) -> RngEntityCommands<'a, Rng> {
-        RngEntityCommands {
-            commands: self,
-            _rng: PhantomData,
-        }
-    }
-}
-
-impl<'a, Rng: EntropySource> Deref for RngEntityCommands<'a, Rng> {
-    type Target = EntityCommands<'a>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.commands
-    }
-}
-
-impl<Rng: EntropySource> DerefMut for RngEntityCommands<'_, Rng> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.commands
-    }
-}
-
-/// Extension trait to create a [`RngEntityCommands`] directly from a [`Commands`].
-pub trait RngCommandsExt {
-    /// Creates a [`RngEntityCommands`] from a given [`Entity`].
+    /// Creates a [`RngEntityCommands`] from a given [`RngEntityItem`].
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
@@ -88,26 +63,50 @@ pub trait RngCommandsExt {
     fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, '_, Rng>,
-    ) -> RngEntityCommands<'_, Rng>;
+    ) -> RngEntityCommands<'_, '_, Rng>;
 }
 
-impl RngCommandsExt for Commands<'_, '_> {
+impl<'w, 's> RngEntityCommandsExt for Commands<'w, 's> {
+    fn rng<Rng: EntropySource>(&mut self, entity: Entity) -> RngEntityCommands<'_, '_, Rng> {
+        RngEntityCommands {
+            source: entity,
+            commands: self.reborrow(),
+            _rng: PhantomData,
+        }
+    }
+
     fn rng_entity<Rng: EntropySource>(
         &mut self,
         entity: &RngEntityItem<'_, '_, Rng>,
-    ) -> RngEntityCommands<'_, Rng> {
-        self.entity(entity.entity()).rng()
+    ) -> RngEntityCommands<'_, '_, Rng> {
+        self.rng(entity.entity())
     }
 }
 
-impl<Rng: EntropySource> RngEntityCommands<'_, Rng>
+impl<'w, 's, Rng: EntropySource> Deref for RngEntityCommands<'w, 's, Rng> {
+    type Target = Commands<'w, 's>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.commands
+    }
+}
+
+impl<Rng: EntropySource> DerefMut for RngEntityCommands<'_, '_, Rng> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.commands
+    }
+}
+
+impl<Rng: EntropySource> RngEntityCommands<'_, '_, Rng>
 where
     Rng::Seed: Send + Sync + Clone,
 {
     /// Reseeds the current `Rng` with a provided seed value.
     #[inline]
     pub fn reseed(&mut self, seed: Rng::Seed) -> &mut Self {
-        self.commands.insert(RngSeed::<Rng>::from_seed(seed));
+        let entity = self.source;
+
+        self.entity(entity).insert(RngSeed::<Rng>::from_seed(seed));
 
         self
     }
@@ -120,7 +119,10 @@ where
     #[inline]
     #[cfg(feature = "thread_local_entropy")]
     pub fn reseed_from_local_entropy(&mut self) -> &mut Self {
-        self.commands.insert(RngSeed::<Rng>::from_local_entropy());
+        let entity = self.source;
+
+        self.entity(entity)
+            .insert(RngSeed::<Rng>::from_local_entropy());
 
         self
     }
@@ -129,7 +131,9 @@ where
     #[inline]
     #[cfg(feature = "thread_local_entropy")]
     pub fn try_reseed_from_local_entropy(&mut self) -> Result<&mut Self, std::thread::AccessError> {
-        self.commands
+        let entity = self.source;
+
+        self.entity(entity)
             .insert(RngSeed::<Rng>::try_from_local_entropy()?);
 
         Ok(self)
@@ -142,7 +146,9 @@ where
     /// Panics if it is unable to source entropy from an OS/Hardware source.
     #[inline]
     pub fn reseed_from_os_rng(&mut self) -> &mut Self {
-        self.commands.insert(RngSeed::<Rng>::from_os_rng());
+        let entity = self.source;
+
+        self.entity(entity).insert(RngSeed::<Rng>::from_os_rng());
 
         self
     }
@@ -150,13 +156,16 @@ where
     /// Reseeds the current `Rng` with a new seed drawn from OS sources.
     #[inline]
     pub fn try_reseed_from_os_rng(&mut self) -> Result<&mut Self, rand_core::OsError> {
-        self.commands.insert(RngSeed::<Rng>::try_from_os_rng()?);
+        let entity = self.source;
+
+        self.entity(entity)
+            .insert(RngSeed::<Rng>::try_from_os_rng()?);
 
         Ok(self)
     }
 }
 
-impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
+impl<Rng: EntropySource> RngEntityCommands<'_, '_, Rng> {
     /// Spawns entities related to the current Source Rng, linking them so they can be seeded
     /// automatically via [`Self::reseed_linked`].
     /// ```
@@ -226,7 +235,9 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
         &mut self,
         targets: impl IntoIterator<Item = impl Bundle>,
     ) -> &mut Self {
-        self.commands.with_related_entities(
+        let entity = self.source;
+
+        self.entity(entity).with_related_entities(
             |related: &mut RelatedSpawnerCommands<'_, RngSource<Rng, Target>>| {
                 targets.into_iter().for_each(|bundle| {
                     related.spawn(bundle);
@@ -247,7 +258,9 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Links a [`Entity`] to the current `Rng` as the specified `Target` type,
     /// designating it as the Source `Rng` for the Target to draw new seeds from.
     pub fn link_target_rng_as<Target: EntropySource>(&mut self, target: Entity) -> &mut Self {
-        self.commands
+        let entity = self.source;
+
+        self.entity(entity)
             .add_one_related::<RngSource<Rng, Target>>(target);
 
         self
@@ -263,7 +276,10 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Links a list of target [`Entity`]s to the current `Rng` as the specified `Target` type,
     /// designating it as the Source `Rng` for the Targets to draw new seeds from.
     pub fn link_target_rngs_as<Target: EntropySource>(&mut self, targets: &[Entity]) -> &mut Self {
-        self.commands.add_related::<RngSource<Rng, Target>>(targets);
+        let entity = self.source;
+
+        self.entity(entity)
+            .add_related::<RngSource<Rng, Target>>(targets);
 
         self
     }
@@ -278,7 +294,8 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Emits an event for the current Source `Rng` to generate and push out new seeds to
     /// all linked target `Rng`s as the specified `Target` type.
     pub fn reseed_linked_as<Target: EntropySource>(&mut self) -> &mut Self {
-        self.commands.trigger(SeedLinked::<Rng, Target>::default());
+        self.commands
+            .trigger(SeedLinked::<Rng, Target>::new(self.source));
 
         self
     }
@@ -297,7 +314,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// isn't the same `Rng` kind as the target.
     pub fn reseed_from_source_as<Source: EntropySource>(&mut self) -> &mut Self {
         self.commands
-            .trigger(SeedFromSource::<Source, Rng>::default());
+            .trigger(SeedFromSource::<Source, Rng>::new(self.source));
 
         self
     }
@@ -313,7 +330,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Global `Rng`.
     pub fn reseed_from_global_as<Source: EntropySource>(&mut self) -> &mut Self {
         self.commands
-            .trigger(SeedFromGlobal::<Source, Rng>::default());
+            .trigger(SeedFromGlobal::<Source, Rng>::new(self.source));
 
         self
     }
@@ -321,12 +338,14 @@ impl<Rng: EntropySource> RngEntityCommands<'_, Rng> {
     /// Returns the inner [`EntityCommands`] with a smaller lifetime.
     #[inline]
     pub fn entity_commands(&mut self) -> EntityCommands<'_> {
-        self.commands.reborrow()
+        let entity = self.source;
+
+        self.entity(entity)
     }
 
     /// Returns the underlying [`Commands`].
     #[inline]
     pub fn commands(&mut self) -> Commands<'_, '_> {
-        self.commands.commands()
+        self.commands.reborrow()
     }
 }

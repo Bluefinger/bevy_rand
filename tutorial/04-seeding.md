@@ -97,7 +97,7 @@ Reinsertions do not invoke archetype moves, so this will not cause any extra ove
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng, RngEntity, RngCommandsExt};
+use bevy_rand::prelude::{Entropy, GlobalRng, RngEntity, RngEntityCommandsExt};
 use rand::Rng;
 
 #[derive(Component)]

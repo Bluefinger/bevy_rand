@@ -74,7 +74,7 @@ fn intialise_rng_entities_with_set_seed(mut commands: Commands, mut q_targets: Q
     let seed = u64::to_ne_bytes(42); 
 
     for target in &q_targets {
-        commands.entity(target).rng::<WyRand>().reseed(seed);
+        commands.rng::<WyRand>(target).reseed(seed);
     }
 }
 ```
@@ -90,7 +90,7 @@ Once the relations are created, it becomes easy to pull new seeds from sources/g
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{RngEntity, RngCommandsExt};
+use bevy_rand::prelude::{RngEntity, RngEntityCommandsExt};
 
 #[derive(Component)]
 struct Source;
@@ -131,7 +131,7 @@ fn initial_setup(mut commands: Commands) {
 
     // Initialise the Source entity to be an RNG source and then seed all its
     // linked entities.
-    commands.trigger_targets(SeedFromGlobal::<WyRand, WyRand>::default(), source);
+    commands.trigger_targets(SeedFromGlobal::<WyRand, WyRand>::new(source));
 }
 ```
 
@@ -150,7 +150,7 @@ struct Target;
 
 fn pull_seed_from_parent(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     for target in &q_targets {
-        commands.trigger_targets(SeedFromSource::<WyRand, WyRand>::default(), target);
+        commands.trigger_targets(SeedFromSource::<WyRand, WyRand>::new(target));
     }
 }
 ```

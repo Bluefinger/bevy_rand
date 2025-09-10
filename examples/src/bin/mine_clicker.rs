@@ -46,7 +46,9 @@ struct ExplodeMines {
 }
 
 #[derive(EntityEvent)]
-struct Explode;
+struct Explode {
+    entity: Entity,
+}
 
 fn initial_setup(mut commands: Commands, mut global_rng: GlobalRngEntity<WyRand>) {
     commands.spawn(Camera2d);
@@ -88,7 +90,7 @@ fn on_init_mine(
     mut query: Query<&mut Entropy<WyRand>, With<Mine>>,
     mut commands: Commands,
 ) {
-    let target = trigger.entity();
+    let target = trigger.entity;
 
     let mut rng = query.get_mut(target).unwrap();
 
@@ -110,12 +112,12 @@ fn on_insert_mine_pos(
     query: Query<&MinePos>,
     mut index: ResMut<SpatialIndex>,
 ) {
-    let mine = query.get(trigger.entity()).unwrap();
+    let mine = query.get(trigger.entity).unwrap();
     let tile = (
         (mine.pos.x / CELL_SIZE).floor() as i32,
         (mine.pos.y / CELL_SIZE).floor() as i32,
     );
-    index.map.entry(tile).or_default().insert(trigger.entity());
+    index.map.entry(tile).or_default().insert(trigger.entity);
 }
 
 // Clean up old mine data from our index before it is updated or if the mine is despawned
@@ -124,13 +126,13 @@ fn on_replace_mine_pos(
     query: Query<&MinePos>,
     mut index: ResMut<SpatialIndex>,
 ) {
-    let mine = query.get(trigger.entity()).unwrap();
+    let mine = query.get(trigger.entity).unwrap();
     let tile = (
         (mine.pos.x / CELL_SIZE).floor() as i32,
         (mine.pos.y / CELL_SIZE).floor() as i32,
     );
     index.map.entry(tile).and_modify(|set| {
-        set.remove(&trigger.entity());
+        set.remove(&trigger.entity);
     });
 }
 
@@ -143,13 +145,13 @@ fn explode_nearby_mines(
     // You can access the trigger data via the `Observer`
     let event = trigger.event();
     // Access resources
-    for e in index.get_nearby(event.pos) {
+    for entity in index.get_nearby(event.pos) {
         // Run queries
-        let (mine, explosive) = mines.get(e).unwrap();
+        let (mine, explosive) = mines.get(entity).unwrap();
         if mine.pos.distance(event.pos) < explosive.size + event.radius {
             // And queue commands, including triggering additional events
             // Here we trigger the `Explode` event for entity `e`
-            commands.trigger_targets(Explode, e);
+            commands.trigger(Explode { entity });
         }
     }
 }
@@ -160,7 +162,7 @@ fn explode_mine(
     mut commands: Commands,
 ) {
     // If a triggered event is targeting a specific entity you can access it with `.entity()`
-    let id = trigger.entity();
+    let id = trigger.entity;
     let Ok(mut entity) = commands.get_entity(id) else {
         return;
     };

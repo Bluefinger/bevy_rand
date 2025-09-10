@@ -226,7 +226,7 @@ pub fn observer_global_reseeding() {
 pub fn generic_observer_reseeding_from_parent() {
     use bevy_app::prelude::{PostUpdate, PreUpdate, Startup};
     use bevy_ecs::prelude::With;
-    use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
+    use bevy_rand::{commands::RngEntityCommandsExt, seed::RngSeed, traits::SeedSource};
 
     let seed = [2u8; 8];
 
@@ -291,7 +291,7 @@ pub fn generic_observer_reseeding_from_parent() {
 pub fn generic_observer_reseeding_children() {
     use bevy_app::prelude::{Last, PostUpdate, PreUpdate, Startup};
     use bevy_ecs::prelude::{Component, With, Without};
-    use bevy_rand::{commands::RngCommandsExt, seed::RngSeed, traits::SeedSource};
+    use bevy_rand::{commands::RngEntityCommandsExt, seed::RngSeed, traits::SeedSource};
 
     let seed = [2u8; 8];
 

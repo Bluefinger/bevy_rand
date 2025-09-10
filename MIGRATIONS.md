@@ -132,3 +132,21 @@ use rand_core::RngCore;
     println!("Random value: {}", rng.next_u32());
 }
 ```
+
+Due to the Event Rearchitecture, `RngEntityCommands` was reworked to use `Commands` instead of `EntityCommands`, and `RngCommandsExt` has been merged into `RngEntityCommandsExt`. So for getting a `RngEntityCommands`, the changes you need to make are as follows:
+
+```diff
+use bevy_ecs::prelude::*;
+use bevy_prng::WyRand;
+use bevy_rand::prelude::*;
+
+#[derive(Component)]
+struct Target;
+
+fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
+    for target in &q_targets {
+-       commands.entity(target).rng::<WyRand>().reseed_from_os_rng();
++       commands.rng::<WyRand>(target).reseed_from_os_rng();
+    }
+}
+```
