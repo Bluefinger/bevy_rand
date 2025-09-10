@@ -15,7 +15,7 @@ use bevy_prng::EntropySource;
 use crate::{
     global::GlobalRng,
     params::RngEntity,
-    prelude::{Entropy, RngCommandsExt},
+    prelude::{Entropy, RngEntityCommandsExt},
     traits::ForkableAsSeed,
 };
 
@@ -71,36 +71,66 @@ impl<Source: EntropySource, Target: EntropySource> RngSource<Source, Target> {
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
 #[derive(Debug, EntityEvent)]
-pub struct SeedFromGlobal<Source, Target>(PhantomData<Source>, PhantomData<Target>);
+pub struct SeedFromGlobal<Source: EntropySource, Target: EntropySource> {
+    #[event_target]
+    target: Entity,
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
+}
 
-impl<Source: EntropySource, Target: EntropySource> Default for SeedFromGlobal<Source, Target> {
+impl<Source: EntropySource, Target: EntropySource> SeedFromGlobal<Source, Target> {
+    /// Creates a new [`SeedFromGlobal`] entity event.
     #[inline]
-    fn default() -> Self {
-        Self(PhantomData, PhantomData)
+    pub fn new(entity: Entity) -> Self {
+        Self {
+            target: entity,
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 }
 
 /// Observer event for triggering an entity to pull a new seed value from a
 /// GlobalEntropy source.
 #[derive(Debug, EntityEvent)]
-pub struct SeedLinked<Source, Target>(PhantomData<Source>, PhantomData<Target>);
+pub struct SeedLinked<Source: EntropySource, Target: EntropySource> {
+    #[event_target]
+    source: Entity,
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
+}
 
-impl<Source: EntropySource, Target: EntropySource> Default for SeedLinked<Source, Target> {
+impl<Source: EntropySource, Target: EntropySource> SeedLinked<Source, Target> {
+    /// Creates a new [`SeedLinked`] entity event.
     #[inline]
-    fn default() -> Self {
-        Self(PhantomData, PhantomData)
+    pub fn new(entity: Entity) -> Self {
+        Self {
+            source: entity,
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 }
 
 /// Observer event for triggering an entity to pull a new seed value from a
 /// linked parent entity.
 #[derive(Debug, EntityEvent)]
-pub struct SeedFromSource<Source, Target>(PhantomData<Source>, PhantomData<Target>);
+pub struct SeedFromSource<Source: EntropySource, Target: EntropySource> {
+    #[event_target]
+    target: Entity,
+    _source: PhantomData<Source>,
+    _target: PhantomData<Target>,
+}
 
-impl<Source: EntropySource, Target: EntropySource> Default for SeedFromSource<Source, Target> {
+impl<Source: EntropySource, Target: EntropySource> SeedFromSource<Source, Target> {
+    /// Creates a new [`SeedFromSource`] entity event.
     #[inline]
-    fn default() -> Self {
-        Self(PhantomData, PhantomData)
+    pub fn new(entity: Entity) -> Self {
+        Self {
+            target: entity,
+            _source: PhantomData,
+            _target: PhantomData,
+        }
     }
 }
 
@@ -110,9 +140,7 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     mut source: Single<&mut Entropy<Source>, With<GlobalRng>>,
     mut commands: Commands,
 ) -> Result {
-    let target = event.entity();
-
-    let mut entity = commands.get_entity(target)?;
+    let mut entity = commands.get_entity(event.target)?;
 
     entity.insert(source.fork_as_seed::<Target>());
 
@@ -127,7 +155,7 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
     mut q_parents: Query<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) -> Result {
-    let target = event.entity();
+    let target = event.target;
 
     let rng = q_linked
         .get(target)
@@ -147,7 +175,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
     mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Target>)>,
     mut commands: Commands,
 ) -> Result {
-    let target = event.entity();
+    let target = event.source;
 
     let (mut rng, targets) = q_source.get_mut(target)?;
 
@@ -170,7 +198,7 @@ pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
     q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) {
-    let target = event.entity();
+    let target = event.entity;
 
     // Check whether the triggered entity is a source entity. If not, do nothing otherwise we
     // will keep triggering and cause a stack overflow.
