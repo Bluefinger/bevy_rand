@@ -8,7 +8,7 @@ version = "0.12.0"
 rust-version = "1.86.0"
 
 [dependencies]
-bevy = { version = "0.17.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy = { version = "=0.17.0-rc.1", default-features = false, features = [
     "bevy_log",
     "bevy_color",
     "bevy_ui",
