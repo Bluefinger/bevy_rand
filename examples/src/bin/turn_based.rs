@@ -268,7 +268,7 @@ fn take_damage(
     trigger: On<Attack>,
     mut hp: Query<(&mut Health, &Name)>,
     mut commands: Commands,
-    mut app_exit: EventWriter<AppExit>,
+    mut app_exit: MessageWriter<AppExit>,
 ) {
     let attack = trigger.event();
     let (mut health, name) = hp.get_mut(trigger.target).unwrap();
