@@ -14,6 +14,7 @@ rust-version = { workspace = true }
 [features]
 default = []
 std = ["rand_chacha?/std"]
+thread_local_entropy = ["dep:rand_chacha", "std"]
 bevy_reflect = ["dep:bevy_reflect"]
 serialize = [
     "dep:serde",
@@ -30,6 +31,7 @@ rand_xoshiro = ["dep:rand_xoshiro"]
 compat = ["dep:rand_core_06"]
 
 [dependencies]
+bevy_ecs = { workspace = true }
 bevy_reflect = { workspace = true, optional = true }
 rand_core.workspace = true
 rand_core_06 = { workspace = true, optional = true }

@@ -1,7 +1,12 @@
 use crate::newtype::newtype_prng;
 
+use rand_core::SeedableRng;
+
 #[cfg(feature = "bevy_reflect")]
 use crate::newtype::newtype_prng_remote;
+
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::reflect::ReflectComponent;
 
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};

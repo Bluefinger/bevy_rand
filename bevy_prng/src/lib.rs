@@ -4,6 +4,11 @@
 #![cfg_attr(docsrs, allow(unused_attributes))]
 #![no_std]
 
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 #[cfg(feature = "rand_chacha")]
 mod chacha;
 #[cfg(any(
@@ -20,8 +25,12 @@ mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
 
+#[cfg(feature = "thread_local_entropy")]
+mod thread_local_entropy;
+
 use core::fmt::Debug;
 
+use bevy_ecs::component::Component;
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
@@ -76,6 +85,7 @@ pub trait EntropySource:
     + Clone
     + Debug
     + PartialEq
+    + Component
     + Sync
     + Send
     + private::SealedSeedable

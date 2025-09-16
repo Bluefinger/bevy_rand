@@ -1,7 +1,7 @@
 macro_rules! newtype_prng {
     ($newtype:tt, $rng:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, PartialEq)]
+        #[derive(Debug, Clone, PartialEq, ::bevy_ecs::prelude::Component)]
         #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
         #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
         #[cfg_attr(
@@ -10,11 +10,11 @@ macro_rules! newtype_prng {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
@@ -90,6 +90,21 @@ macro_rules! newtype_prng {
             }
         }
 
+        impl Default for $newtype {
+            fn default() -> Self {
+                #[cfg(feature = "thread_local_entropy")]
+                {
+                    let mut local =
+                        super::thread_local_entropy::ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
+                    Self::from_rng(&mut local)
+                }
+                #[cfg(not(feature = "thread_local_entropy"))]
+                {
+                    Self::from_os_rng()
+                }
+            }
+        }
+
         impl From<$rng> for $newtype {
             #[inline]
             fn from(value: $rng) -> Self {
@@ -105,7 +120,7 @@ macro_rules! newtype_prng {
 macro_rules! newtype_prng_remote {
     ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
         #[doc = $doc]
-        #[derive(Debug, Clone, PartialEq)]
+        #[derive(Debug, Clone, PartialEq, bevy_ecs::prelude::Component)]
         #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
         #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
         #[cfg_attr(
@@ -114,11 +129,11 @@ macro_rules! newtype_prng_remote {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, Serialize, Deserialize)
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
