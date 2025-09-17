@@ -88,7 +88,55 @@ This change does not affect default/`std` usage of `bevy_rand`, which includes `
 
 ## Migrating from v0.11 to v0.12
 
-The breaking changes here are that for `RngEntityCommands`, `with_target_rng` and `with_target_rngs_as` no longer automatically send a reseed event after spawning. This will need to be done manually with `reseed_linked` or `reseed_linked_as` after a spawn, like so:
+A fair number of breaking changes with this release. The main one is that the `Entropy` component no longer exists, and instead, just use the PRNG types from `bevy_prng` as components directly. `RngSeed` is still provided as a generic component, but `Entropy` is no longer needed.
+
+```diff
+use bevy_ecs::prelude::*;
+use bevy_prng::ChaCha8Rng;
+-use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
++use bevy_rand::prelude::{GlobalRng, ForkableRng};
+
+#[derive(Component)]
+struct Source;
+
+-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
++fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+    commands
+        .spawn((
+            Source,
+            global.fork_rng(), // This will yield an `Entropy<ChaCha8Rng>`
+        ));
+}
+```
+
+Also, `EntropyPlugin` by default instantiates observers for same RNG relations, so like `WyRand` to `WyRand` links. `EntropyRelationsPlugin` should only be used for cross RNG relations, such as `ChaCha8Rng` to `WyRand`.
+
+```diff
+use bevy_app::prelude::*;
+use bevy_prng::{ChaCha8Rng, WyRand};
+use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
+
+fn main() {
+    App::new()
+        .add_plugins((
+-           // First initialise the RNGs
++           // First initialise the RNGs. This also initialises observers for WyRand -> WyRand
++           // and ChaCha8Rng -> ChaCha8Rng seeding relations
+            EntropyPlugin::<ChaCha8Rng>::default(),
+            EntropyPlugin::<WyRand>::default(),
+-           // This initialises observers for WyRand -> WyRand seeding relations
++           // You only need to explicitly provide the relations plugin for cross PRNG relations.
+-           EntropyRelationsPlugin::<WyRand, WyRand>::default(),
++           // For example: This initialises observers for ChaCha8Rng -> WyRand seeding relations
++           // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+            EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+        ))
+        .run();
+}
+}
+```
+
+Other breaking changes here are that for `RngEntityCommands`, `with_target_rng` and `with_target_rngs_as` no longer automatically send a reseed event after spawning. This will need to be done manually with `reseed_linked` or `reseed_linked_as` after a spawn, like so:
 
 ```diff
 use bevy_ecs::prelude::*;
@@ -124,11 +172,11 @@ The `Global` marker struct is now `GlobalRng`, and the type helper `GlobalEntrop
 +use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
 -use bevy_rand::prelude::GlobalEntropy;
-+use bevy_rand::prelude::{Entropy, GlobalRng};
++use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
 -fn print_random_value(mut rng: GlobalEntropy<WyRand>) {
-+fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
++fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
