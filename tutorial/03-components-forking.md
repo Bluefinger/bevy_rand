@@ -5,7 +5,6 @@ In order to move beyond the restrictions placed by `GlobalEntropy` and achieve d
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::Entropy;
 
 #[derive(Component)]
 struct Source;
@@ -14,7 +13,7 @@ fn setup_source(mut commands: Commands) {
     commands
         .spawn((
             Source,
-            Entropy::<WyRand>::default(),
+            WyRand::default(),
         ));
 }
 ```
@@ -24,7 +23,6 @@ In the above example, we are creating an entity with a `Source` marker component
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::Entropy;
 
 #[derive(Component)]
 struct Npc;
@@ -34,13 +32,13 @@ fn setup_source(mut commands: Commands) {
         commands
             .spawn((
                 Npc,
-                Entropy::<WyRand>::default(),
+                WyRand::default(),
             ));
     }
 }
 ```
 
-`GlobalEntropy` is basically the same thing! It's just an `Entity` with an `Entropy` component and `RngSeed`, combined with a `Global` marker component. `GlobalEntropy` itself is not a type, but an alias for a query: `Query<&mut Entropy<WyRand>, With<Global>>`.
+`GlobalRng` is basically the same thing! It's just an `Entity` with an `EntropySource` component and `RngSeed`, combined with a `GlobalRng` marker component. So you can access it with a query: `Single<&mut WyRand, With<Global>>`.
 
 We can also instantiate these components with set seeds, but there's then the danger that with all of them having the same seed, they'll output the same random numbers. But we want determinism without being easy to predict across many, many entities. How would one achieve this? By forking.
 
@@ -48,17 +46,17 @@ We can also instantiate these components with set seeds, but there's then the da
 
 Forking is the process of generating a new seed from an RNG source and creating a new RNG instance with it. If cloning creates a new instance with the same state from the old, forking creates a new instance with a new state, advancing the old instance's state in the process (as we used it to generate a new seed).
 
-Because PRNG algorithms are deterministic, forking is a deterministic process, and it allows us to have one seed state create many "random" states while being hard to predict. `bevy_rand` makes it super easy to fork new `Entropy`s, allowing you to source new RNGs from `GlobalEntropy` or even other `Entropy`s!
+Because PRNG algorithms are deterministic, forking is a deterministic process, and it allows us to have one seed state create many "random" states while being hard to predict. `bevy_rand` makes it super easy to fork new `EntropySource` components, allowing you to source new RNGs from `GlobalRng` or even other `EntropySource`s!
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
+use bevy_rand::prelude::{GlobalRng, ForkableRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -72,16 +70,16 @@ We can even fork to different PRNG algorithms.
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::{ChaCha8Rng, WyRand};
-use bevy_rand::prelude::{Entropy, GlobalRng, ForkableAsRng};
+use bevy_rand::prelude::{GlobalRng, ForkableAsRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
-            global.fork_as::<WyRand>(), // This will yield an `Entropy<WyRand>`
+            global.fork_as::<WyRand>(), // This will yield a `WyRand` component
         ));
 }
 ```
@@ -91,7 +89,7 @@ So we created a `Source` entity with an RNG source, let's use it to spawn more e
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableRng};
+use bevy_rand::prelude::ForkableRng;
 
 #[derive(Component)]
 struct Npc;
@@ -101,13 +99,13 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut WyRand, (With<Source>, Without<Npc>)>,
 ) {
    for _ in 0..10 {
        commands
            .spawn((
                Npc,
-               q_source.fork_rng() // This will yield a new `Entropy<WyRand>`
+               q_source.fork_rng() // This will yield a new `WyRand`
            ));
    }
 }
@@ -116,7 +114,7 @@ fn setup_npc_from_source(
 Now that we have our `Npc` entities attached with RNG sources, when we query them, we can make use of their own sources when generating new random numbers from them.
 
 ```rust ignore
-fn randomise_npc_stat(mut q_npc: Query<(&mut Stat, &mut Entropy<WyRand>), With<Npc>>) {
+fn randomise_npc_stat(mut q_npc: Query<(&mut Stat, &mut WyRand), With<Npc>>) {
     for (mut stat, mut rng) in q_npc.iter_mut() {
         stat.0 = rng.next_u32();
     }
@@ -125,12 +123,10 @@ fn randomise_npc_stat(mut q_npc: Query<(&mut Stat, &mut Entropy<WyRand>), With<N
 
 This way, no matter what order the query iterates, we can be assured that the resulting output is always deterministic. Other systems that access different entities with RNG sources that don't overlap with `Npc` entity systems will be able to run in parallel, and iterating the queries themselves can also be done in parallel with `.par_iter()`. We've ensured that each *access* is deterministic and owned to the entity itself.
 
-As a final note: for both `GlobalEntropy` and `Entropy`s, one can fork the inner PRNG instance to use directly or pass into methods via `fork_inner()`.
-
 ## Pitfalls when Querying
 
-In general, never do a `Query<&mut Entropy<T>>` without any query filters.
+In general, never do a `Query<&mut Rng>` without any query filters.
 
 In basic usages, there's only *one* entity, the `Global` entity for the enabled RNG algorithm. The above query will yield the `Global` entity, same as using `GlobalEntropy` query helper. However, if you've spawned more than one source, the above query will yield *all* `Entropy` entities, global and non-global ones included. The ordering is also not guaranteed, so the first result out of that query is not guaranteed to be the global entity.
 
-Therefore, always use something like `Single` to enforce access to a single source such as `Single<&mut Entropy<T>, With<Source>>`, or use query helpers like `GlobalEntropy` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&mut Entropy, With<Source>>`.
+Therefore, always use something like `Single` to enforce access to a single source such as `Single<&mut Rng, With<Source>>` to access global sources, or use a suitable filter for a marker component to filter out other sources from the ones you are interested in: `Query<&mut Rng, With<Source>>`.

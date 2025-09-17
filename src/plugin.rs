@@ -12,7 +12,7 @@ use bevy_prng::{EntropySeed, EntropySource};
 /// use bevy_app::prelude::*;
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::{ChaCha8Rng, WyRand};
-/// use bevy_rand::prelude::{Entropy, EntropyPlugin, GlobalRng};
+/// use bevy_rand::prelude::{EntropyPlugin, GlobalRng};
 /// use rand_core::RngCore;
 ///
 /// fn main() {
@@ -25,7 +25,7 @@ use bevy_prng::{EntropySeed, EntropySource};
 ///    .run();
 /// }
 ///
-/// fn print_random_value(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+/// fn print_random_value(mut rng: Single<&mut WyRand, With<GlobalRng>>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
@@ -62,8 +62,7 @@ where
 {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "bevy_reflect")]
-        app.register_type::<crate::component::Entropy<Rng>>()
-            .register_type::<RngSeed<Rng>>()
+        app.register_type::<RngSeed<Rng>>()
             .register_type::<Rng::Seed>();
 
         let world = app.world_mut();
@@ -74,6 +73,11 @@ where
                 .map_or_else(RngSeed::<Rng>::default, RngSeed::<Rng>::from_seed),
             GlobalRng,
         ));
+
+        world.add_observer(crate::observers::seed_from_global::<Rng, Rng>);
+        world.add_observer(crate::observers::seed_from_parent::<Rng, Rng>);
+        world.add_observer(crate::observers::seed_linked::<Rng, Rng>);
+        world.add_observer(crate::observers::trigger_seed_linked::<Rng, Rng>);
 
         world.flush();
     }
@@ -94,12 +98,12 @@ where
 ///
 /// App::new()
 ///     .add_plugins((
-///         // First initialise the RNGs
+///         // First initialise the RNGs. This also initialises observers for WyRand -> WyRand
+///         // and ChaCha8Rng -> ChaCha8Rng seeding relations
 ///         EntropyPlugin::<ChaCha8Rng>::default(),
 ///         EntropyPlugin::<WyRand>::default(),
-///         // This initialises observers for WyRand -> WyRand seeding relations
-///         EntropyRelationsPlugin::<WyRand, WyRand>::default(),
-///         // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+///         // You only need to explicitly provide the relations plugin for cross PRNG relations.
+///         // For example: This initialises observers for ChaCha8Rng -> WyRand seeding relations
 ///         EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
 ///     ))
 ///     .run();

@@ -15,7 +15,7 @@ use bevy_prng::EntropySource;
 use crate::{
     global::GlobalRng,
     params::RngEntity,
-    prelude::{Entropy, RngEntityCommandsExt},
+    prelude::{RngEntityCommandsExt},
     traits::ForkableAsSeed,
 };
 
@@ -137,7 +137,7 @@ impl<Source: EntropySource, Target: EntropySource> SeedFromSource<Source, Target
 /// Observer System for pulling in a new seed from a GlobalEntropy source
 pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     event: On<SeedFromGlobal<Source, Target>>,
-    mut source: Single<&mut Entropy<Source>, With<GlobalRng>>,
+    mut source: Single<&mut Source, With<GlobalRng>>,
     mut commands: Commands,
 ) -> Result {
     let mut entity = commands.get_entity(event.target)?;
@@ -152,7 +152,7 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
 pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
     event: On<SeedFromSource<Source, Target>>,
     q_linked: Query<&RngSource<Source, Target>>,
-    mut q_parents: Query<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
+    mut q_parents: Query<&mut Source, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) -> Result {
     let target = event.target;
@@ -172,7 +172,7 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
     event: On<SeedLinked<Source, Target>>,
-    mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Target>)>,
+    mut q_source: Query<(&mut Source, &RngLinks<Source, Target>)>,
     mut commands: Commands,
 ) -> Result {
     let target = event.source;
@@ -194,7 +194,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
 /// Observer System for triggering seed propagation from source Rng to all child entities. This observer
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
-    event: On<Insert, Entropy<Source>>,
+    event: On<Insert, Source>,
     q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) {

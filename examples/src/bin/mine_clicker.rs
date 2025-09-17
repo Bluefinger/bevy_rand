@@ -86,8 +86,8 @@ fn observer_setup(
 // Each mine has its own RNG state, which allows them not to rely on a global RNG source
 // for any update
 fn on_init_mine(
-    trigger: On<Insert, Entropy<WyRand>>,
-    mut query: Query<&mut Entropy<WyRand>, With<Mine>>,
+    trigger: On<Insert, WyRand>,
+    mut query: Query<&mut WyRand, With<Mine>>,
     mut commands: Commands,
 ) {
     let target = trigger.entity;

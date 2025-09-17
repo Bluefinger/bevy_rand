@@ -2,7 +2,7 @@
 
 Managing the seeding of related RNGs manually can be complex and also boilerplate-y, so `bevy_rand` provides a commands API powered by observers and bevy relations to make it much easier to setup and maintain. This way, pushing a new seed to a single "source" RNG will then automatically push out new seeds to all linked "target" RNGs. It can also be set up for seeding between different kinds of PRNG, but it does require the addition of an extra plugin in order to facilitate this particular case.
 
-The nature of the relations are strictly either One to One or One to Many. Many to Many relations are **not** supported, as it does not make sense for PRNG to have multiple source PRNGs.
+The nature of the relations are strictly either One to One or One to Many. Many to Many relations are **not** supported, as it does not make sense for a PRNG to have multiple source PRNGs.
 
 ```rust
 use bevy_app::prelude::*;
@@ -12,12 +12,12 @@ use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
 fn main() {
     App::new()
         .add_plugins((
-            // First initialise the RNGs
+            // First initialise the RNGs. This also initialises observers for WyRand -> WyRand
+            // and ChaCha8Rng -> ChaCha8Rng seeding relations
             EntropyPlugin::<ChaCha8Rng>::default(),
             EntropyPlugin::<WyRand>::default(),
-            // This initialises observers for WyRand -> WyRand seeding relations
-            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
-            // This initialises observers for ChaCha8Rng -> WyRand seeding relations
+            // You only need to explicitly provide the relations plugin for cross PRNG relations.
+            // For example: This initialises observers for ChaCha8Rng -> WyRand seeding relations
             EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
         ))
         .run();

@@ -1,12 +1,11 @@
 pub use crate::commands::{RngEntityCommands, RngEntityCommandsExt};
-pub use crate::component::Entropy;
 pub use crate::global::{GlobalRng, GlobalRngEntity};
 pub use crate::observers::{RngLinks, RngSource, SeedFromGlobal, SeedFromSource, SeedLinked};
 pub use crate::params::{RngEntity, RngEntityItem};
 pub use crate::plugin::{EntropyPlugin, EntropyRelationsPlugin};
 pub use crate::seed::RngSeed;
 pub use crate::traits::{
-    ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerRng, ForkableInnerSeed,
+    ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerSeed,
     ForkableRng, ForkableSeed, SeedSource,
 };
 #[cfg(feature = "wyrand")]

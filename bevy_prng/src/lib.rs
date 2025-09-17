@@ -30,7 +30,7 @@ mod thread_local_entropy;
 
 use core::fmt::Debug;
 
-use bevy_ecs::component::Component;
+use bevy_ecs::component::{Component, Mutable};
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
@@ -85,7 +85,7 @@ pub trait EntropySource:
     + Clone
     + Debug
     + PartialEq
-    + Component
+    + Component<Mutability = Mutable>
     + Sync
     + Send
     + private::SealedSeedable

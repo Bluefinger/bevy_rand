@@ -9,9 +9,8 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::prelude::{Reflect, ReflectDefault, ReflectFromReflect};
-use rand_core::SeedableRng;
 
-use crate::{component::Entropy, traits::SeedSource};
+use crate::traits::SeedSource;
 
 /// The initial seed/state for an [`Entropy`]. Adding this component to an `Entity` will cause
 /// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
@@ -89,7 +88,7 @@ where
             world
                 .commands()
                 .entity(context.entity)
-                .insert(Entropy::<R>::from_seed(seed));
+                .insert(R::from_seed(seed));
         })
     }
 
@@ -98,7 +97,7 @@ where
             world
                 .commands()
                 .entity(context.entity)
-                .try_remove::<Entropy<R>>();
+                .try_remove::<R>();
         })
     }
 }

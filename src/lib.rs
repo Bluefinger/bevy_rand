@@ -13,8 +13,6 @@ extern crate std;
 
 /// Command extensions for relating groups of RNGs.
 pub mod commands;
-/// Components for integrating [`rand_core::RngCore`] PRNGs into bevy. Must be newtyped to support [`bevy_reflect::Reflect`].
-pub mod component;
 /// Global [`crate::component::Entropy`] sources, with query helpers.
 pub mod global;
 /// Utility observers for handling seeding between parent/child entropy sources

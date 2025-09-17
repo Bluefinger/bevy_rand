@@ -161,10 +161,10 @@ fn observer_setup(
 /// Calculate the order of attacks each Character will take during this next turn.
 fn next_turn(
     mut characters: Query<
-        (Entity, &mut Entropy<WyRand>, &Name, &Kind),
+        (Entity, &mut WyRand, &Name, &Kind),
         (With<Character>, Without<GlobalRng>),
     >,
-    mut global: Single<&mut Entropy<WyRand>, (With<GlobalRng>, Without<Character>)>,
+    mut global: Single<&mut WyRand, (With<GlobalRng>, Without<Character>)>,
     mut commands: Commands,
     mut global_rng: GlobalRngEntity<WyRand>,
 ) {
@@ -181,7 +181,7 @@ fn next_turn(
             // to calculate their attack.
             commands.trigger(Turn {
                 entity,
-                rng: rng.fork_inner(),
+                rng: rng.fork_rng(),
                 kind,
                 character: character.clone(),
             })
@@ -235,7 +235,7 @@ fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
 
 /// A callback placed on [`Armor`], checking if the blow glanced off or if it absorbed all the [`Attack`] damage.
 /// Here, the Armor has its own RNG state to calculate whether a blow glances off it, not relying on the parent RNG state.
-fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut Entropy<WyRand>, &Armor, &Name)>) {
+fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut WyRand, &Armor, &Name)>) {
     if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.target) {
         let attack = trigger.event_mut();
         let glance = rng.random_bool(0.1);

@@ -5,10 +5,10 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -19,14 +19,14 @@ In addition, the `rand` crate can be optionally pulled in and used with `bevy_ra
 use bevy_ecs::prelude::*;
 use bevy_math::{ShapeSample, primitives::Circle};
 use bevy_prng::ChaCha8Rng;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand::Rng;
 
-fn print_random_value(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     println!("Random u128 value: {}", rng.random::<u128>());
 }
 
-fn sample_from_circle(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+fn sample_from_circle(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     let circle = Circle::new(42.0);
 
     let boundary = circle.sample_boundary(rng.as_mut());
@@ -36,9 +36,9 @@ fn sample_from_circle(mut rng: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>
 }
 ```
 
-## Determinism when using `GlobalEntropy`
+## Determinism when using `GlobalRng`
 
-When using `GlobalEntropy`, the way to ensure deterministic output/usage with the single entity is in the following ways:
+When using `GlobalRng`, the way to ensure deterministic output/usage with the single entity is in the following ways:
 
 - One time or non-looping accesses when generating random numbers.
 - Iterating over set loops/ranges.
@@ -49,7 +49,7 @@ An example of a guaranteed deterministic system is perhaps spawning new entities
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
 #[derive(Component)]
@@ -58,7 +58,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut WyRand, With<GlobalRng>>) {
     for _ in 0..10 {
         commands.spawn((
             Npc,
@@ -68,14 +68,14 @@ fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut Entropy<Wy
 }
 ```
 
-The above system will iterate a set number of times, and will yield 10 randomised `u32` values, leaving the PRNG in a determined state. Any system that then accesses `Single<&mut Entropy<WyRand>, With<GlobalRng>>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
+The above system will iterate a set number of times, and will yield 10 randomised `u32` values, leaving the PRNG in a determined state. Any system that then accesses `Single<&mut WyRand, With<GlobalRng>>` afterwards will always yield a predetermined value if the PRNG was given a set seed.
 
 However, iterating over queries will **not** yield deterministic output, as queries are not guaranteed to iterate over collected entities in the same order every time the system is ran. Therefore, the below example will not have deterministic output.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
 #[derive(Component)]
@@ -84,11 +84,11 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn randomise_npc_stat(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
+fn randomise_npc_stat(mut rng: Single<&mut WyRand, With<GlobalRng>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
     for mut stat in q_npc.iter_mut() {
         stat.0 = rng.next_u32();
     }
 }
 ```
 
-But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalEntropy` but `Entropy` instead, moving the RNG source from a single global entity to the entities you want to provide entropy to themselves. The next section will cover their usage.
+But how can we achieve determinism in cases of where we want to randomise values within a query iteration? Well, by not using `GlobalRng` to instead moving the RNG source from a single global entity to the entities you want to provide entropy to. The next section will cover their usage.

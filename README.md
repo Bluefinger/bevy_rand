@@ -90,10 +90,10 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut WyRand, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -105,12 +105,12 @@ For seeding `Entropy`s from a global source, it is best to make use of forking i
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableSeed, GlobalRng};
+use bevy_rand::prelude::{ForkableSeed, GlobalRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -124,7 +124,7 @@ fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>,
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableSeed};
+use bevy_rand::prelude::ForkableSeed;
 
 #[derive(Component)]
 struct Npc;
@@ -134,7 +134,7 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut WyRand, (With<Source>, Without<Npc>)>,
 ) {
    for _ in 0..2 {
        commands
