@@ -104,7 +104,8 @@ struct Source;
     commands
         .spawn((
             Source,
-            global.fork_rng(), // This will yield an `Entropy<ChaCha8Rng>`
+-           global.fork_rng(), // This will yield an `Entropy<ChaCha8Rng>`
++           global.fork_rng(), // This will yield a `ChaCha8Rng`
         ));
 }
 ```
