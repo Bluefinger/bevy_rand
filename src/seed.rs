@@ -12,9 +12,9 @@ use bevy_reflect::prelude::{Reflect, ReflectDefault, ReflectFromReflect};
 
 use crate::traits::SeedSource;
 
-/// The initial seed/state for an [`Entropy`]. Adding this component to an `Entity` will cause
-/// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
-/// `Entity` to overwrite the old value, and the `Entropy` will be overwritten with the new seed
+/// The initial seed/state for an [`EntropySource`]. Adding this component to an `Entity` will cause
+/// an `EntropySource` to be initialised as well. To force a reseed, just insert this component to an
+/// `Entity` to overwrite the old value, and the `EntropySource` will be overwritten with the new seed
 /// in turn.
 ///
 /// ## Examples

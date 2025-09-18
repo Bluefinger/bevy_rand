@@ -76,8 +76,8 @@ pub trait RngReflectable: 'static {}
 #[cfg(not(feature = "bevy_reflect"))]
 impl<T: 'static> RngReflectable for T {}
 
-/// A marker trait to define the required trait bounds for a seedable PRNG to
-/// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
+/// A marker trait to define the required trait bounds for a seedable PRNG to be
+/// integrated as a component. This is a sealed trait.
 pub trait EntropySource:
     RngCore
     + RngReflectable

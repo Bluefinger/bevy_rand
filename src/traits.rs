@@ -7,7 +7,7 @@ use rand_core::{OsRng, SeedableRng, TryRngCore};
 
 use crate::{global::GlobalRng, seed::RngSeed};
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic.
 pub trait ForkableRng: EntropySource {
@@ -38,7 +38,7 @@ pub trait ForkableRng: EntropySource {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking between different PRNG algorithm types.
 pub trait ForkableAsRng: EntropySource {
@@ -71,7 +71,7 @@ pub trait ForkableAsRng: EntropySource {
     }
 }
 
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
 pub trait ForkableSeed<S: EntropySource>: EntropySource {
@@ -106,7 +106,7 @@ pub trait ForkableSeed<S: EntropySource>: EntropySource {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component of a different
 /// PRNG algorithm.
@@ -144,7 +144,7 @@ pub trait ForkableAsSeed<S: EntropySource>: EntropySource {
     }
 }
 
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
 pub trait ForkableInnerSeed<S: EntropySource>: EntropySource {
@@ -277,23 +277,23 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
 }
 
 /// Extension trait to allow implementing forking on more types. By default, it is implemented
-/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+/// for `&mut World` which sources from [`GlobalRng`] source, though this can be manually implemented for more.
 pub trait ForkRngExt {
     /// The Error type returned for the queries used to extract and fork from.
     type Error: core::error::Error;
     /// The Output type for the resulting fork methods. Usually will be a `Result`.
     type Output<Rng>;
 
-    /// Forks an [`Entropy`] component from the source.
+    /// Forks an [`EntropySource`] component from the source.
     fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Target>;
-    /// Forks an [`Entropy`] component from the source as the given `Target` Rng kind.
+    /// Forks an [`EntropySource`] component from the source as the given `Target` Rng kind.
     fn fork_as<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<Target>;
 }
 
 /// Extension trait to allow implementing forking seeds on more types. By default, it is implemented
-/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+/// for `&mut World` which sources from [`GlobalRng`] source, though this can be manually implemented for more.
 pub trait ForkSeedExt {
     /// The Error type returned for the queries used to extract and fork from.
     type Error: core::error::Error;
@@ -314,13 +314,13 @@ impl ForkRngExt for &mut World {
     type Error = QuerySingleError;
     type Output<Rng> = Result<Rng, Self::Error>;
 
-    /// Forks an [`Entropy`] component from the [`Global`] source.
+    /// Forks an [`EntropySource`] component from the [`GlobalRng`] source.
     #[inline]
     fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Target> {
         self.fork_as::<Target, Target>()
     }
 
-    /// Forks an [`Entropy`] component from the [`Global`] source as the given `Target` Rng kind.
+    /// Forks an [`EntropySource`] component from the [`GlobalRng`] source as the given `Target` Rng kind.
     fn fork_as<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<Target> {
@@ -334,13 +334,13 @@ impl ForkSeedExt for &mut World {
     type Error = QuerySingleError;
     type Output<Rng> = Result<Rng, Self::Error>;
 
-    /// Forks a [`RngSeed`] component from the [`Global`] source.
+    /// Forks a [`RngSeed`] component from the [`GlobalRng`] source.
     #[inline]
     fn fork_seed<Target: EntropySource>(&mut self) -> Self::Output<RngSeed<Target>> {
         self.fork_as_seed::<Target, Target>()
     }
 
-    /// Forks an [`RngSeed`] component from the [`Global`] source as the given `Target` Rng kind.
+    /// Forks an [`RngSeed`] component from the [`GlobalRng`] source as the given `Target` Rng kind.
     fn fork_as_seed<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<RngSeed<Target>> {
@@ -349,7 +349,7 @@ impl ForkSeedExt for &mut World {
             .map(|mut global| global.fork_as_seed::<Target>())
     }
 
-    /// Forks a new Seed from the [`Global`] source.
+    /// Forks a new Seed from the [`GlobalRng`] source.
     fn fork_inner_seed<Target: EntropySource>(&mut self) -> Self::Output<Target::Seed> {
         self.query_filtered::<&mut Target, With<GlobalRng>>()
             .single_mut(self)

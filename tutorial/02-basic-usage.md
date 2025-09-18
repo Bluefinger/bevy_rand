@@ -1,6 +1,6 @@
-# Basic Usage with `GlobalEntropy`
+# Basic Usage with `GlobalRng`
 
-At the simplest case, using `GlobalEntropy` directly for all random number generation, though this does limit how well systems using `GlobalEntropy` can be parallelised. This is because `GlobalEntropy` is a query to access a single entity with a mutable reference to the `Entropy` component. All systems that access `GlobalEntropy` will run serially to each other.
+At the simplest case, using `GlobalRng` directly for all random number generation, though this does limit how well systems using `GlobalRng` can be parallelised. This is because `GlobalRng` is a query to access a single entity with a mutable reference to the `EntropySource` component. All systems that access `GlobalRng` will run serially to each other.
 
 ```rust
 use bevy_ecs::prelude::*;

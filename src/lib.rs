@@ -13,7 +13,7 @@ extern crate std;
 
 /// Command extensions for relating groups of RNGs.
 pub mod commands;
-/// Global [`crate::component::Entropy`] sources, with query helpers.
+/// Global PRNG sources, with query helpers.
 pub mod global;
 /// Utility observers for handling seeding between parent/child entropy sources
 pub mod observers;
@@ -23,11 +23,11 @@ pub mod params;
 pub mod plugin;
 /// Prelude for providing all necessary types for easy use.
 pub mod prelude;
-/// Seed Components for seeding [`crate::component::Entropy`].
+/// Seed Components for seeding PRNG components.
 pub mod seed;
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
-/// Traits for enabling utility methods for [`crate::component::Entropy`].
+/// Traits for enabling utility methods for PRNG components.
 pub mod traits;
 #[cfg(doc)]
 pub mod tutorial;
