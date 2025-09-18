@@ -70,10 +70,7 @@ fn random_output_e(mut rng: Single<&mut WyRand, With<SourceE>>) {
     );
 }
 
-fn setup_sources(
-    mut commands: Commands,
-    mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>,
-) {
+fn setup_sources(mut commands: Commands, mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     commands.spawn((SourceA, rng.fork_rng()));
 
     commands.spawn((SourceB, rng.fork_seed()));

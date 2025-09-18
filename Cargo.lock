@@ -208,7 +208,6 @@ dependencies = [
  "getrandom 0.2.16",
  "getrandom 0.3.3",
  "rand",
- "rand_chacha",
  "rand_core 0.6.4",
  "rand_core 0.9.3",
  "ron",

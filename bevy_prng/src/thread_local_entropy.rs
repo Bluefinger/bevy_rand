@@ -1,6 +1,5 @@
 use alloc::rc::Rc;
 use core::cell::UnsafeCell;
-
 use std::thread_local;
 
 use rand_chacha::ChaCha8Rng;
@@ -18,11 +17,11 @@ thread_local! {
 /// [Too Much Crypto](https://eprint.iacr.org/2019/1492.pdf) paper. [`ThreadLocalEntropy`] is not thread-safe and
 /// cannot be sent or synchronised between threads, it should be initialised within each thread context it is
 /// needed in.
-pub(crate) struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
+pub struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 
 impl ThreadLocalEntropy {
-    /// Create a new [`ThreadLocalEntropy`] instance.
-    pub(crate) fn new() -> Result<Self, std::thread::AccessError> {
+    /// Obtain a new [`ThreadLocalEntropy`] instance.
+    pub fn get() -> Result<Self, std::thread::AccessError> {
         Ok(Self(SOURCE.try_with(Rc::clone)?))
     }
 
@@ -72,8 +71,8 @@ mod tests {
 
     #[test]
     fn smoke_test() -> Result<(), std::thread::AccessError> {
-        let mut rng1 = ThreadLocalEntropy::new()?;
-        let mut rng2 = ThreadLocalEntropy::new()?;
+        let mut rng1 = ThreadLocalEntropy::get()?;
+        let mut rng2 = ThreadLocalEntropy::get()?;
 
         // Neither instance should interfere with each other
         rng1.next_u32();
@@ -105,7 +104,7 @@ mod tests {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
                 let mut rng =
-                    ThreadLocalEntropy::new().expect("Should not fail when accessing local source");
+                    ThreadLocalEntropy::get().expect("Should not fail when accessing local source");
 
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
@@ -116,7 +115,7 @@ mod tests {
                 // Obtain a thread local entropy source from this thread context.
                 // It should be initialised with a random state.
                 let mut rng =
-                    ThreadLocalEntropy::new().expect("Should not fail when accessing local source");
+                    ThreadLocalEntropy::get().expect("Should not fail when accessing local source");
 
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
@@ -147,7 +146,7 @@ mod tests {
     fn non_leaking_debug() {
         assert_eq!(
             "Ok(ThreadLocalEntropy)",
-            format!("{:?}", ThreadLocalEntropy::new())
+            format!("{:?}", ThreadLocalEntropy::get())
         );
     }
 }

@@ -5,8 +5,8 @@ pub use crate::params::{RngEntity, RngEntityItem};
 pub use crate::plugin::{EntropyPlugin, EntropyRelationsPlugin};
 pub use crate::seed::RngSeed;
 pub use crate::traits::{
-    ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerSeed,
-    ForkableRng, ForkableSeed, SeedSource,
+    ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerSeed, ForkableRng,
+    ForkableSeed, SeedSource,
 };
 #[cfg(feature = "wyrand")]
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]
@@ -34,3 +34,7 @@ pub use bevy_prng::{
     doc(cfg(all(feature = "rand_xoshiro", feature = "rand_xoshiro")))
 )]
 pub use bevy_prng::Seed512;
+
+#[cfg(feature = "thread_local_entropy")]
+#[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
+pub use bevy_prng::ThreadLocalEntropy;

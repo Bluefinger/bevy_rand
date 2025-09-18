@@ -152,10 +152,10 @@ fn setup_npc_from_source(
 - **`std`** - Enables support for `std` environment, allows enabling `std` specific optimisations for `rand_chacha` and more. Enabled by default.
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
-- **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
-- **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
-- **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
+- **`rand_chacha`** - This enables the exporting of `ChaCha*Rng` components, for those that want/need to use a CSPRNG level source.
+- **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
+- **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
+- **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 - **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.

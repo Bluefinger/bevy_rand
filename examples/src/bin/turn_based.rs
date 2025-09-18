@@ -21,7 +21,6 @@ fn main() {
             MinimalPlugins,
             LogPlugin::default(),
             EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()),
-            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
         ))
         .add_systems(Startup, (character_setup, observer_setup).chain())
         .add_systems(

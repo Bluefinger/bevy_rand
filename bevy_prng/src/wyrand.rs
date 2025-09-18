@@ -14,6 +14,6 @@ use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 newtype_prng!(
     WyRand,
     ::wyrand::WyRand,
-    "A newtyped [`wyrand::WyRand`] RNG",
+    "A [`wyrand::WyRand`] RNG component",
     "wyrand"
 );

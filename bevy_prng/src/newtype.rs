@@ -10,7 +10,16 @@ macro_rules! newtype_prng {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(
+                opaque,
+                Debug,
+                Clone,
+                Component,
+                PartialEq,
+                FromReflect,
+                Serialize,
+                Deserialize
+            )
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
@@ -94,8 +103,8 @@ macro_rules! newtype_prng {
             fn default() -> Self {
                 #[cfg(feature = "thread_local_entropy")]
                 {
-                    let mut local =
-                        super::thread_local_entropy::ThreadLocalEntropy::new().expect("Unable to source entropy for initialisation");
+                    let mut local = super::thread_local_entropy::ThreadLocalEntropy::get()
+                        .expect("Unable to source entropy for initialisation");
                     Self::from_rng(&mut local)
                 }
                 #[cfg(not(feature = "thread_local_entropy"))]
@@ -129,7 +138,16 @@ macro_rules! newtype_prng_remote {
         )]
         #[cfg_attr(
             all(feature = "serialize", feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, Serialize, Deserialize)
+            reflect(
+                opaque,
+                Debug,
+                Clone,
+                Component,
+                PartialEq,
+                FromReflect,
+                Serialize,
+                Deserialize
+            )
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),

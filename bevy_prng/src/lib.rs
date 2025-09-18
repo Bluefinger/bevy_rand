@@ -39,6 +39,8 @@ use rand_core::{RngCore, SeedableRng};
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
+#[cfg(feature = "thread_local_entropy")]
+pub use thread_local_entropy::ThreadLocalEntropy;
 #[cfg(feature = "wyrand")]
 pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]

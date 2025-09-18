@@ -25,8 +25,6 @@ pub mod plugin;
 pub mod prelude;
 /// Seed Components for seeding PRNG components.
 pub mod seed;
-#[cfg(feature = "thread_local_entropy")]
-mod thread_local_entropy;
 /// Traits for enabling utility methods for PRNG components.
 pub mod traits;
 #[cfg(doc)]

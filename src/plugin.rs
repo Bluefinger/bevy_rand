@@ -62,7 +62,8 @@ where
 {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "bevy_reflect")]
-        app.register_type::<RngSeed<Rng>>()
+        app.register_type::<Rng>()
+            .register_type::<RngSeed<Rng>>()
             .register_type::<Rng::Seed>();
 
         let world = app.world_mut();

@@ -225,7 +225,7 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
 
         let mut dest = R::Seed::default();
 
-        crate::thread_local_entropy::ThreadLocalEntropy::new()?.fill_bytes(dest.as_mut());
+        bevy_prng::ThreadLocalEntropy::get()?.fill_bytes(dest.as_mut());
 
         Ok(Self::from_seed(dest))
     }
@@ -287,9 +287,7 @@ pub trait ForkRngExt {
     /// Forks an [`EntropySource`] component from the source.
     fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Target>;
     /// Forks an [`EntropySource`] component from the source as the given `Target` Rng kind.
-    fn fork_as<Source: EntropySource, Target: EntropySource>(
-        &mut self,
-    ) -> Self::Output<Target>;
+    fn fork_as<Source: EntropySource, Target: EntropySource>(&mut self) -> Self::Output<Target>;
 }
 
 /// Extension trait to allow implementing forking seeds on more types. By default, it is implemented
@@ -321,9 +319,7 @@ impl ForkRngExt for &mut World {
     }
 
     /// Forks an [`EntropySource`] component from the [`GlobalRng`] source as the given `Target` Rng kind.
-    fn fork_as<Source: EntropySource, Target: EntropySource>(
-        &mut self,
-    ) -> Self::Output<Target> {
+    fn fork_as<Source: EntropySource, Target: EntropySource>(&mut self) -> Self::Output<Target> {
         self.query_filtered::<&mut Source, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_as::<Target>())
@@ -457,14 +453,8 @@ mod tests {
     fn type_paths() {
         use bevy_reflect::TypePath;
 
-        assert_eq!(
-            "bevy_prng::ChaCha8Rng",
-            ChaCha8Rng::type_path()
-        );
+        assert_eq!("bevy_prng::ChaCha8Rng", ChaCha8Rng::type_path());
 
-        assert_eq!(
-            "ChaCha8Rng",
-            ChaCha8Rng::short_type_path()
-        );
+        assert_eq!("ChaCha8Rng", ChaCha8Rng::short_type_path());
     }
 }

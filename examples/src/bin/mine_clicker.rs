@@ -6,11 +6,7 @@ use rand::Rng;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            EntropyPlugin::<WyRand>::new(),
-            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
-        ))
+        .add_plugins((DefaultPlugins, EntropyPlugin::<WyRand>::new()))
         .init_resource::<SpatialIndex>()
         .add_systems(Startup, (initial_setup, observer_setup).chain())
         .add_systems(Update, (draw_shapes, handle_click))

@@ -13,10 +13,7 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 
 use crate::{
-    global::GlobalRng,
-    params::RngEntity,
-    prelude::{RngEntityCommandsExt},
-    traits::ForkableAsSeed,
+    global::GlobalRng, params::RngEntity, prelude::RngEntityCommandsExt, traits::ForkableAsSeed,
 };
 
 /// Component to denote a source has linked children entities
