@@ -107,7 +107,9 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
 {
 }
 
-/// Reflectable RngCore
+/// Reflectable RngCore. This trait ensures that if `bevy_reflect` is active,
+/// that all [`EntropySource`] PRNGs can be used through reflection and interface
+/// with [`RngCore`].
 #[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
 pub trait RemoteRng: RngCore {}
 
