@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - v0.16
+      - v0.17
 
 env:
   RUSTFLAGS: -D warnings
@@ -68,7 +69,7 @@ jobs:
           rustup override set nightly
           cargo miri setup
       - name: Test with Miri
-        run: cargo miri test --locked
+        run: cargo miri test --locked --workspace --all-features
         env:
           # -Zrandomize-layout makes sure we dont rely on the layout of anything that might change
           RUSTFLAGS: -Zrandomize-layout
