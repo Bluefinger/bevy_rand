@@ -6,11 +6,7 @@ use rand::Rng;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            EntropyPlugin::<WyRand>::new(),
-            EntropyRelationsPlugin::<WyRand, WyRand>::default(),
-        ))
+        .add_plugins((DefaultPlugins, EntropyPlugin::<WyRand>::new()))
         .init_resource::<SpatialIndex>()
         .add_systems(Startup, (initial_setup, observer_setup).chain())
         .add_systems(Update, (draw_shapes, handle_click))
@@ -86,8 +82,8 @@ fn observer_setup(
 // Each mine has its own RNG state, which allows them not to rely on a global RNG source
 // for any update
 fn on_init_mine(
-    trigger: On<Insert, Entropy<WyRand>>,
-    mut query: Query<&mut Entropy<WyRand>, With<Mine>>,
+    trigger: On<Insert, WyRand>,
+    mut query: Query<&mut WyRand, With<Mine>>,
     mut commands: Commands,
 ) {
     let target = trigger.entity;

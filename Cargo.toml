@@ -47,7 +47,7 @@ bevy_reflect = [
 compat = ["bevy_prng/compat", "dep:rand_core_06"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
-thread_local_entropy = ["dep:rand_chacha", "std"]
+thread_local_entropy = ["bevy_prng/thread_local_entropy"]
 serialize = ["rand_core/serde", "bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
@@ -65,7 +65,6 @@ bevy_prng = { path = "bevy_prng", version = "0.12" }
 getrandom = "0.3.1"
 rand_core.workspace = true
 rand_core_06 = { workspace = true, optional = true }
-rand_chacha = { workspace = true, optional = true }
 
 # This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
 # version in lockstep with bevy_rand, so that even minor versions

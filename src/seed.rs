@@ -9,13 +9,12 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::prelude::{Reflect, ReflectDefault, ReflectFromReflect};
-use rand_core::SeedableRng;
 
-use crate::{component::Entropy, traits::SeedSource};
+use crate::traits::SeedSource;
 
-/// The initial seed/state for an [`Entropy`]. Adding this component to an `Entity` will cause
-/// an `Entropy` to be initialised as well. To force a reseed, just insert this component to an
-/// `Entity` to overwrite the old value, and the `Entropy` will be overwritten with the new seed
+/// The initial seed/state for an [`EntropySource`]. Adding this component to an `Entity` will cause
+/// an `EntropySource` to be initialised as well. To force a reseed, just insert this component to an
+/// `Entity` to overwrite the old value, and the `EntropySource` will be overwritten with the new seed
 /// in turn.
 ///
 /// ## Examples
@@ -89,16 +88,13 @@ where
             world
                 .commands()
                 .entity(context.entity)
-                .insert(Entropy::<R>::from_seed(seed));
+                .insert(R::from_seed(seed));
         })
     }
 
     fn on_remove() -> Option<bevy_ecs::lifecycle::ComponentHook> {
         Some(|mut world, context| {
-            world
-                .commands()
-                .entity(context.entity)
-                .try_remove::<Entropy<R>>();
+            world.commands().entity(context.entity).try_remove::<R>();
         })
     }
 }
@@ -142,47 +138,3 @@ where
 }
 
 impl<R: EntropySource> Eq for RngSeed<R> where R::Seed: Sync + Send {}
-
-#[cfg(test)]
-mod tests {
-    #[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
-    #[test]
-    fn reflection_serialization_round_trip_works() {
-        use super::*;
-
-        use bevy_prng::WyRand;
-        use bevy_reflect::{
-            FromReflect, GetTypeRegistration, TypeRegistry,
-            serde::{TypedReflectDeserializer, TypedReflectSerializer},
-        };
-        use ron::to_string;
-        use serde::de::DeserializeSeed;
-
-        let mut registry = TypeRegistry::default();
-        registry.register::<RngSeed<WyRand>>();
-
-        let registered_type = RngSeed::<WyRand>::get_type_registration();
-
-        let val = RngSeed::<WyRand>::from_seed(u64::MAX.to_ne_bytes());
-
-        let ser = TypedReflectSerializer::new(&val, &registry);
-
-        let serialized = to_string(&ser).unwrap();
-
-        assert_eq!(&serialized, "(seed:(255,255,255,255,255,255,255,255))");
-
-        let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
-
-        let de = TypedReflectDeserializer::new(&registered_type, &registry);
-
-        let value = de.deserialize(&mut deserializer).unwrap();
-
-        assert!(value.is_dynamic());
-        assert!(value.represents::<RngSeed<WyRand>>());
-        assert!(value.try_downcast_ref::<RngSeed<WyRand>>().is_none());
-
-        let recreated = RngSeed::<WyRand>::from_reflect(value.as_ref()).unwrap();
-
-        assert_eq!(val.clone_seed(), recreated.clone_seed());
-    }
-}

@@ -8,7 +8,7 @@ This is a good property to have though! It means the algorithm is *testable*, an
 
 ## Where to get seeds?
 
-`bevy_rand` provides two ways to give an `Entropy` component a seed:
+`bevy_rand` provides two ways to give an `EntropySource` component a seed:
 
 1. Default: Pulling from a thread-local or OS source (Random)
 2. Providing a set seed (Deterministic)
@@ -30,7 +30,7 @@ In the `rand` ecosystem, it has been decided for a long while that for security 
 
 But for most purposes, you don't actually *need* to know its exact internal state. Given these are *pseudorandom* sources, it is enough to observe the *initial state*, aka the seed value. `RngSeed` provides the ability to store the initial seed in a way that is observable via reflection and `Debug`. This way, you can observe your source entities without needing to worry about constantly serialising your RNGs.
 
-`RngSeed` does more though. It also *instantiates* an `Entropy` component automatically with the provided seed value when it is inserted on an entity. For example: This means that instead of transmitting the serialised state of an RNG from a server to a client, you could just transmit the `RngSeed` component, and when it is instantiated on the client, it'll setup `Entropy` automatically.
+`RngSeed` does more though. It also *instantiates* an `EntropySource` component automatically with the provided seed value when it is inserted on an entity. For example: This means that instead of transmitting the serialised state of an RNG from a server to a client, you could just transmit the `RngSeed` component, and when it is instantiated on the client, it'll setup an `EntropySource` component automatically.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -44,28 +44,28 @@ fn setup_source(mut commands: Commands) {
     commands
         .spawn((
             Source,
-            // This will yield a random `RngSeed<WyRand>` and then an `Entropy<WyRand>`
-            // with the same random seed
+            // This will yield a random `RngSeed<WyRand>` and then a `WyRand`
+            // component with the same random seed
             RngSeed::<WyRand>::default(),
         ));
 }
 ```
 
-It also means all the previous examples about forking `Entropy` components can be directly adapted into forking *seeds* instead.
+It also means all the previous examples about forking `EntropySource` components can be directly adapted into forking *seeds* instead.
 
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng, ForkableSeed};
+use bevy_rand::prelude::{GlobalRng, ForkableSeed};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
-            // This will yield a `RngSeed<WyRand>` and then an `Entropy<WyRand>`
+            // This will yield a `RngSeed<WyRand>` and then a `WyRand` component
             global.fork_seed(),
         ));
 }
@@ -75,7 +75,7 @@ The `SeedSource` trait provides the methods needed to get access to the wrapped 
 
 ## Reseeding
 
-In order to ensure that new seeds always proliferate into updating `Entropy` components, `RngSeed` is an *immutable* component. It does not allow obtaining mutable references to it, nor exposes mutable methods to modify the seed. That means the only way to update a source entity's seed is to reinsert a new `RngSeed`. By doing so, it also triggers the component's hooks to also reinsert a new `Entropy` with the updated seed.
+In order to ensure that new seeds always proliferate into updating `EntropySource` components, `RngSeed` is an *immutable* component. It does not allow obtaining mutable references to it, nor exposes mutable methods to modify the seed. That means the only way to update a source entity's seed is to reinsert a new `RngSeed`. By doing so, it also triggers the component's hooks to also reinsert a new `EntropySource` with the updated seed.
 
 ```rust
 use bevy_ecs::prelude::*;
@@ -97,13 +97,13 @@ Reinsertions do not invoke archetype moves, so this will not cause any extra ove
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng, RngEntity, RngEntityCommandsExt};
+use bevy_rand::prelude::{GlobalRng, RngEntity, RngEntityCommandsExt};
 use rand::Rng;
 
 #[derive(Component)]
 struct Source;
 
-fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: Single<&mut WyRand, With<GlobalRng>>) {
     for rng_entity in q_sources.iter() {
         commands.rng_entity(&rng_entity).reseed(global.random());
     }

@@ -22,14 +22,6 @@ fn exclusive_system_forking() {
                 .expect("Forking should be successful");
 
             assert_eq!(forked.next_u32(), 2755170287);
-
-            let mut inner = world
-                .fork_inner::<WyRand>()
-                .expect("Forking should be successful");
-
-            // Forking should always yield new Rngs with different internal states
-            assert_ne!(inner.next_u32(), 2755170287);
-            assert_ne!(forked.next_u32(), inner.next_u32());
         })
         .run();
 }
