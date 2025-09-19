@@ -1,6 +1,13 @@
-use bevy_prng::{ChaCha8Rng, ReflectRemoteRng};
-
+use bevy_prng::{ChaCha8Rng, ReflectRemoteRng, WyRand};
+use bevy_rand::{seed::RngSeed, traits::SeedSource};
+use bevy_reflect::{
+    serde::{
+        ReflectDeserializer, ReflectSerializer, TypedReflectDeserializer, TypedReflectSerializer,
+    }, FromReflect, GetTypeRegistration, Reflect, TypeRegistry
+};
 use rand_core::{RngCore, SeedableRng};
+use ron::to_string;
+use serde::de::DeserializeSeed;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
@@ -8,13 +15,6 @@ use wasm_bindgen_test::*;
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[test]
 fn rng_untyped_serialization() {
-    use bevy_reflect::{
-        FromReflect, TypeRegistry,
-        serde::{ReflectDeserializer, ReflectSerializer},
-    };
-    use ron::to_string;
-    use serde::de::DeserializeSeed;
-
     let mut registry = TypeRegistry::default();
     registry.register::<ChaCha8Rng>();
 
@@ -56,13 +56,6 @@ fn rng_untyped_serialization() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[test]
 fn rng_typed_serialization() {
-    use bevy_reflect::{
-        FromReflect, GetTypeRegistration, TypeRegistry,
-        serde::{TypedReflectDeserializer, TypedReflectSerializer},
-    };
-    use ron::ser::to_string;
-    use serde::de::DeserializeSeed;
-
     let mut registry = TypeRegistry::default();
     registry.register::<ChaCha8Rng>();
 
@@ -106,15 +99,6 @@ fn rng_typed_serialization() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[test]
 fn seed_reflection_serialization_round_trip() {
-    use bevy_prng::WyRand;
-    use bevy_rand::prelude::{RngSeed, SeedSource};
-    use bevy_reflect::{
-        FromReflect, GetTypeRegistration, TypeRegistry,
-        serde::{TypedReflectDeserializer, TypedReflectSerializer},
-    };
-    use ron::to_string;
-    use serde::de::DeserializeSeed;
-
     let mut registry = TypeRegistry::default();
     registry.register::<RngSeed<WyRand>>();
 
@@ -146,8 +130,6 @@ fn seed_reflection_serialization_round_trip() {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[test]
 fn remote_rng_reflection_works() {
-    use bevy_reflect::{Reflect, TypeRegistry};
-
     let mut registry = TypeRegistry::default();
     registry.register::<ChaCha8Rng>();
     registry.register_type_data::<ChaCha8Rng, ReflectRemoteRng>();
@@ -161,7 +143,9 @@ fn remote_rng_reflection_works() {
     let id = reflected_value.reflect_type_info().type_id();
     let reflect_rng = registry.get_type_data::<ReflectRemoteRng>(id).unwrap();
 
-    let next = reflect_rng.get_mut(reflected_value.as_reflect_mut()).unwrap();
+    let next = reflect_rng
+        .get_mut(reflected_value.as_reflect_mut())
+        .unwrap();
 
     let after = next.next_u32();
 
