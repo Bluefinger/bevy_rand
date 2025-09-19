@@ -2,7 +2,12 @@ use alloc::vec::Vec;
 use core::{fmt::Debug, marker::PhantomData};
 
 use bevy_ecs::{
-    entity::MapEntities, error::Result, event::EntityEvent, lifecycle::Insert, observer::On, prelude::{Commands, Component, Entity, With}, system::{Query, Single}
+    error::Result,
+    event::EntityEvent,
+    lifecycle::Insert,
+    observer::On,
+    prelude::{Commands, Component, Entity, With},
+    system::{Query, Single},
 };
 
 use bevy_prng::EntropySource;
@@ -12,19 +17,18 @@ use crate::{
 };
 
 #[cfg(feature = "bevy_reflect")]
-use bevy_reflect::{Reflect};
+use bevy_reflect::Reflect;
 
 #[cfg(feature = "bevy_reflect")]
 use bevy_ecs::reflect::ReflectComponent;
 
 /// Component to denote a source has linked children entities
-#[derive(Debug, Component, MapEntities)]
+#[derive(Debug, Component)]
 #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
 #[cfg_attr(feature = "bevy_reflect", reflect(Component))]
 #[relationship_target(relationship = RngSource<Source, Target>)]
 pub struct RngLinks<Source: EntropySource, Target: EntropySource> {
     #[relationship]
-    #[entities]
     related: Vec<Entity>,
     #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _source: PhantomData<Source>,
@@ -44,13 +48,12 @@ impl<Source: EntropySource, Target: EntropySource> Default for RngLinks<Source, 
 }
 
 /// Component to denote that the current Entity has a relation to a parent Rng source entity.
-#[derive(Debug, Component, MapEntities)]
+#[derive(Debug, Component)]
 #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
 #[cfg_attr(feature = "bevy_reflect", reflect(Component))]
 #[relationship(relationship_target = RngLinks<Source, Target>)]
 pub struct RngSource<Source: EntropySource, Target: EntropySource> {
     #[relationship]
-    #[entities]
     linked: Entity,
     #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _source: PhantomData<Source>,

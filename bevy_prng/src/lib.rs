@@ -90,6 +90,7 @@ pub trait EntropySource:
     + Component<Mutability = Mutable>
     + Sync
     + Send
+    + RemoteRng
     + private::SealedSeedable
 {
 }
@@ -105,6 +106,10 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
     EntropySeed for T
 {
 }
+
+/// Reflectable RngCore
+#[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
+pub trait RemoteRng: RngCore {}
 
 mod private {
     pub trait SealedSeedable {}

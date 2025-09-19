@@ -1,4 +1,4 @@
-use bevy_prng::ChaCha8Rng;
+use bevy_prng::{ChaCha8Rng, ReflectRemoteRng};
 
 use rand_core::{RngCore, SeedableRng};
 
@@ -141,4 +141,30 @@ fn seed_reflection_serialization_round_trip() {
     let recreated = RngSeed::<WyRand>::from_reflect(value.as_ref()).unwrap();
 
     assert_eq!(val.clone_seed(), recreated.clone_seed());
+}
+
+#[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+#[test]
+fn remote_rng_reflection_works() {
+    use bevy_reflect::{Reflect, TypeRegistry};
+
+    let mut registry = TypeRegistry::default();
+    registry.register::<ChaCha8Rng>();
+    registry.register_type_data::<ChaCha8Rng, ReflectRemoteRng>();
+
+    let mut value: ChaCha8Rng = ChaCha8Rng::from_seed([7; 32]);
+
+    let before = value.next_u32();
+
+    let mut reflected_value: Box<dyn Reflect> = Box::new(value);
+
+    let id = reflected_value.reflect_type_info().type_id();
+    let reflect_rng = registry.get_type_data::<ReflectRemoteRng>(id).unwrap();
+
+    let next = reflect_rng.get_mut(reflected_value.as_reflect_mut()).unwrap();
+
+    let after = next.next_u32();
+
+    assert_eq!(before, 1506529508);
+    assert_eq!(after, 958315583);
 }

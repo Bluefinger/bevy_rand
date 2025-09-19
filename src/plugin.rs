@@ -66,6 +66,9 @@ where
             .register_type::<RngSeed<Rng>>()
             .register_type::<Rng::Seed>();
 
+        #[cfg(feature = "bevy_reflect")]
+        app.register_type_data::<Rng, bevy_prng::ReflectRemoteRng>();
+
         let world = app.world_mut();
 
         world.spawn((

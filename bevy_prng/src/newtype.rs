@@ -18,12 +18,13 @@ macro_rules! newtype_prng {
                 PartialEq,
                 FromReflect,
                 Serialize,
-                Deserialize
+                Deserialize,
+                RemoteRng,
             )
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, RemoteRng)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
@@ -122,6 +123,8 @@ macro_rules! newtype_prng {
         }
 
         impl crate::EntropySource for $newtype {}
+
+        impl crate::RemoteRng for $newtype {}
     };
 }
 
@@ -146,12 +149,13 @@ macro_rules! newtype_prng_remote {
                 PartialEq,
                 FromReflect,
                 Serialize,
-                Deserialize
+                Deserialize,
+                RemoteRng
             )
         )]
         #[cfg_attr(
             all(not(feature = "serialize"), feature = "bevy_reflect"),
-            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect)
+            reflect(opaque, Debug, Clone, Component, PartialEq, FromReflect, RemoteRng)
         )]
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
@@ -235,6 +239,8 @@ macro_rules! newtype_prng_remote {
         }
 
         impl crate::EntropySource for $newtype {}
+
+        impl crate::RemoteRng for $newtype {}
     };
 }
 
