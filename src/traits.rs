@@ -3,28 +3,28 @@ use bevy_ecs::{
     world::World,
 };
 use bevy_prng::EntropySource;
-use rand_core::{OsRng, RngCore, SeedableRng, TryRngCore};
+use rand_core::{OsRng, SeedableRng, TryRngCore};
 
-use crate::{global::GlobalRng, prelude::Entropy, seed::RngSeed};
+use crate::{global::GlobalRng, seed::RngSeed};
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic.
-pub trait ForkableRng: EcsEntropy {
+pub trait ForkableRng: EntropySource {
     /// The type of instance that is to be forked from the original source.
-    type Output: EcsEntropy;
+    type Output: EntropySource;
 
     /// Fork the original instance to yield a new instance with a generated seed.
     /// This method preserves the RNG algorithm between original and forked instances.
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableRng};
+    /// use bevy_rand::prelude::{GlobalRng, ForkableRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -38,12 +38,12 @@ pub trait ForkableRng: EcsEntropy {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking between different PRNG algorithm types.
-pub trait ForkableAsRng: EcsEntropy {
+pub trait ForkableAsRng: EntropySource {
     /// The type of instance that is to be forked from the original source.
-    type Output<R>: EcsEntropy
+    type Output<R>: EntropySource
     where
         R: EntropySource;
 
@@ -51,13 +51,13 @@ pub trait ForkableAsRng: EcsEntropy {
     /// This method allows one to specify the RNG algorithm to be used for the forked instance.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{Entropy, ForkableAsRng, GlobalRng};
+    /// use bevy_rand::prelude::{ForkableAsRng, GlobalRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha12Rng>, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha12Rng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -67,48 +67,14 @@ pub trait ForkableAsRng: EcsEntropy {
     /// ```
     #[inline]
     fn fork_as<T: EntropySource>(&mut self) -> Self::Output<T> {
-        Self::Output::<_>::from_rng(self)
+        Self::Output::<T>::from_rng(self)
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
-/// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
-/// seed, this process is deterministic. This trait enables forking the inner PRNG instance of the source component/resource.
-pub trait ForkableInnerRng: EcsEntropy {
-    /// The type of instance that is to be forked from the original source.
-    type Output: EntropySource;
-
-    /// Fork the original instance to yield a new instance with a generated seed.
-    /// This method yields the inner PRNG instance directly as a forked instance.
-    /// ```
-    /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{Entropy, GlobalRng, ForkableInnerRng};
-    /// use bevy_prng::ChaCha8Rng;
-    /// use rand_core::RngCore;
-    ///
-    /// #[derive(Component)]
-    /// struct Source;
-    ///
-    /// fn do_random_action(source: &mut ChaCha8Rng) {
-    ///     println!("Random value: {}", source.next_u32());
-    /// }
-    ///
-    /// fn access_source(mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
-    ///     let mut source = global.fork_inner();
-    ///
-    ///     do_random_action(&mut source);
-    /// }
-    /// ```
-    #[inline]
-    fn fork_inner(&mut self) -> Self::Output {
-        Self::Output::from_rng(self)
-    }
-}
-
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component.
-pub trait ForkableSeed<S: EntropySource>: EcsEntropy {
+pub trait ForkableSeed<S: EntropySource>: EntropySource {
     /// The type of seed component that is to be forked from the original source.
     type Output: SeedSource<S>;
 
@@ -117,12 +83,12 @@ pub trait ForkableSeed<S: EntropySource>: EcsEntropy {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{Entropy, ForkableSeed, GlobalRng};
+    /// use bevy_rand::prelude::{ForkableSeed, GlobalRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -140,11 +106,11 @@ pub trait ForkableSeed<S: EntropySource>: EcsEntropy {
     }
 }
 
-/// Trait for implementing Forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing Forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to a seed component of a different
 /// PRNG algorithm.
-pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
+pub trait ForkableAsSeed<S: EntropySource>: EntropySource {
     /// The type of seed component that is to be forked from the original source.
     type Output<T>: SeedSource<T>
     where
@@ -154,13 +120,13 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     /// This method allows one to specify the RNG algorithm to be used for the forked seed.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_rand::prelude::{Entropy, ForkableAsSeed, GlobalRng};
+    /// use bevy_rand::prelude::{ForkableAsSeed, GlobalRng};
     /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -178,10 +144,10 @@ pub trait ForkableAsSeed<S: EntropySource>: EcsEntropy {
     }
 }
 
-/// Trait for implementing forking behaviour for [`crate::component::Entropy`].
+/// Trait for implementing forking behaviour for [`EntropySource`].
 /// Forking creates a new RNG instance using a generated seed from the original source. If the original is seeded with a known
 /// seed, this process is deterministic. This trait enables forking from an entropy source to the RNG's seed type.
-pub trait ForkableInnerSeed<S: EntropySource>: EcsEntropy {
+pub trait ForkableInnerSeed<S: EntropySource>: EntropySource {
     /// The type of seed component that is to be forked from the original source.
     type Output: Send + Sync + Clone + AsMut<[u8]> + Default;
 
@@ -190,12 +156,12 @@ pub trait ForkableInnerSeed<S: EntropySource>: EcsEntropy {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_prng::ChaCha8Rng;
-    /// use bevy_rand::prelude::{Entropy, ForkableInnerSeed, GlobalRng, SeedSource, RngSeed};
+    /// use bevy_rand::prelude::{ForkableInnerSeed, GlobalRng, SeedSource, RngSeed};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<ChaCha8Rng>, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -255,9 +221,11 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
     where
         Self: Sized,
     {
+        use rand_core::RngCore;
+
         let mut dest = R::Seed::default();
 
-        crate::thread_local_entropy::ThreadLocalEntropy::new()?.fill_bytes(dest.as_mut());
+        bevy_prng::ThreadLocalEntropy::get()?.fill_bytes(dest.as_mut());
 
         Ok(Self::from_seed(dest))
     }
@@ -309,25 +277,21 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
 }
 
 /// Extension trait to allow implementing forking on more types. By default, it is implemented
-/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+/// for `&mut World` which sources from [`GlobalRng`] source, though this can be manually implemented for more.
 pub trait ForkRngExt {
     /// The Error type returned for the queries used to extract and fork from.
     type Error: core::error::Error;
     /// The Output type for the resulting fork methods. Usually will be a `Result`.
     type Output<Rng>;
 
-    /// Forks an [`Entropy`] component from the source.
-    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Entropy<Target>>;
-    /// Forks an [`Entropy`] component from the source as the given `Target` Rng kind.
-    fn fork_as<Source: EntropySource, Target: EntropySource>(
-        &mut self,
-    ) -> Self::Output<Entropy<Target>>;
-    /// Forks the inner Rng from the source.
-    fn fork_inner<Target: EntropySource>(&mut self) -> Self::Output<Target>;
+    /// Forks an [`EntropySource`] component from the source.
+    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Target>;
+    /// Forks an [`EntropySource`] component from the source as the given `Target` Rng kind.
+    fn fork_as<Source: EntropySource, Target: EntropySource>(&mut self) -> Self::Output<Target>;
 }
 
 /// Extension trait to allow implementing forking seeds on more types. By default, it is implemented
-/// for `&mut World` which sources from [`Global`] source, though this can be manually implemented for more.
+/// for `&mut World` which sources from [`GlobalRng`] source, though this can be manually implemented for more.
 pub trait ForkSeedExt {
     /// The Error type returned for the queries used to extract and fork from.
     type Error: core::error::Error;
@@ -348,26 +312,17 @@ impl ForkRngExt for &mut World {
     type Error = QuerySingleError;
     type Output<Rng> = Result<Rng, Self::Error>;
 
-    /// Forks an [`Entropy`] component from the [`Global`] source.
+    /// Forks an [`EntropySource`] component from the [`GlobalRng`] source.
     #[inline]
-    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Entropy<Target>> {
+    fn fork_rng<Target: EntropySource>(&mut self) -> Self::Output<Target> {
         self.fork_as::<Target, Target>()
     }
 
-    /// Forks an [`Entropy`] component from the [`Global`] source as the given `Target` Rng kind.
-    fn fork_as<Source: EntropySource, Target: EntropySource>(
-        &mut self,
-    ) -> Self::Output<Entropy<Target>> {
-        self.query_filtered::<&mut Entropy<Source>, With<GlobalRng>>()
+    /// Forks an [`EntropySource`] component from the [`GlobalRng`] source as the given `Target` Rng kind.
+    fn fork_as<Source: EntropySource, Target: EntropySource>(&mut self) -> Self::Output<Target> {
+        self.query_filtered::<&mut Source, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_as::<Target>())
-    }
-
-    /// Forks the inner Rng from the [`Global`] source.
-    fn fork_inner<Target: EntropySource>(&mut self) -> Self::Output<Target> {
-        self.query_filtered::<&mut Entropy<Target>, With<GlobalRng>>()
-            .single_mut(self)
-            .map(|mut global| global.fork_inner())
     }
 }
 
@@ -375,49 +330,131 @@ impl ForkSeedExt for &mut World {
     type Error = QuerySingleError;
     type Output<Rng> = Result<Rng, Self::Error>;
 
-    /// Forks a [`RngSeed`] component from the [`Global`] source.
+    /// Forks a [`RngSeed`] component from the [`GlobalRng`] source.
     #[inline]
     fn fork_seed<Target: EntropySource>(&mut self) -> Self::Output<RngSeed<Target>> {
         self.fork_as_seed::<Target, Target>()
     }
 
-    /// Forks an [`RngSeed`] component from the [`Global`] source as the given `Target` Rng kind.
+    /// Forks an [`RngSeed`] component from the [`GlobalRng`] source as the given `Target` Rng kind.
     fn fork_as_seed<Source: EntropySource, Target: EntropySource>(
         &mut self,
     ) -> Self::Output<RngSeed<Target>> {
-        self.query_filtered::<&mut Entropy<Source>, With<GlobalRng>>()
+        self.query_filtered::<&mut Source, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_as_seed::<Target>())
     }
 
-    /// Forks a new Seed from the [`Global`] source.
+    /// Forks a new Seed from the [`GlobalRng`] source.
     fn fork_inner_seed<Target: EntropySource>(&mut self) -> Self::Output<Target::Seed> {
-        self.query_filtered::<&mut Entropy<Target>, With<GlobalRng>>()
+        self.query_filtered::<&mut Target, With<GlobalRng>>()
             .single_mut(self)
             .map(|mut global| global.fork_inner_seed())
     }
 }
 
-/// A marker trait for [`crate::component::Entropy`].
-/// This is a sealed trait and cannot be consumed by downstream.
-pub trait EcsEntropy: RngCore + SeedableRng + private::SealedSource {}
+impl<R> ForkableRng for R
+where
+    R: EntropySource,
+{
+    type Output = R;
+}
+
+impl<R> ForkableAsRng for R
+where
+    R: EntropySource,
+{
+    type Output<T>
+        = T
+    where
+        T: EntropySource;
+}
+
+impl<R> ForkableSeed<R> for R
+where
+    R: EntropySource,
+    R::Seed: Send + Sync + Clone,
+{
+    type Output = RngSeed<R>;
+}
+
+impl<R> ForkableAsSeed<R> for R
+where
+    R: EntropySource,
+{
+    type Output<T>
+        = RngSeed<T>
+    where
+        T: EntropySource,
+        T::Seed: Send + Sync + Clone;
+}
+
+impl<R> ForkableInnerSeed<R> for R
+where
+    R: EntropySource,
+    R::Seed: Send + Sync + Clone + AsMut<[u8]> + Default,
+{
+    type Output = R::Seed;
+}
+
+// /// A marker trait for [`crate::component::Entropy`].
+// /// This is a sealed trait and cannot be consumed by downstream.
+// pub trait EcsEntropy: RngCore + SeedableRng + private::SealedSource {}
 
 mod private {
-    use super::{EcsEntropy, EntropySource, SeedSource};
+    use super::{EntropySource, SeedSource};
 
-    pub trait SealedSource {}
     pub trait SealedSeed<R>
     where
         R: EntropySource,
     {
     }
 
-    impl<T> SealedSource for T where T: EcsEntropy {}
     impl<R, T> SealedSeed<R> for T
     where
         T: SeedSource<R>,
         R: EntropySource,
         R::Seed: Send + Sync + Clone,
     {
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+
+    use super::*;
+
+    #[test]
+    fn forking() {
+        let mut rng1 = ChaCha8Rng::default();
+
+        let rng2 = rng1.fork_rng();
+
+        assert_ne!(rng1, rng2, "forked Entropys should not match each other");
+    }
+
+    #[test]
+    fn forking_as() {
+        let mut rng1 = ChaCha12Rng::default();
+
+        let rng2 = rng1.fork_as::<ChaCha8Rng>();
+
+        let rng1 = format!("{rng1:?}");
+        let rng2 = format!("{rng2:?}");
+
+        assert_ne!(&rng1, &rng2, "forked Entropys should not match each other");
+    }
+
+    #[cfg(feature = "bevy_reflect")]
+    #[test]
+    fn type_paths() {
+        use bevy_reflect::TypePath;
+
+        assert_eq!("bevy_prng::ChaCha8Rng", ChaCha8Rng::type_path());
+
+        assert_eq!("ChaCha8Rng", ChaCha8Rng::short_type_path());
     }
 }

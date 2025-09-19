@@ -2,7 +2,7 @@ use bevy_app::{App, Update};
 use bevy_ecs::{query::With, system::Single};
 use bevy_math::{ShapeSample, Vec2, primitives::Circle};
 use bevy_prng::WyRand;
-use bevy_rand::{global::GlobalRng, plugin::EntropyPlugin, prelude::Entropy};
+use bevy_rand::{global::GlobalRng, plugin::EntropyPlugin};
 use rand::SeedableRng;
 
 #[cfg(target_arch = "wasm32")]
@@ -31,7 +31,7 @@ fn component_compatibility() {
         .add_plugins(EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()))
         .add_systems(
             Update,
-            |mut source: Single<&mut Entropy<WyRand>, With<GlobalRng>>| {
+            |mut source: Single<&mut WyRand, With<GlobalRng>>| {
                 let circle = Circle::new(42.0);
 
                 let boundary = circle.sample_boundary(source.as_mut());

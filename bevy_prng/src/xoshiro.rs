@@ -1,7 +1,15 @@
 use crate::newtype::newtype_prng;
 
+use rand_core::SeedableRng;
+
+#[cfg(feature = "bevy_reflect")]
+use crate::ReflectRemoteRng;
+
 #[cfg(feature = "bevy_reflect")]
 use crate::newtype::newtype_prng_remote;
+
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::reflect::ReflectComponent;
 
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{Reflect, ReflectFromReflect, reflect_remote, std_traits::ReflectDefault};
@@ -36,7 +44,7 @@ newtype_prng_remote!(
     Xoshiro512StarStar,
     ::rand_xoshiro::Xoshiro512StarStar,
     Seed512,
-    "A newtyped [`rand_xoshiro::Xoshiro512StarStar`] RNG",
+    "A [`rand_xoshiro::Xoshiro512StarStar`] RNG component",
     "rand_xoshiro"
 );
 
@@ -44,7 +52,7 @@ newtype_prng_remote!(
 newtype_prng!(
     Xoshiro512StarStar,
     ::rand_xoshiro::Xoshiro512StarStar,
-    "A newtyped [`rand_xoshiro::Xoshiro512StarStar`] RNG",
+    "A [`rand_xoshiro::Xoshiro512StarStar`] RNG component",
     "rand_xoshiro"
 );
 
@@ -53,7 +61,7 @@ newtype_prng_remote!(
     Xoshiro512PlusPlus,
     ::rand_xoshiro::Xoshiro512PlusPlus,
     Seed512,
-    "A newtyped [`rand_xoshiro::Xoshiro512PlusPlus`] RNG",
+    "A [`rand_xoshiro::Xoshiro512PlusPlus`] RNG component",
     "rand_xoshiro"
 );
 
@@ -61,7 +69,7 @@ newtype_prng_remote!(
 newtype_prng!(
     Xoshiro512PlusPlus,
     ::rand_xoshiro::Xoshiro512PlusPlus,
-    "A newtyped [`rand_xoshiro::Xoshiro512PlusPlus`] RNG",
+    "A [`rand_xoshiro::Xoshiro512PlusPlus`] RNG component",
     "rand_xoshiro"
 );
 
@@ -70,7 +78,7 @@ newtype_prng_remote!(
     Xoshiro512Plus,
     ::rand_xoshiro::Xoshiro512Plus,
     Seed512,
-    "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
+    "A [`rand_xoshiro::Xoshiro512Plus`] RNG component",
     "rand_xoshiro"
 );
 
@@ -78,83 +86,83 @@ newtype_prng_remote!(
 newtype_prng!(
     Xoshiro512Plus,
     ::rand_xoshiro::Xoshiro512Plus,
-    "A newtyped [`rand_xoshiro::Xoshiro512Plus`] RNG",
+    "A [`rand_xoshiro::Xoshiro512Plus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro256StarStar,
     ::rand_xoshiro::Xoshiro256StarStar,
-    "A newtyped [`rand_xoshiro::Xoshiro256StarStar`] RNG",
+    "A [`rand_xoshiro::Xoshiro256StarStar`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro256PlusPlus,
     ::rand_xoshiro::Xoshiro256PlusPlus,
-    "A newtyped [`rand_xoshiro::Xoshiro256PlusPlus`] RNG",
+    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro256Plus,
     ::rand_xoshiro::Xoshiro256Plus,
-    "A newtyped [`rand_xoshiro::Xoshiro256Plus`] RNG",
+    "A [`rand_xoshiro::Xoshiro256Plus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoroshiro128StarStar,
     ::rand_xoshiro::Xoroshiro128StarStar,
-    "A newtyped [`rand_xoshiro::Xoshiro128StarStar`] RNG",
+    "A [`rand_xoshiro::Xoshiro128StarStar`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoroshiro128PlusPlus,
     ::rand_xoshiro::Xoroshiro128PlusPlus,
-    "A newtyped [`rand_xoshiro::Xoshiro256PlusPlus`] RNG",
+    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoroshiro128Plus,
     ::rand_xoshiro::Xoroshiro128Plus,
-    "A newtyped [`rand_xoshiro::Xoshiro128Plus`] RNG",
+    "A [`rand_xoshiro::Xoshiro128Plus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro128StarStar,
     ::rand_xoshiro::Xoshiro128StarStar,
-    "A newtyped [`rand_xoshiro::Xoshiro128StarStar`] RNG",
+    "A [`rand_xoshiro::Xoshiro128StarStar`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro128PlusPlus,
     ::rand_xoshiro::Xoshiro128PlusPlus,
-    "A newtyped [`rand_xoshiro::Xoshiro256PlusPlus`] RNG",
+    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoshiro128Plus,
     ::rand_xoshiro::Xoshiro128Plus,
-    "A newtyped [`rand_xoshiro::Xoshiro128Plus`] RNG",
+    "A [`rand_xoshiro::Xoshiro128Plus`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoroshiro64StarStar,
     ::rand_xoshiro::Xoroshiro64StarStar,
-    "A newtyped [`rand_xoshiro::Xoroshiro64StarStar`] RNG",
+    "A [`rand_xoshiro::Xoroshiro64StarStar`] RNG component",
     "rand_xoshiro"
 );
 
 newtype_prng!(
     Xoroshiro64Star,
     ::rand_xoshiro::Xoroshiro64Star,
-    "A newtyped [`rand_xoshiro::Xoroshiro64Star`] RNG",
+    "A [`rand_xoshiro::Xoroshiro64Star`] RNG component",
     "rand_xoshiro"
 );

@@ -90,10 +90,10 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, GlobalRng};
+use bevy_rand::prelude::GlobalRng;
 use rand_core::RngCore;
 
-fn print_random_value(mut rng: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut WyRand, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -105,12 +105,12 @@ For seeding `Entropy`s from a global source, it is best to make use of forking i
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableSeed, GlobalRng};
+use bevy_rand::prelude::{ForkableSeed, GlobalRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -124,7 +124,7 @@ fn setup_source(mut commands: Commands, mut global: Single<&mut Entropy<WyRand>,
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
-use bevy_rand::prelude::{Entropy, ForkableSeed};
+use bevy_rand::prelude::ForkableSeed;
 
 #[derive(Component)]
 struct Npc;
@@ -134,7 +134,7 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Single<&mut Entropy<WyRand>, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut WyRand, (With<Source>, Without<Npc>)>,
 ) {
    for _ in 0..2 {
        commands
@@ -152,10 +152,10 @@ fn setup_npc_from_source(
 - **`std`** - Enables support for `std` environment, allows enabling `std` specific optimisations for `rand_chacha` and more. Enabled by default.
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
-- **`rand_chacha`** - This enables the exporting of newtyped `ChaCha*Rng` structs, for those that want/need to use a CSPRNG level source.
-- **`rand_pcg`** - This enables the exporting of newtyped `Pcg*` structs from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of newtyped `Xoshiro*` structs from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
-- **`wyrand`** - This enables the exporting of newtyped `WyRand` from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
+- **`rand_chacha`** - This enables the exporting of `ChaCha*Rng` components, for those that want/need to use a CSPRNG level source.
+- **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
+- **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
+- **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 - **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.

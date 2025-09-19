@@ -4,6 +4,11 @@
 #![cfg_attr(docsrs, allow(unused_attributes))]
 #![no_std]
 
+extern crate alloc;
+
+#[cfg(feature = "std")]
+extern crate std;
+
 #[cfg(feature = "rand_chacha")]
 mod chacha;
 #[cfg(any(
@@ -20,8 +25,12 @@ mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
 
+#[cfg(feature = "thread_local_entropy")]
+mod thread_local_entropy;
+
 use core::fmt::Debug;
 
+use bevy_ecs::component::{Component, Mutable};
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{RngCore, SeedableRng};
@@ -30,6 +39,8 @@ use rand_core::{RngCore, SeedableRng};
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
+#[cfg(feature = "thread_local_entropy")]
+pub use thread_local_entropy::ThreadLocalEntropy;
 #[cfg(feature = "wyrand")]
 pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]
@@ -67,8 +78,8 @@ pub trait RngReflectable: 'static {}
 #[cfg(not(feature = "bevy_reflect"))]
 impl<T: 'static> RngReflectable for T {}
 
-/// A marker trait to define the required trait bounds for a seedable PRNG to
-/// integrate into `Entropy` or `GlobalEntropy`. This is a sealed trait.
+/// A marker trait to define the required trait bounds for a seedable PRNG to be
+/// integrated as a component. This is a sealed trait.
 pub trait EntropySource:
     RngCore
     + RngReflectable
@@ -76,8 +87,10 @@ pub trait EntropySource:
     + Clone
     + Debug
     + PartialEq
+    + Component<Mutability = Mutable>
     + Sync
     + Send
+    + RemoteRng
     + private::SealedSeedable
 {
 }
@@ -93,6 +106,12 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
     EntropySeed for T
 {
 }
+
+/// Reflectable RngCore. This trait ensures that if `bevy_reflect` is active,
+/// that all [`EntropySource`] PRNGs can be used through reflection and interface
+/// with [`RngCore`].
+#[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
+pub trait RemoteRng: RngCore {}
 
 mod private {
     pub trait SealedSeedable {}

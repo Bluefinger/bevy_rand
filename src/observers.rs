@@ -13,19 +13,26 @@ use bevy_ecs::{
 use bevy_prng::EntropySource;
 
 use crate::{
-    global::GlobalRng,
-    params::RngEntity,
-    prelude::{Entropy, RngEntityCommandsExt},
-    traits::ForkableAsSeed,
+    global::GlobalRng, params::RngEntity, prelude::RngEntityCommandsExt, traits::ForkableAsSeed,
 };
+
+#[cfg(feature = "bevy_reflect")]
+use bevy_reflect::Reflect;
+
+#[cfg(feature = "bevy_reflect")]
+use bevy_ecs::reflect::ReflectComponent;
 
 /// Component to denote a source has linked children entities
 #[derive(Debug, Component)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+#[cfg_attr(feature = "bevy_reflect", reflect(Component))]
 #[relationship_target(relationship = RngSource<Source, Target>)]
 pub struct RngLinks<Source: EntropySource, Target: EntropySource> {
     #[relationship]
     related: Vec<Entity>,
+    #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _source: PhantomData<Source>,
+    #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _target: PhantomData<Target>,
 }
 
@@ -42,11 +49,15 @@ impl<Source: EntropySource, Target: EntropySource> Default for RngLinks<Source, 
 
 /// Component to denote that the current Entity has a relation to a parent Rng source entity.
 #[derive(Debug, Component)]
+#[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
+#[cfg_attr(feature = "bevy_reflect", reflect(Component))]
 #[relationship(relationship_target = RngLinks<Source, Target>)]
 pub struct RngSource<Source: EntropySource, Target: EntropySource> {
     #[relationship]
     linked: Entity,
+    #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _source: PhantomData<Source>,
+    #[cfg_attr(feature = "bevy_reflect", reflect(ignore))]
     _target: PhantomData<Target>,
 }
 
@@ -137,7 +148,7 @@ impl<Source: EntropySource, Target: EntropySource> SeedFromSource<Source, Target
 /// Observer System for pulling in a new seed from a GlobalEntropy source
 pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
     event: On<SeedFromGlobal<Source, Target>>,
-    mut source: Single<&mut Entropy<Source>, With<GlobalRng>>,
+    mut source: Single<&mut Source, With<GlobalRng>>,
     mut commands: Commands,
 ) -> Result {
     let mut entity = commands.get_entity(event.target)?;
@@ -152,7 +163,7 @@ pub fn seed_from_global<Source: EntropySource, Target: EntropySource>(
 pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
     event: On<SeedFromSource<Source, Target>>,
     q_linked: Query<&RngSource<Source, Target>>,
-    mut q_parents: Query<&mut Entropy<Source>, With<RngLinks<Source, Target>>>,
+    mut q_parents: Query<&mut Source, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) -> Result {
     let target = event.target;
@@ -172,7 +183,7 @@ pub fn seed_from_parent<Source: EntropySource, Target: EntropySource>(
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
     event: On<SeedLinked<Source, Target>>,
-    mut q_source: Query<(&mut Entropy<Source>, &RngLinks<Source, Target>)>,
+    mut q_source: Query<(&mut Source, &RngLinks<Source, Target>)>,
     mut commands: Commands,
 ) -> Result {
     let target = event.source;
@@ -194,7 +205,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
 /// Observer System for triggering seed propagation from source Rng to all child entities. This observer
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
-    event: On<Insert, Entropy<Source>>,
+    event: On<Insert, Source>,
     q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) {
