@@ -118,9 +118,9 @@ fn seed_reflection_serialization_round_trip() {
 
     let value = de.deserialize(&mut deserializer).unwrap();
 
-    assert!(value.is_dynamic());
+    assert!(!value.is_dynamic());
     assert!(value.represents::<RngSeed<WyRand>>());
-    assert!(value.try_downcast_ref::<RngSeed<WyRand>>().is_none());
+    assert!(value.try_downcast_ref::<RngSeed<WyRand>>().is_some());
 
     let recreated = RngSeed::<WyRand>::from_reflect(value.as_ref()).unwrap();
 
