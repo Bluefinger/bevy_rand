@@ -8,7 +8,7 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.12.0"
+version = "0.12.1"
 rust-version = "1.86.0"
 
 [workspace.dependencies]
@@ -62,7 +62,7 @@ bevy_reflect = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "0.12" }
 
 # others
-getrandom = "0.3.1"
+getrandom = "0.3.4"
 rand_core.workspace = true
 rand_core_06 = { workspace = true, optional = true }
 
@@ -91,7 +91,7 @@ serde = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-getrandom = { version = "0.3", features = ["wasm_js"] }
+getrandom = { version = "0.3.4", features = ["wasm_js"] }
 getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
 bevy_ecs = { version = "0.18.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
     "bevy_reflect",
