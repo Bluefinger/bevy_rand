@@ -55,15 +55,7 @@ From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a 
 bevy_rand = { version = "0.12", features = ["wasm_js"] }
 ```
 
-This enables the `wasm_js` backend to be made available for `getrandom`, but it doesn't actually build. The next step is to either edit your `.cargo/config.toml` with the below configuration:
-
-```toml
-# It's recommended to set the flag on a per-target basis:
-[target.wasm32-unknown-unknown]
-rustflags = ['--cfg', 'getrandom_backend="wasm_js"']
-```
-
-Or pass an environment variable: `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'`. This then enables the `getrandom` WASM backend to get built correctly.
+This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_rand` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
 
 ### Registering a PRNG for use with Bevy Rand
 
@@ -157,7 +149,7 @@ fn setup_npc_from_source(
 - **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
-- **`wasm_js`** - This enables the `getrandom` WASM backend, though doesn't make `getrandom` use it. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
+- **`wasm_js`** - This enables the `getrandom` WASM JS backend, though this should only be activated conditionally for `wasm` targets. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 - **`compat`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 
 ## Examples
