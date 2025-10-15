@@ -46,13 +46,9 @@ jobs:
       - name: Test Docs
         run: cargo doc --locked
       - name: Test wasm
-        env:
-          RUSTFLAGS: --cfg getrandom_backend="wasm_js"
         run: wasm-pack test --headless --chrome --firefox -- --locked --all-features
         if: startsWith(matrix.os, 'ubuntu')
       - name: Test wasm (no default features)
-        env:
-          RUSTFLAGS: --cfg getrandom_backend="wasm_js"
         run: wasm-pack test --headless --chrome --firefox -- --locked --no-default-features
         if: startsWith(matrix.os, 'ubuntu')
   miri:
