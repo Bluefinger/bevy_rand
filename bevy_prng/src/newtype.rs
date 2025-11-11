@@ -273,6 +273,27 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        impl Default for $newtype {
+            fn default() -> Self {
+                use rand_core::SeedableRng;
+
+                #[cfg(feature = "thread_local_entropy")]
+                {
+                    let mut local = super::thread_local_entropy::ThreadLocalEntropy::get()
+                        .expect("Unable to source entropy for initialisation");
+                    Self::from_rng(&mut local)
+                }
+                #[cfg(not(feature = "thread_local_entropy"))]
+                {
+                    let mut seed: <$rng as ::rand_core::SeedableRng>::Seed = Default::default();
+
+                    getrandom::fill(seed.as_mut()).expect("Unable to source entropy for initialisation");
+
+                    Self::from_seed(seed)
+                }
+            }
+        }
+
         impl From<$rng> for $newtype {
             #[inline]
             fn from(value: $rng) -> Self {
