@@ -131,7 +131,7 @@ fn initial_setup(mut commands: Commands) {
 
     // Initialise the Source entity to be an RNG source and then seed all its
     // linked entities.
-    commands.trigger_targets(SeedFromGlobal::<WyRand, WyRand>::new(source));
+    commands.trigger(SeedFromGlobal::<WyRand, WyRand>::new(source));
 }
 ```
 
@@ -150,7 +150,7 @@ struct Target;
 
 fn pull_seed_from_parent(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     for target in &q_targets {
-        commands.trigger_targets(SeedFromSource::<WyRand, WyRand>::new(target));
+        commands.trigger(SeedFromSource::<WyRand, WyRand>::new(target));
     }
 }
 ```
