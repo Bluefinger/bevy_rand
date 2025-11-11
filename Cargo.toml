@@ -16,12 +16,14 @@ bevy_app = { version = "0.18.0", default-features = false }
 bevy_ecs = { version = "0.18.0", default-features = false }
 bevy_reflect = { version = "0.18.0", default-features = false }
 serde = { version = "1.0.218", default-features = false }
-rand_core = { version = "0.9.3", features = ["os_rng"] }
+rand_core = { version = "=0.10.0-rc-2" }
+rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
-rand_chacha = { version = "0.9.0", default-features = false }
-wyrand = "0.3.2"
-rand_pcg = "0.9.0"
-rand_xoshiro = "0.7.0"
+rand_chacha = { version = "=0.10.0-rc.1", default-features = false }
+wyrand = { git = "https://github.com/Bluefinger/wyrand-rs/", branch = "rand-v0.10" }
+rand_pcg = "=0.10.0-rc.1"
+rand_xoshiro = "0.8.0-rc.0"
+getrandom = "0.3.4"
 
 [package]
 name = "bevy_rand"
@@ -44,7 +46,8 @@ bevy_reflect = [
     "bevy_ecs/bevy_reflect",
     "bevy_prng/bevy_reflect",
 ]
-compat = ["bevy_prng/compat", "dep:rand_core_06"]
+compat_06 = ["bevy_prng/compat_06", "dep:rand_core_06"]
+compat_09 = ["bevy_prng/compat_09", "dep:rand_core_09"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
 thread_local_entropy = ["bevy_prng/thread_local_entropy"]
@@ -62,8 +65,9 @@ bevy_reflect = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "0.13" }
 
 # others
-getrandom = "0.3.4"
+getrandom.workspace = true
 rand_core.workspace = true
+rand_core_09 = { workspace = true, optional = true }
 rand_core_06 = { workspace = true, optional = true }
 
 # This cfg cannot be enabled, but it forces Cargo to keep bevy_prng's
@@ -85,7 +89,7 @@ bevy_prng = { path = "bevy_prng", version = "0.13", default-features = false, fe
     "rand_chacha",
     "wyrand",
 ] }
-rand = "0.9"
+rand = "=0.10.0-rc.5"
 ron = { version = "0.8.0", features = ["integer128"] }
 serde = { workspace = true }
 

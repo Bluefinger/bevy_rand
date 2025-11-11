@@ -1,7 +1,5 @@
 use crate::newtype::newtype_prng;
 
-use rand_core::SeedableRng;
-
 #[cfg(feature = "bevy_reflect")]
 use crate::ReflectRemoteRng;
 
@@ -20,3 +18,11 @@ newtype_prng!(
     "A [`wyrand::WyRand`] RNG component",
     "wyrand"
 );
+
+impl WyRand {
+    /// HURR
+    #[inline]
+    pub fn from_os_rng() -> Self {
+        Self::new(wyrand::WyRand::new(getrandom::u64().expect("Unable to source OS entropy")))
+    }
+}

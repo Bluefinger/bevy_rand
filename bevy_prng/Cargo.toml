@@ -28,12 +28,15 @@ rand_chacha = ["dep:rand_chacha"]
 wyrand = ["dep:wyrand"]
 rand_pcg = ["dep:rand_pcg"]
 rand_xoshiro = ["dep:rand_xoshiro"]
-compat = ["dep:rand_core_06"]
+compat_09 = ["dep:rand_core_09"]
+compat_06 = ["dep:rand_core_06"]
 
 [dependencies]
+getrandom = { workspace = true }
 bevy_ecs = { workspace = true }
 bevy_reflect = { workspace = true, optional = true }
 rand_core.workspace = true
+rand_core_09 = { workspace = true, optional = true }
 rand_core_06 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
 rand_chacha = { workspace = true, optional = true }

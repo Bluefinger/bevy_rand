@@ -155,7 +155,7 @@ where
 
     /// Reseeds the current `Rng` with a new seed drawn from OS sources.
     #[inline]
-    pub fn try_reseed_from_os_rng(&mut self) -> Result<&mut Self, rand_core::OsError> {
+    pub fn try_reseed_from_os_rng(&mut self) -> Result<&mut Self, getrandom::Error> {
         let entity = self.source;
 
         self.entity(entity)
