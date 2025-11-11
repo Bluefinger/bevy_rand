@@ -39,7 +39,7 @@ exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std", "bevy_reflect"]
+default = ["serialize", "thread_local_entropy", "std", "bevy_reflect", "compat_09"]
 bevy_reflect = [
     "dep:bevy_reflect",
     "bevy_app/bevy_reflect",
@@ -78,12 +78,8 @@ rand_core_06 = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.13" }
 
 [dev-dependencies]
-bevy_app = { workspace = true, features = [
-    "bevy_reflect",
-] }
-bevy_ecs = { workspace = true, features = [
-    "bevy_reflect",
-] }
+bevy_app = { workspace = true, features = ["bevy_reflect"] }
+bevy_ecs = { workspace = true, features = ["bevy_reflect"] }
 bevy_math = { version = "0.18.0-dev", git = "https://github.com/bevyengine/bevy", package = "bevy_math" }
 bevy_prng = { path = "bevy_prng", version = "0.13", default-features = false, features = [
     "rand_chacha",

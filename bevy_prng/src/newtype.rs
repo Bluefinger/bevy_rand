@@ -113,7 +113,9 @@ macro_rules! newtype_prng {
             }
 
             #[inline]
-            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(source: &mut R) -> Result<Self, R::Error> {
+            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(
+                source: &mut R,
+            ) -> Result<Self, R::Error> {
                 Ok(Self::new(<$rng>::try_from_rng(source)?))
             }
         }
@@ -132,7 +134,8 @@ macro_rules! newtype_prng {
                 {
                     let mut seed: <$rng as ::rand_core::SeedableRng>::Seed = Default::default();
 
-                    getrandom::fill(seed.as_mut()).expect("Unable to source entropy for initialisation");
+                    getrandom::fill(seed.as_mut())
+                        .expect("Unable to source entropy for initialisation");
 
                     Self::from_seed(seed)
                 }
@@ -268,7 +271,9 @@ macro_rules! newtype_prng_remote {
             }
 
             #[inline]
-            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(source: &mut R) -> Result<Self, R::Error> {
+            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(
+                source: &mut R,
+            ) -> Result<Self, R::Error> {
                 Ok(Self::new(<$rng>::try_from_rng(source)?))
             }
         }
@@ -287,7 +292,8 @@ macro_rules! newtype_prng_remote {
                 {
                     let mut seed: <$rng as ::rand_core::SeedableRng>::Seed = Default::default();
 
-                    getrandom::fill(seed.as_mut()).expect("Unable to source entropy for initialisation");
+                    getrandom::fill(seed.as_mut())
+                        .expect("Unable to source entropy for initialisation");
 
                     Self::from_seed(seed)
                 }
