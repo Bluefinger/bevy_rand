@@ -39,7 +39,7 @@ exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std", "bevy_reflect"]
+default = ["serialize", "thread_local_entropy", "std", "bevy_reflect", "compat_09"]
 bevy_reflect = [
     "dep:bevy_reflect",
     "bevy_app/bevy_reflect",
