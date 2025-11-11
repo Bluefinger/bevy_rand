@@ -1,9 +1,10 @@
 use bevy_prng::{ChaCha8Rng, ReflectRemoteRng, WyRand};
 use bevy_rand::{seed::RngSeed, traits::SeedSource};
 use bevy_reflect::{
+    FromReflect, GetTypeRegistration, Reflect, TypeRegistry,
     serde::{
         ReflectDeserializer, ReflectSerializer, TypedReflectDeserializer, TypedReflectSerializer,
-    }, FromReflect, GetTypeRegistration, Reflect, TypeRegistry
+    },
 };
 use rand_core::{RngCore, SeedableRng};
 use ron::to_string;

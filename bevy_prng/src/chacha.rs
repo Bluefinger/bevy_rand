@@ -1,6 +1,6 @@
 use crate::newtype::newtype_prng;
 
-use rand_core::{CryptoRng, SeedableRng};
+use rand_core::CryptoRng;
 
 #[cfg(feature = "bevy_reflect")]
 use crate::ReflectRemoteRng;
