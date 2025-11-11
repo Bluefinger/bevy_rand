@@ -10,7 +10,7 @@ thread_local! {
     static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = {
         let mut seed: [u8; 32] = Default::default();
 
-        getrandom::fill(&mut seed).unwrap();
+        getrandom::fill(&mut seed).expect("Unable to source entropy for initialisation");
 
         Rc::new(UnsafeCell::new(ChaCha8Rng::from_seed(seed)))
     };
