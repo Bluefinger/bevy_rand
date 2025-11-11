@@ -3,7 +3,7 @@ use bevy_ecs::{
     world::World,
 };
 use bevy_prng::EntropySource;
-use rand_core::{OsRng, SeedableRng, TryRngCore};
+use rand_core::SeedableRng;
 
 use crate::{global::GlobalRng, seed::RngSeed};
 
@@ -249,13 +249,13 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
 
     /// Initialize a [`SeedSource`] from a `seed` value obtained from an
     /// OS/Hardware RNG source.
-    fn try_from_os_rng() -> Result<Self, rand_core::OsError>
+    fn try_from_os_rng() -> Result<Self, getrandom::Error>
     where
         Self: Sized,
     {
         let mut dest = R::Seed::default();
 
-        OsRng.try_fill_bytes(dest.as_mut())?;
+        getrandom::fill(dest.as_mut())?;
 
         Ok(Self::from_seed(dest))
     }
