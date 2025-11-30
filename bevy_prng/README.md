@@ -22,7 +22,8 @@ By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you
 - **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
 - **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
-- **`compat`** - This enables the old `RngCore` trait implementations on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+- **`compat_06`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+- **`compat_09`** - This enables the old v0.9 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 
 In addition to these feature flags to enable various supported algorithms, there's also **`serialize`** flag to provide `serde` support for `Serialize`/`Deserialize`.
 
@@ -52,7 +53,7 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 | `bevy` | `bevy_prng`   |
 | ------ | ------------- |
-| v0.17  | v0.12         |
+| v0.17  | v0.12 - v0.13 |
 | v0.16  | v0.10 - v0.11 |
 | v0.15  | v0.8 - v0.9   |
 | v0.14  | v0.7 - v0.8   |
@@ -62,10 +63,11 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as follows:
 
-| `bevy_prng`    | `rand_core` | `rand` | `getrandom` | `compat` feature               |
-| -------------- | ----------- | ------ | ----------- | ------------------------------ |
-| v0.10 -> v0.12 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
-| v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                             |
+| `bevy_prng`    | `rand_core` | `rand` | `getrandom` | `compat` features                    |
+| -------------- | ----------- | ------ | ----------- | ------------------------------------ |
+| v0.13          | v0.10       | v0.10  | v0.3        | ✅ (supports `rand_core` v0.6, v0.9) |
+| v0.10 -> v0.12 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6)       |
+| v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                                   |
 
 ## License
 
