@@ -1,6 +1,6 @@
 use crate::newtype::newtype_prng;
 
-use rand_core::{CryptoRng, SeedableRng};
+use rand_core::SeedableRng;
 
 #[cfg(feature = "bevy_reflect")]
 use crate::ReflectRemoteRng;
@@ -21,8 +21,6 @@ newtype_prng!(
     "rand_chacha"
 );
 
-impl CryptoRng for ChaCha8Rng {}
-
 newtype_prng!(
     ChaCha12Rng,
     ::rand_chacha::ChaCha12Rng,
@@ -30,13 +28,9 @@ newtype_prng!(
     "rand_chacha"
 );
 
-impl CryptoRng for ChaCha12Rng {}
-
 newtype_prng!(
     ChaCha20Rng,
     ::rand_chacha::ChaCha20Rng,
     "A [`rand_chacha::ChaCha20Rng`] RNG component",
     "rand_chacha"
 );
-
-impl CryptoRng for ChaCha20Rng {}

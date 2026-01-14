@@ -199,3 +199,7 @@ fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, W
     }
 }
 ```
+
+## Migrating from v0.12 to v0.13
+
+`CryptoRng` does not apply to any of the ChaCha rngs, since being portable is at odds with being secure (which needs to ensure you can't replicate the state). If you need `CryptoRng` capable sources, use `rand` directly.

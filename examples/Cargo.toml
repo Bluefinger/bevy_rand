@@ -8,7 +8,7 @@ version = "0.12.0"
 rust-version = "1.86.0"
 
 [dependencies]
-bevy = { version = "0.18.0-dev", git = "https://github.com/bevyengine/bevy", default-features = false, features = [
+bevy = { version = "0.18.0", default-features = false, features = [
     "bevy_log",
     "bevy_color",
     "bevy_ui",
@@ -21,7 +21,7 @@ bevy = { version = "0.18.0-dev", git = "https://github.com/bevyengine/bevy", def
     "wayland",
     "webgl2",
 ] }
-bevy_rand = { path = "..", version = "0.12", default-features = false, features = ["wyrand"] }
+bevy_rand = { path = "..", version = "0.13", default-features = false, features = ["wyrand"] }
 rand = { version = "0.9", default-features = false }
 
 [profile.release]
