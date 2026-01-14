@@ -52,6 +52,7 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 | `bevy` | `bevy_prng`   |
 | ------ | ------------- |
+| v0.18  | v0.13         |
 | v0.17  | v0.12         |
 | v0.16  | v0.10 - v0.11 |
 | v0.15  | v0.8 - v0.9   |
@@ -64,7 +65,7 @@ The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as fol
 
 | `bevy_prng`    | `rand_core` | `rand` | `getrandom` | `compat` feature               |
 | -------------- | ----------- | ------ | ----------- | ------------------------------ |
-| v0.10 -> v0.12 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.10 -> v0.13 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
 | v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## License

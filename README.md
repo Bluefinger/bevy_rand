@@ -22,14 +22,14 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 #### `bevy_rand` feature activation
 ```toml
 rand_core = "0.9"
-bevy_rand = { version = "0.12", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.13", features = ["rand_chacha", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
 rand_core = "0.9"
-bevy_rand = "0.12"
-bevy_prng = { version = "0.12", features = ["rand_chacha", "wyrand"] }
+bevy_rand = "0.13"
+bevy_prng = { version = "0.13", features = ["rand_chacha", "wyrand"] }
 ```
 
 The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `rand_chacha`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
@@ -41,7 +41,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
-bevy_rand = { version = "0.12", default-features = false, features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.13", default-features = false, features = ["rand_chacha", "wyrand"] }
 ```
 
 All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
@@ -52,7 +52,7 @@ From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a 
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-bevy_rand = { version = "0.12", features = ["wasm_js"] }
+bevy_rand = { version = "0.13", features = ["wasm_js"] }
 ```
 
 This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_rand` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
@@ -173,6 +173,7 @@ More info about the examples can be [found here](examples/README.md).
 
 | `bevy` | `bevy_rand`   |
 | ------ | ------------- |
+| v0.18  | v0.13         |
 | v0.17  | v0.12         |
 | v0.16  | v0.10 - v0.11 |
 | v0.15  | v0.8 - v0.9   |
@@ -186,7 +187,7 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 | `bevy_rand`    | `rand_core` | `rand` | `getrandom` | `compat` feature               |
 | -------------- | ----------- | ------ | ----------- | ------------------------------ |
-| v0.10 -> v0.12 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
+| v0.10 -> v0.13 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6) |
 | v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                             |
 
 ## Migrations
