@@ -11,7 +11,7 @@ use bevy::{
 };
 use bevy_rand::prelude::*;
 use rand::{
-    Rng,
+    RngExt,
     seq::{IteratorRandom, SliceRandom},
 };
 

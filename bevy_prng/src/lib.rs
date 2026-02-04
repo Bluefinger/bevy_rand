@@ -9,11 +9,11 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(feature = "rand_chacha")]
+#[cfg(feature = "chacha20")]
 mod chacha;
 #[cfg(any(
     feature = "wyrand",
-    feature = "rand_chacha",
+    feature = "chacha20",
     feature = "rand_pcg",
     feature = "rand_xoshiro"
 ))]
@@ -35,7 +35,7 @@ use bevy_ecs::component::{Component, Mutable};
 use bevy_reflect::{FromReflect, Reflectable, Typed};
 use rand_core::{Rng, SeedableRng};
 
-#[cfg(feature = "rand_chacha")]
+#[cfg(feature = "chacha20")]
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
@@ -107,9 +107,9 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
 {
 }
 
-/// Reflectable RngCore. This trait ensures that if `bevy_reflect` is active,
+/// Reflectable Rng. This trait ensures that if `bevy_reflect` is active,
 /// that all [`EntropySource`] PRNGs can be used through reflection and interface
-/// with [`RngCore`].
+/// with [`Rng`].
 #[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
 pub trait RemoteRng: Rng {}
 

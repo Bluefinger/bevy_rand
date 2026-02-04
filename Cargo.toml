@@ -19,7 +19,7 @@ serde = { version = "1.0.218", default-features = false }
 rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
-rand_chacha = { version = "0.10.0", default-features = false }
+chacha20 = { version = "=0.10.0-rc.10", default-features = false }
 wyrand = { git = "https://github.com/Bluefinger/wyrand-rs/", branch = "rand-v0.10" }
 rand_pcg = "0.10.0-rc.7"
 rand_xoshiro = "0.8.0"
@@ -52,7 +52,7 @@ std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
 thread_local_entropy = ["bevy_prng/thread_local_entropy"]
 serialize = ["bevy_prng/serialize"]
-rand_chacha = ["bevy_prng/rand_chacha"]
+chacha20 = ["bevy_prng/chacha20"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
@@ -86,7 +86,7 @@ bevy_ecs = { workspace = true, features = [
 ] }
 bevy_math = { version = "0.18.0" }
 bevy_prng = { path = "bevy_prng", version = "0.14", default-features = false, features = [
-    "rand_chacha",
+    "chacha20",
     "wyrand",
 ] }
 rand = { git = "https://github.com/rust-random/rand" }

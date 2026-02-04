@@ -2,7 +2,7 @@ use alloc::rc::Rc;
 use core::{cell::UnsafeCell, convert::Infallible};
 use std::thread_local;
 
-use rand_chacha::ChaCha8Rng;
+use chacha20::ChaCha8Rng;
 use rand_core::{SeedableRng, TryCryptoRng, TryRng};
 
 thread_local! {
@@ -116,7 +116,7 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
 
-                rng.access_local_source(|rng| Ok(rng.clone()))
+                rng.access_local_source(|rng| Ok(rng.next_u64()))
             });
             let b = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
@@ -127,14 +127,14 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
 
-                rng.access_local_source(|rng| Ok(rng.clone()))
+                rng.access_local_source(|rng| Ok(rng.next_u64()))
             });
 
             (a.join(), b.join())
         });
 
-        let a = a.unwrap();
-        let b = b.unwrap();
+        let Ok(a) = a.unwrap();
+        let Ok(b) = b.unwrap();
 
         // The references to the thread local RNG sources will not be
         // the same, as they each were initialised with different random
@@ -143,7 +143,7 @@ mod tests {
         // If the tasks ran on the same thread, then the RNG sources should
         // be in different resulting states as the same source was advanced
         // further.
-        assert_ne!(&a, &b);
+        assert_ne!(a, b);
 
         // Double check the entropy output in each buffer is not the same either.
         assert_ne!(&bytes1, &bytes2);

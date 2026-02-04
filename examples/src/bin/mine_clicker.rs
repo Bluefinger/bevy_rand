@@ -2,7 +2,7 @@
 
 use bevy::{ecs::entity::EntityHashSet, platform::collections::HashMap, prelude::*};
 use bevy_rand::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 
 fn main() {
     App::new()

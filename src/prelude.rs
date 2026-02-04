@@ -12,8 +12,8 @@ pub use crate::traits::{
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]
 pub use bevy_prng::WyRand;
 
-#[cfg(feature = "rand_chacha")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_chacha")))]
+#[cfg(feature = "chacha20")]
+#[cfg_attr(docsrs, doc(cfg(feature = "chacha20")))]
 pub use bevy_prng::{ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
 
 #[cfg(feature = "rand_pcg")]

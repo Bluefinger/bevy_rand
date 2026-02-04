@@ -399,7 +399,7 @@ where
 
 // /// A marker trait for [`crate::component::Entropy`].
 // /// This is a sealed trait and cannot be consumed by downstream.
-// pub trait EcsEntropy: RngCore + SeedableRng + private::SealedSource {}
+// pub trait EcsEntropy: Rng + SeedableRng + private::SealedSource {}
 
 mod private {
     use super::{EntropySource, SeedSource};
