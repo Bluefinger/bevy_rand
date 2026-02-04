@@ -4,8 +4,8 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.13.0"
-rust-version = "1.86.0"
+version = "0.14.0"
+rust-version = "1.87.0"
 
 [dependencies]
 bevy = { version = "0.18.0", default-features = false, features = [
@@ -21,8 +21,8 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "wayland",
     "webgl2",
 ] }
-bevy_rand = { path = "..", version = "0.13", default-features = false, features = ["wyrand"] }
-rand = { version = "=0.10.0-rc.5", default-features = false }
+bevy_rand = { path = "..", version = "0.14", default-features = false, features = ["wyrand"] }
+rand = { git = "https://github.com/rust-random/rand", default-features = false }
 
 [profile.release]
 codegen-units = 1

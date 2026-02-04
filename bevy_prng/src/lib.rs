@@ -33,7 +33,7 @@ use core::fmt::Debug;
 use bevy_ecs::component::{Component, Mutable};
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{Rng, SeedableRng};
 
 #[cfg(feature = "rand_chacha")]
 pub use chacha::*;
@@ -81,7 +81,7 @@ impl<T: 'static> RngReflectable for T {}
 /// A marker trait to define the required trait bounds for a seedable PRNG to be
 /// integrated as a component. This is a sealed trait.
 pub trait EntropySource:
-    RngCore
+    Rng
     + RngReflectable
     + TypedSeed
     + Clone
@@ -111,7 +111,7 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
 /// that all [`EntropySource`] PRNGs can be used through reflection and interface
 /// with [`RngCore`].
 #[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
-pub trait RemoteRng: RngCore {}
+pub trait RemoteRng: Rng {}
 
 mod private {
     pub trait SealedSeedable {}

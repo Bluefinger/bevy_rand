@@ -8,22 +8,22 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.13.0"
-rust-version = "1.86.0"
+version = "0.14.0"
+rust-version = "1.87.0"
 
 [workspace.dependencies]
 bevy_app = { version = "0.18.0", default-features = false }
 bevy_ecs = { version = "0.18.0", default-features = false }
 bevy_reflect = { version = "0.18.0", default-features = false }
 serde = { version = "1.0.218", default-features = false }
-rand_core = { version = "=0.10.0-rc-2" }
+rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
-rand_chacha = { version = "=0.10.0-rc.1", default-features = false }
+rand_chacha = { version = "0.10.0", default-features = false }
 wyrand = { git = "https://github.com/Bluefinger/wyrand-rs/", branch = "rand-v0.10" }
-rand_pcg = "=0.10.0-rc.1"
-rand_xoshiro = "0.8.0-rc.0"
-getrandom = "0.3.4"
+rand_pcg = "0.10.0-rc.7"
+rand_xoshiro = "0.8.0"
+getrandom = "0.4.0"
 
 [package]
 name = "bevy_rand"
@@ -51,7 +51,7 @@ compat_09 = ["bevy_prng/compat_09", "dep:rand_core_09"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
 thread_local_entropy = ["bevy_prng/thread_local_entropy"]
-serialize = ["rand_core/serde", "bevy_prng/serialize"]
+serialize = ["bevy_prng/serialize"]
 rand_chacha = ["bevy_prng/rand_chacha"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
@@ -62,7 +62,7 @@ wasm_js = ["getrandom/wasm_js"]
 bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_reflect = { workspace = true, optional = true }
-bevy_prng = { path = "bevy_prng", version = "0.13" }
+bevy_prng = { path = "bevy_prng", version = "0.14" }
 
 # others
 getrandom.workspace = true
@@ -75,7 +75,7 @@ rand_core_06 = { workspace = true, optional = true }
 # cannot be out of step with bevy_rand due to dependencies on traits
 # and implementations between the two crates.
 [target.'cfg(any())'.dependencies]
-bevy_prng = { path = "bevy_prng", version = "=0.13" }
+bevy_prng = { path = "bevy_prng", version = "=0.14" }
 
 [dev-dependencies]
 bevy_app = { workspace = true, features = [
@@ -85,17 +85,17 @@ bevy_ecs = { workspace = true, features = [
     "bevy_reflect",
 ] }
 bevy_math = { version = "0.18.0" }
-bevy_prng = { path = "bevy_prng", version = "0.13", default-features = false, features = [
+bevy_prng = { path = "bevy_prng", version = "0.14", default-features = false, features = [
     "rand_chacha",
     "wyrand",
 ] }
-rand = "=0.10.0-rc.5"
+rand = { git = "https://github.com/rust-random/rand" }
 ron = { version = "0.8.0", features = ["integer128"] }
 serde = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-getrandom = { version = "0.3.4", features = ["wasm_js"] }
+getrandom = { version = "0.4.0", features = ["wasm_js"] }
 getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
 bevy_ecs = { version = "0.18.0", default-features = false, features = [
     "bevy_reflect",

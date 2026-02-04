@@ -18,7 +18,6 @@ thread_local_entropy = ["dep:rand_chacha", "std"]
 bevy_reflect = ["dep:bevy_reflect"]
 serialize = [
     "dep:serde",
-    "rand_core/serde",
     "rand_chacha?/serde",
     "rand_pcg?/serde",
     "rand_xoshiro?/serde",

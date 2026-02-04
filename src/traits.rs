@@ -221,7 +221,7 @@ pub trait SeedSource<R: EntropySource>: private::SealedSeed<R> {
     where
         Self: Sized,
     {
-        use rand_core::RngCore;
+        use rand_core::Rng;
 
         let mut dest = R::Seed::default();
 

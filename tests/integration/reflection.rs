@@ -6,7 +6,7 @@ use bevy_reflect::{
         ReflectDeserializer, ReflectSerializer, TypedReflectDeserializer, TypedReflectSerializer,
     },
 };
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{Rng, SeedableRng};
 use ron::to_string;
 use serde::de::DeserializeSeed;
 

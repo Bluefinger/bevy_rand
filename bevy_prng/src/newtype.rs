@@ -40,20 +40,22 @@ macro_rules! newtype_prng {
             }
         }
 
-        impl ::rand_core::RngCore for $newtype {
+        impl ::rand_core::TryRng for $newtype {
+            type Error = core::convert::Infallible;
+
             #[inline(always)]
-            fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+            fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+                ::rand_core::TryRng::try_next_u32(&mut self.0)
             }
 
             #[inline(always)]
-            fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+            fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+                ::rand_core::TryRng::try_next_u64(&mut self.0)
             }
 
             #[inline(always)]
-            fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+            fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
+                ::rand_core::TryRng::try_fill_bytes(&mut self.0, dest)
             }
         }
 
@@ -61,17 +63,17 @@ macro_rules! newtype_prng {
         impl ::rand_core_09::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+                ::rand_core::Rng::next_u32(&mut self.0)
             }
 
             #[inline(always)]
             fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+                ::rand_core::Rng::next_u64(&mut self.0)
             }
 
             #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest)
             }
         }
 
@@ -79,22 +81,22 @@ macro_rules! newtype_prng {
         impl ::rand_core_06::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+                ::rand_core::Rng::next_u32(&mut self.0)
             }
 
             #[inline(always)]
             fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+                ::rand_core::Rng::next_u64(&mut self.0)
             }
 
             #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest)
             }
 
             #[inline(always)]
             fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), ::rand_core_06::Error> {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest);
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest);
                 Ok(())
             }
         }
@@ -108,12 +110,12 @@ macro_rules! newtype_prng {
             }
 
             #[inline]
-            fn from_rng<R: ::rand_core::RngCore + ?Sized>(source: &mut R) -> Self {
+            fn from_rng<R: ::rand_core::Rng + ?Sized>(source: &mut R) -> Self {
                 Self::new(<$rng>::from_rng(source))
             }
 
             #[inline]
-            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(
+            fn try_from_rng<R: ::rand_core::TryRng + ?Sized>(
                 source: &mut R,
             ) -> Result<Self, R::Error> {
                 Ok(Self::new(<$rng>::try_from_rng(source)?))
@@ -198,20 +200,22 @@ macro_rules! newtype_prng_remote {
             }
         }
 
-        impl ::rand_core::RngCore for $newtype {
+        impl ::rand_core::TryRng for $newtype {
+            type Error = core::convert::Infallible;
+
             #[inline(always)]
-            fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+            fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+                ::rand_core::TryRng::try_next_u32(&mut self.0)
             }
 
             #[inline(always)]
-            fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+            fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+                ::rand_core::TryRng::try_next_u64(&mut self.0)
             }
 
             #[inline(always)]
-            fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+            fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Self::Error> {
+                ::rand_core::TryRng::try_fill_bytes(&mut self.0, dest)
             }
         }
 
@@ -219,22 +223,22 @@ macro_rules! newtype_prng_remote {
         impl ::rand_core_06::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+                ::rand_core::Rng::next_u32(&mut self.0)
             }
 
             #[inline(always)]
             fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+                ::rand_core::Rng::next_u64(&mut self.0)
             }
 
             #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest)
             }
 
             #[inline(always)]
             fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), ::rand_core_06::Error> {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest);
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest);
                 Ok(())
             }
         }
@@ -243,17 +247,17 @@ macro_rules! newtype_prng_remote {
         impl ::rand_core_09::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
-                ::rand_core::RngCore::next_u32(&mut self.0)
+                ::rand_core::Rng::next_u32(&mut self.0)
             }
 
             #[inline(always)]
             fn next_u64(&mut self) -> u64 {
-                ::rand_core::RngCore::next_u64(&mut self.0)
+                ::rand_core::Rng::next_u64(&mut self.0)
             }
 
             #[inline(always)]
             fn fill_bytes(&mut self, dest: &mut [u8]) {
-                ::rand_core::RngCore::fill_bytes(&mut self.0, dest)
+                ::rand_core::Rng::fill_bytes(&mut self.0, dest)
             }
         }
 
@@ -266,12 +270,12 @@ macro_rules! newtype_prng_remote {
             }
 
             #[inline]
-            fn from_rng<R: ::rand_core::RngCore + ?Sized>(source: &mut R) -> Self {
+            fn from_rng<R: ::rand_core::Rng + ?Sized>(source: &mut R) -> Self {
                 Self::new(<$rng>::from_rng(source))
             }
 
             #[inline]
-            fn try_from_rng<R: ::rand_core::TryRngCore + ?Sized>(
+            fn try_from_rng<R: ::rand_core::TryRng + ?Sized>(
                 source: &mut R,
             ) -> Result<Self, R::Error> {
                 Ok(Self::new(<$rng>::try_from_rng(source)?))
