@@ -24,6 +24,23 @@ use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 pub struct Seed512(pub [u8; 64]);
 
 #[cfg(feature = "bevy_reflect")]
+impl PartialEq for Seed512 {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.0 == other.0.0
+    }
+}
+
+#[cfg(feature = "bevy_reflect")]
+impl Eq for Seed512 {}
+
+#[cfg(feature = "bevy_reflect")]
+impl From<[u8; 64]> for Seed512 {
+    fn from(value: [u8; 64]) -> Self {
+        Self(::rand_xoshiro::Seed512(value))
+    }
+}
+
+#[cfg(feature = "bevy_reflect")]
 impl AsRef<[u8]> for Seed512 {
     fn as_ref(&self) -> &[u8] {
         self.0.as_ref()

@@ -41,6 +41,9 @@ macro_rules! reflection_test {
 
                 let value = de.deserialize(&mut deserializer).unwrap();
 
+                assert!(value.represents::<$rng>());
+                assert!(value.try_downcast_ref::<$rng>().is_some());
+
                 let mut dynamic = <$rng>::take_from_reflect(value).unwrap();
 
                 // The two instances should be the same
@@ -54,6 +57,7 @@ macro_rules! reflection_test {
                     dynamic.next_u32(),
                     "The deserialized Entropy should have the same output as original"
                 );
+                assert_ne!(dynamic.next_u32(), dynamic.next_u32());
             }
 
             #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
@@ -81,6 +85,9 @@ macro_rules! reflection_test {
 
                 let value = de.deserialize(&mut deserializer).unwrap();
 
+                assert!(value.represents::<$rng>());
+                assert!(value.try_downcast_ref::<$rng>().is_some());
+
                 let mut dynamic = <$rng>::take_from_reflect(value).unwrap();
 
                 // The two instances should be the same
@@ -94,6 +101,7 @@ macro_rules! reflection_test {
                     dynamic.next_u32(),
                     "The deserialized Entropy should have the same output as original"
                 );
+                assert_ne!(dynamic.next_u32(), dynamic.next_u32());
             }
 
             #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
@@ -147,9 +155,11 @@ macro_rules! reflection_test {
                     .unwrap();
 
                 let after = next.next_u32();
+                let after_after = next.next_u32();
 
                 assert_eq!(before, $before);
                 assert_eq!(after, $after);
+                assert_ne!(after, after_after);
             }
         }
     };
