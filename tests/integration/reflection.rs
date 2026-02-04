@@ -1,10 +1,10 @@
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen_test::*;
-
 #[cfg(any(feature = "chacha20", feature = "wyrand", feature = "rand_pcg"))]
 macro_rules! reflection_test {
     ($name:ident, $rng:ty, $seed:expr, $untyped:literal, $typed:literal, $seed_cmp:literal, $before:literal, $after:literal) => {
         mod $name {
+            #[cfg(target_arch = "wasm32")]
+            use wasm_bindgen_test::*;
+
             use bevy_prng::ReflectRemoteRng;
             use bevy_rand::{seed::RngSeed, traits::SeedSource};
             use bevy_reflect::{
