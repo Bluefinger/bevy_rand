@@ -5,8 +5,7 @@ use bevy_rand::prelude::{
     EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed, GlobalRng,
     GlobalRngEntity,
 };
-use rand::prelude::RngExt;
-
+use rand::RngExt;
 use rand_core::Rng;
 
 #[cfg(target_arch = "wasm32")]

@@ -4,7 +4,6 @@ use bevy_math::{ShapeSample, Vec2, primitives::Circle};
 use bevy_prng::WyRand;
 use bevy_rand::{global::GlobalRng, plugin::EntropyPlugin};
 use rand_core::SeedableRng;
-
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 

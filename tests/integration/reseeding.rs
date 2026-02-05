@@ -10,7 +10,6 @@ use bevy_rand::{
     traits::{ForkableAsSeed, ForkableSeed, SeedSource},
 };
 use rand_core::{Rng, SeedableRng};
-
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
 
