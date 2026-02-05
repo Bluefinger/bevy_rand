@@ -32,3 +32,10 @@ newtype_prng!(
     "A [`rand_pcg::Pcg64Mcg`] RNG component",
     "rand_pcg"
 );
+
+newtype_prng!(
+    Pcg64Dxsm,
+    ::rand_pcg::Pcg64Dxsm,
+    "A [`rand_pcg::Pcg64Dxsm`] RNG component",
+    "rand_pcg"
+);
