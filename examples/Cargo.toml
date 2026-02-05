@@ -22,7 +22,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "webgl2",
 ] }
 bevy_rand = { path = "..", version = "0.14", default-features = false, features = ["wyrand"] }
-rand = { git = "https://github.com/rust-random/rand", default-features = false }
+rand = { version = "=0.10.0-rc.9", default-features = false }
 
 [profile.release]
 codegen-units = 1
