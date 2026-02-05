@@ -8,11 +8,7 @@ use rand_core::{SeedableRng, TryCryptoRng, TryRng};
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
     static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = {
-        let mut seed: [u8; 32] = Default::default();
-
-        getrandom::fill(&mut seed).expect("Unable to source entropy for initialisation");
-
-        Rc::new(UnsafeCell::new(ChaCha8Rng::from_seed(seed)))
+        Rc::new(UnsafeCell::new(ChaCha8Rng::try_from_rng(&mut getrandom::SysRng).expect("Unable to source entropy for initialisation")))
     };
 }
 
@@ -52,15 +48,15 @@ impl core::fmt::Debug for ThreadLocalEntropy {
 
 impl TryRng for ThreadLocalEntropy {
     type Error = Infallible;
-    
+
     fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
         self.access_local_source(TryRng::try_next_u32)
     }
-    
+
     fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
         self.access_local_source(TryRng::try_next_u64)
     }
-    
+
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
         self.access_local_source(|source| source.try_fill_bytes(dst))
     }

@@ -2164,6 +2164,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "r-efi",
+ "rand_core 0.10.0",
  "wasip2",
  "wasip3",
 ]
@@ -4959,7 +4960,7 @@ dependencies = [
 [[package]]
 name = "wyrand"
 version = "0.4.0"
-source = "git+https://github.com/Bluefinger/wyrand-rs/?branch=rand-v0.10#0c93fdc462fa3e3ca6dab7b5d964d089266b3a40"
+source = "git+https://github.com/Bluefinger/wyrand-rs/?branch=rand-v0.10#5b1b9f90992a9b8125d6601fb7b866e297107446"
 dependencies = [
  "rand_core 0.10.0",
 ]
