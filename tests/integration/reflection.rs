@@ -5,7 +5,7 @@
     feature = "rand_xoshiro"
 ))]
 macro_rules! reflection_test {
-    ($name:ident, $rng:ty, $seed:expr, $untyped:literal, $typed:literal, $seed_cmp:literal, $before:literal, $after:literal) => {
+    ($name:ident, $rng:ty, $seed:expr, $serialised:literal, $seed_cmp:literal, $before:literal, $after:literal) => {
         mod $name {
             #[cfg(target_arch = "wasm32")]
             use wasm_bindgen_test::*;
@@ -38,7 +38,10 @@ macro_rules! reflection_test {
 
                 let serialized = to_string(&ser).unwrap();
 
-                assert_eq!(&serialized, $untyped);
+                assert_eq!(
+                    &serialized,
+                    concat!("{\"", stringify!($rng), "\":", $serialised, "}")
+                );
 
                 let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
 
@@ -82,7 +85,7 @@ macro_rules! reflection_test {
 
                 let serialized = to_string(&ser).unwrap();
 
-                assert_eq!(&serialized, $typed);
+                assert_eq!(&serialized, $serialised);
 
                 let mut deserializer = ron::Deserializer::from_str(&serialized).unwrap();
 
@@ -175,7 +178,6 @@ reflection_test!(
     chacha8,
     bevy_prng::ChaCha8Rng,
     [7; 32],
-    "{\"bevy_prng::ChaCha8Rng\":(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)}",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     4115934089738703076,
@@ -187,7 +189,6 @@ reflection_test!(
     chacha12,
     bevy_prng::ChaCha12Rng,
     [7; 32],
-    "{\"bevy_prng::ChaCha12Rng\":(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)}",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     2363194108971422454,
@@ -199,7 +200,6 @@ reflection_test!(
     chacha20,
     bevy_prng::ChaCha20Rng,
     [7; 32],
-    "{\"bevy_prng::ChaCha20Rng\":(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)}",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7),stream:0,word_pos:2)",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     4753173749397848308,
@@ -211,7 +211,6 @@ reflection_test!(
     wyrand,
     bevy_prng::WyRand,
     u64::MAX.to_ne_bytes(),
-    "{\"bevy_prng::WyRand\":((state:3257665815644502180))}",
     "((state:3257665815644502180))",
     "(seed:(255,255,255,255,255,255,255,255))",
     1205299102744794270,
@@ -223,7 +222,6 @@ reflection_test!(
     pcg32,
     bevy_prng::Pcg32,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-    "{\"bevy_prng::Pcg32\":((state:15033853422540656993,increment:1157159078456920585))}",
     "((state:15033853422540656993,increment:1157159078456920585))",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))",
     1204678643940597513,
@@ -238,7 +236,6 @@ reflection_test!(
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32
     ],
-    "{\"bevy_prng::Pcg64\":((state:172305881977888272371905305222824952168,increment:42696867846335054569745073772176806417))}",
     "((state:172305881977888272371905305222824952168,increment:42696867846335054569745073772176806417))",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))",
     8740028313290271629,
@@ -250,7 +247,6 @@ reflection_test!(
     pcg64mcg,
     bevy_prng::Pcg64Mcg,
     42u128.to_ne_bytes(),
-    "{\"bevy_prng::Pcg64Mcg\":((state:320716815976818922153327884990172454295))}",
     "((state:320716815976818922153327884990172454295))",
     "(seed:(42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))",
     0x63b4a3a813ce700a,
@@ -265,7 +261,6 @@ reflection_test!(
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32
     ],
-    "{\"bevy_prng::Pcg64Dxsm\":((state:248028475877024480770638062163604013976,increment:42696867846335054569745073772176806417))}",
     "((state:248028475877024480770638062163604013976,increment:42696867846335054569745073772176806417))",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))",
     12201417210360370199,
@@ -275,13 +270,12 @@ reflection_test!(
 #[cfg(feature = "rand_xoshiro")]
 reflection_test!(
     xoshiro512starstar,
-    ::bevy_prng::Xoshiro512StarStar,
-    ::bevy_prng::Seed512::from([
+    bevy_prng::Xoshiro512StarStar,
+    bevy_prng::Seed512::from([
         1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
         0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
         0, 0, 0, 0
     ]),
-    "{\"bevy_prng::Xoshiro512StarStar\":((s:(6,0,2,1,1,4,4107,25165824)))}",
     "((s:(6,0,2,1,1,4,4107,25165824)))",
     "(seed:((1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0)))",
     11520,
@@ -296,7 +290,6 @@ reflection_test!(
         1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
         0, 0,
     ],
-    "{\"bevy_prng::Xoshiro256StarStar\":((s:(7,0,262146,211106232532992)))}",
     "((s:(7,0,262146,211106232532992)))",
     "(seed:(1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0))",
     11520,
