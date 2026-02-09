@@ -381,9 +381,9 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "chacha20"
-version = "0.10.0-rc.11"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14f3c04cdd19f5ed3271e460267fb1d94b7899ae1f7bb10ac3dfc3afb749d659"
+checksum = "6f8d983286843e49675a4b7a2d174efe136dc93a18d69130dd18198a6c167601"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -411,9 +411,9 @@ dependencies = [
 
 [[package]]
 name = "cpufeatures"
-version = "0.2.17"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ed5838eebb26a2bb2e58f6d5b5316989ae9d08bab10e0e6d103e656d1b0280"
+checksum = "8b2a41393f66f16b0823bb79094d54ac5fbd34ab292ddafb9a0456ac9f87d201"
 dependencies = [
  "libc",
 ]
@@ -957,9 +957,9 @@ dependencies = [
 
 [[package]]
 name = "rand_pcg"
-version = "0.10.0-rc.9"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f635836350eac4af7d99acadeee08516a3f3f69778f3bca101d4005756e1f957"
+checksum = "f761b1fee8839c9bcde7d2b2c93fe1cde409986b2978c8b31849f350e3f372b5"
 dependencies = [
  "rand_core 0.10.0",
  "serde",
@@ -1540,7 +1540,8 @@ dependencies = [
 [[package]]
 name = "wyrand"
 version = "0.4.0"
-source = "git+https://github.com/Bluefinger/wyrand-rs/?branch=rand-v0.10#5b1b9f90992a9b8125d6601fb7b866e297107446"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b24a385d18bdb8db40f079c98c76839d9f694a65f03d42ee561e6d56a2b2bb6e"
 dependencies = [
  "rand_core 0.10.0",
  "serde",

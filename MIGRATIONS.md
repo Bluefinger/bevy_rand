@@ -206,4 +206,4 @@ fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, W
 
 ## Migrating from v0.13 to v0.14
 
-`rand_core`/`rand`/`getrandom` have been updated to the latest v0.10/v0.4 versions, which means `rand_core::RngCore` is now `rand_core::Rng`, and `rand::Rng` is now `rand::RngExt`. `rand_chacha` is no longer used and instead `chacha20` crate has been ported to support the `ChaCha*Rng` components. As such, the serialized format has changed slightly as a result.
+`rand_core`/`rand`/`getrandom` have been updated to the latest v0.10/v0.4 versions, which means `rand_core::RngCore` is now `rand_core::Rng`, and `rand::Rng` is now `rand::RngExt`. `rand_chacha` is no longer used and instead `chacha20` crate has been ported to support the `ChaCha*Rng` components. As such, the serialized format has changed as a result. The feature `rand_chacha` has been replaced with `chacha20` as well to reflect the change in the backend crate.

@@ -19,9 +19,9 @@ serde = { version = "1.0.218", default-features = false }
 rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
-chacha20 = { version = "=0.10.0-rc.11", default-features = false }
-wyrand = { git = "https://github.com/Bluefinger/wyrand-rs/", branch = "rand-v0.10" }
-rand_pcg = "0.10.0-rc.9"
+chacha20 = { version = "0.10.0", default-features = false }
+wyrand = { version = "0.4" }
+rand_pcg = "0.10.0"
 rand_xoshiro = "0.8.0"
 getrandom = { version = "0.4.0", features = ["sys_rng"] }
 

@@ -142,45 +142,12 @@ impl Default for ChaCha8Rng {
 }
 
 #[cfg(feature = "serialize")]
-#[derive(serde::Serialize, serde::Deserialize)]
-struct ChaCha8Core {
-    seed: [u8; 32],
-    stream: u64,
-    word_pos: u128,
-}
-
-#[cfg(feature = "serialize")]
-impl From<&ChaCha8Rng> for ChaCha8Core {
-    #[inline]
-    fn from(value: &ChaCha8Rng) -> Self {
-        Self {
-            seed: value.0.get_seed(),
-            stream: value.0.get_stream(),
-            word_pos: value.0.get_word_pos(),
-        }
-    }
-}
-
-#[cfg(feature = "serialize")]
-impl From<ChaCha8Core> for ChaCha8Rng {
-    #[inline]
-    fn from(value: ChaCha8Core) -> Self {
-        let mut rng = chacha20::ChaCha8Rng::from_seed(value.seed);
-
-        rng.set_stream(value.stream);
-        rng.set_word_pos(value.word_pos);
-
-        Self(rng)
-    }
-}
-
-#[cfg(feature = "serialize")]
 impl serde::Serialize for ChaCha8Rng {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        ChaCha8Core::from(self).serialize(serializer)
+        ChaChaAbstractState::from(self).serialize(serializer)
     }
 }
 
@@ -190,7 +157,9 @@ impl<'de> serde::Deserialize<'de> for ChaCha8Rng {
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(ChaCha8Rng::from(ChaCha8Core::deserialize(deserializer)?))
+        Ok(ChaCha8Rng::from(ChaChaAbstractState::deserialize(
+            deserializer,
+        )?))
     }
 }
 
@@ -334,45 +303,12 @@ impl Default for ChaCha12Rng {
 }
 
 #[cfg(feature = "serialize")]
-#[derive(serde::Serialize, serde::Deserialize)]
-struct ChaCha12Core {
-    seed: [u8; 32],
-    stream: u64,
-    word_pos: u128,
-}
-
-#[cfg(feature = "serialize")]
-impl From<&ChaCha12Rng> for ChaCha12Core {
-    #[inline]
-    fn from(value: &ChaCha12Rng) -> Self {
-        Self {
-            seed: value.0.get_seed(),
-            stream: value.0.get_stream(),
-            word_pos: value.0.get_word_pos(),
-        }
-    }
-}
-
-#[cfg(feature = "serialize")]
-impl From<ChaCha12Core> for ChaCha12Rng {
-    #[inline]
-    fn from(value: ChaCha12Core) -> Self {
-        let mut rng = chacha20::ChaCha12Rng::from_seed(value.seed);
-
-        rng.set_stream(value.stream);
-        rng.set_word_pos(value.word_pos);
-
-        Self(rng)
-    }
-}
-
-#[cfg(feature = "serialize")]
 impl serde::Serialize for ChaCha12Rng {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        ChaCha12Core::from(self).serialize(serializer)
+        ChaChaAbstractState::from(self).serialize(serializer)
     }
 }
 
@@ -382,7 +318,9 @@ impl<'de> serde::Deserialize<'de> for ChaCha12Rng {
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(ChaCha12Rng::from(ChaCha12Core::deserialize(deserializer)?))
+        Ok(ChaCha12Rng::from(ChaChaAbstractState::deserialize(
+            deserializer,
+        )?))
     }
 }
 
@@ -526,45 +464,12 @@ impl Default for ChaCha20Rng {
 }
 
 #[cfg(feature = "serialize")]
-#[derive(serde::Serialize, serde::Deserialize)]
-struct ChaCha20Core {
-    seed: [u8; 32],
-    stream: u64,
-    word_pos: u128,
-}
-
-#[cfg(feature = "serialize")]
-impl From<&ChaCha20Rng> for ChaCha20Core {
-    #[inline]
-    fn from(value: &ChaCha20Rng) -> Self {
-        Self {
-            seed: value.0.get_seed(),
-            stream: value.0.get_stream(),
-            word_pos: value.0.get_word_pos(),
-        }
-    }
-}
-
-#[cfg(feature = "serialize")]
-impl From<ChaCha20Core> for ChaCha20Rng {
-    #[inline]
-    fn from(value: ChaCha20Core) -> Self {
-        let mut rng = chacha20::ChaCha20Rng::from_seed(value.seed);
-
-        rng.set_stream(value.stream);
-        rng.set_word_pos(value.word_pos);
-
-        Self(rng)
-    }
-}
-
-#[cfg(feature = "serialize")]
 impl serde::Serialize for ChaCha20Rng {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        ChaCha20Core::from(self).serialize(serializer)
+        ChaChaAbstractState::from(self).serialize(serializer)
     }
 }
 
@@ -574,7 +479,9 @@ impl<'de> serde::Deserialize<'de> for ChaCha20Rng {
     where
         D: serde::Deserializer<'de>,
     {
-        Ok(ChaCha20Rng::from(ChaCha20Core::deserialize(deserializer)?))
+        Ok(ChaCha20Rng::from(ChaChaAbstractState::deserialize(
+            deserializer,
+        )?))
     }
 }
 
@@ -587,3 +494,98 @@ impl From<::chacha20::ChaCha20Rng> for ChaCha20Rng {
 impl crate::EntropySource for ChaCha20Rng {}
 
 impl crate::RemoteRng for ChaCha20Rng {}
+
+#[cfg(feature = "serialize")]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct ChaChaAbstractState {
+    #[serde(
+        serialize_with = "serialize_bytes",
+        deserialize_with = "deserialize_bytes"
+    )]
+    state: chacha20::SerializedRngState,
+}
+
+#[cfg(feature = "serialize")]
+impl From<&ChaCha8Rng> for ChaChaAbstractState {
+    fn from(value: &ChaCha8Rng) -> Self {
+        Self {
+            state: value.0.serialize_state(),
+        }
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl From<&ChaCha12Rng> for ChaChaAbstractState {
+    fn from(value: &ChaCha12Rng) -> Self {
+        Self {
+            state: value.0.serialize_state(),
+        }
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl From<&ChaCha20Rng> for ChaChaAbstractState {
+    fn from(value: &ChaCha20Rng) -> Self {
+        Self {
+            state: value.0.serialize_state(),
+        }
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl From<ChaChaAbstractState> for ChaCha8Rng {
+    fn from(value: ChaChaAbstractState) -> Self {
+        Self(chacha20::ChaCha8Rng::deserialize_state(&value.state))
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl From<ChaChaAbstractState> for ChaCha12Rng {
+    fn from(value: ChaChaAbstractState) -> Self {
+        Self(chacha20::ChaCha12Rng::deserialize_state(&value.state))
+    }
+}
+
+#[cfg(feature = "serialize")]
+impl From<ChaChaAbstractState> for ChaCha20Rng {
+    fn from(value: ChaChaAbstractState) -> Self {
+        Self(chacha20::ChaCha20Rng::deserialize_state(&value.state))
+    }
+}
+
+#[cfg(feature = "serialize")]
+fn serialize_bytes<const BYTES: usize, S>(
+    value: &[u8; BYTES],
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    serializer.serialize_bytes(value)
+}
+
+#[cfg(feature = "serialize")]
+fn deserialize_bytes<'de, const BYTES: usize, D>(deserializer: D) -> Result<[u8; BYTES], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct ByteArrayVisitor<const LEN: usize>(core::marker::PhantomData<[(); LEN]>);
+
+    impl<'de, const LEN: usize> serde::de::Visitor<'de> for ByteArrayVisitor<LEN> {
+        type Value = [u8; LEN];
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(formatter, "Expected an array of length {}", LEN)
+        }
+
+        fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            v.try_into()
+                .map_err(|_| serde::de::Error::invalid_length(v.len(), &self))
+        }
+    }
+
+    deserializer.deserialize_bytes(ByteArrayVisitor(core::marker::PhantomData))
+}

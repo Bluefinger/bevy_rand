@@ -39,7 +39,7 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 ### Cryptographically Secure PRNGs
 
-- [rand_chacha](https://crates.io/crates/rand_chacha)
+- [chacha20](https://crates.io/crates/chacha20)
 
 ### Non-Cryptographically Secure PRNGS
 
