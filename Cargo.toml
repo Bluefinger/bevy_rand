@@ -89,7 +89,7 @@ bevy_prng = { path = "bevy_prng", version = "0.14", default-features = false, fe
     "chacha20",
     "wyrand",
 ] }
-rand = "=0.10.0-rc.9"
+rand = "0.10.0"
 ron = { version = "0.8.0", features = ["integer128"] }
 serde = { workspace = true }
 
