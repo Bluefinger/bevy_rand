@@ -24,6 +24,7 @@ mod pcg;
 mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
+mod utils;
 
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
