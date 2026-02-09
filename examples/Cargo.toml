@@ -19,7 +19,7 @@ bevy = { version = "0.18.0", default-features = false, features = [
     "bevy_winit",
     "x11",
     "wayland",
-    "webgl2",
+    "2d_bevy_render"
 ] }
 bevy_rand = { path = "..", version = "0.14", default-features = false, features = ["wyrand"] }
 rand = { version = "0.10.0", default-features = false }
