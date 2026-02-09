@@ -1,13 +1,15 @@
 use alloc::rc::Rc;
-use core::cell::UnsafeCell;
+use core::{cell::UnsafeCell, convert::Infallible};
 use std::thread_local;
 
-use rand_chacha::ChaCha8Rng;
-use rand_core::{CryptoRng, RngCore, SeedableRng};
+use chacha20::ChaCha8Rng;
+use rand_core::{SeedableRng, TryCryptoRng, TryRng};
 
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
-    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = Rc::new(UnsafeCell::new(ChaCha8Rng::from_os_rng()));
+    static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = {
+        Rc::new(UnsafeCell::new(ChaCha8Rng::try_from_rng(&mut getrandom::SysRng).expect("Unable to source entropy for initialisation")))
+    };
 }
 
 /// [`ThreadLocalEntropy`] uses thread local [`ChaCha8Rng`] instances to provide faster alternative for
@@ -28,9 +30,9 @@ impl ThreadLocalEntropy {
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
     /// closure.
     #[inline(always)]
-    fn access_local_source<F, O>(&mut self, f: F) -> O
+    fn access_local_source<F, O>(&mut self, f: F) -> Result<O, Infallible>
     where
-        F: FnOnce(&mut ChaCha8Rng) -> O,
+        F: FnOnce(&mut ChaCha8Rng) -> Result<O, Infallible>,
     {
         // SAFETY: The `&mut` reference constructed here will never outlive the closure
         // for the thread local access. It is also will never be a null pointer and is aligned.
@@ -44,28 +46,29 @@ impl core::fmt::Debug for ThreadLocalEntropy {
     }
 }
 
-impl RngCore for ThreadLocalEntropy {
-    #[inline]
-    fn next_u32(&mut self) -> u32 {
-        self.access_local_source(RngCore::next_u32)
+impl TryRng for ThreadLocalEntropy {
+    type Error = Infallible;
+
+    fn try_next_u32(&mut self) -> Result<u32, Self::Error> {
+        self.access_local_source(TryRng::try_next_u32)
     }
 
-    #[inline]
-    fn next_u64(&mut self) -> u64 {
-        self.access_local_source(RngCore::next_u64)
+    fn try_next_u64(&mut self) -> Result<u64, Self::Error> {
+        self.access_local_source(TryRng::try_next_u64)
     }
 
-    #[inline]
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.access_local_source(|rng| rng.fill_bytes(dest));
+    fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Self::Error> {
+        self.access_local_source(|source| source.try_fill_bytes(dst))
     }
 }
 
-impl CryptoRng for ThreadLocalEntropy {}
+impl TryCryptoRng for ThreadLocalEntropy {}
 
 #[cfg(test)]
 mod tests {
     use alloc::{format, vec, vec::Vec};
+
+    use rand_core::Rng;
 
     use super::*;
 
@@ -109,7 +112,7 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b1);
 
-                rng.access_local_source(|rng| rng.clone())
+                rng.access_local_source(|rng| Ok(rng.next_u64()))
             });
             let b = s.spawn(move || {
                 // Obtain a thread local entropy source from this thread context.
@@ -120,14 +123,14 @@ mod tests {
                 // Use the source to produce some stored entropy.
                 rng.fill_bytes(b2);
 
-                rng.access_local_source(|rng| rng.clone())
+                rng.access_local_source(|rng| Ok(rng.next_u64()))
             });
 
             (a.join(), b.join())
         });
 
-        let a = a.unwrap();
-        let b = b.unwrap();
+        let Ok(a) = a.unwrap();
+        let Ok(b) = b.unwrap();
 
         // The references to the thread local RNG sources will not be
         // the same, as they each were initialised with different random
@@ -136,7 +139,7 @@ mod tests {
         // If the tasks ran on the same thread, then the RNG sources should
         // be in different resulting states as the same source was advanced
         // further.
-        assert_ne!(&a, &b);
+        assert_ne!(a, b);
 
         // Double check the entropy output in each buffer is not the same either.
         assert_ne!(&bytes1, &bytes2);

@@ -9,11 +9,11 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(feature = "rand_chacha")]
+#[cfg(feature = "chacha20")]
 mod chacha;
 #[cfg(any(
     feature = "wyrand",
-    feature = "rand_chacha",
+    feature = "chacha20",
     feature = "rand_pcg",
     feature = "rand_xoshiro"
 ))]
@@ -24,6 +24,7 @@ mod pcg;
 mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
+mod utils;
 
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
@@ -33,9 +34,9 @@ use core::fmt::Debug;
 use bevy_ecs::component::{Component, Mutable};
 #[cfg(feature = "bevy_reflect")]
 use bevy_reflect::{FromReflect, Reflectable, Typed};
-use rand_core::{RngCore, SeedableRng};
+use rand_core::{Rng, SeedableRng};
 
-#[cfg(feature = "rand_chacha")]
+#[cfg(feature = "chacha20")]
 pub use chacha::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
@@ -81,7 +82,7 @@ impl<T: 'static> RngReflectable for T {}
 /// A marker trait to define the required trait bounds for a seedable PRNG to be
 /// integrated as a component. This is a sealed trait.
 pub trait EntropySource:
-    RngCore
+    Rng
     + RngReflectable
     + TypedSeed
     + Clone
@@ -107,11 +108,11 @@ impl<T: Debug + Default + PartialEq + AsMut<[u8]> + Clone + Sync + Send + RngRef
 {
 }
 
-/// Reflectable RngCore. This trait ensures that if `bevy_reflect` is active,
+/// Reflectable Rng. This trait ensures that if `bevy_reflect` is active,
 /// that all [`EntropySource`] PRNGs can be used through reflection and interface
-/// with [`RngCore`].
+/// with [`Rng`].
 #[cfg_attr(feature = "bevy_reflect", bevy_reflect::reflect_trait)]
-pub trait RemoteRng: RngCore {}
+pub trait RemoteRng: Rng {}
 
 mod private {
     pub trait SealedSeedable {}

@@ -4,7 +4,7 @@ use crate::{global::GlobalRng, seed::RngSeed, traits::SeedSource};
 use bevy_app::{App, Plugin};
 use bevy_prng::{EntropySeed, EntropySource};
 
-/// Plugin for integrating a PRNG that implements `RngCore` into
+/// Plugin for integrating a PRNG that implements `Rng` into
 /// the bevy engine, registering types for a global resource and
 /// entropy components.
 ///
@@ -13,7 +13,7 @@ use bevy_prng::{EntropySeed, EntropySource};
 /// use bevy_ecs::prelude::*;
 /// use bevy_prng::{ChaCha8Rng, WyRand};
 /// use bevy_rand::prelude::{EntropyPlugin, GlobalRng};
-/// use rand_core::RngCore;
+/// use rand_core::Rng;
 ///
 /// fn main() {
 ///  App::new()

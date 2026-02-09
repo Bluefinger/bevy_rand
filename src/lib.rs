@@ -19,7 +19,7 @@ pub mod global;
 pub mod observers;
 /// Utility query/system parameters for accessing RNGs.
 pub mod params;
-/// Plugin for integrating [`rand_core::RngCore`] PRNGs into bevy. Must be newtyped to support [`bevy_reflect::Reflect`].
+/// Plugin for integrating [`rand_core::Rng`] PRNGs into bevy. Must be newtyped to support [`bevy_reflect::Reflect`].
 pub mod plugin;
 /// Prelude for providing all necessary types for easy use.
 pub mod prelude;

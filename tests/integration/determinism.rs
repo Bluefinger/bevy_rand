@@ -5,9 +5,8 @@ use bevy_rand::prelude::{
     EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed, GlobalRng,
     GlobalRngEntity,
 };
-use rand::prelude::Rng;
-
-use rand_core::RngCore;
+use rand::RngExt;
+use rand_core::Rng;
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;

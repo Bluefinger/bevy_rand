@@ -24,7 +24,7 @@ So you need to use some randomness in your game/application. In a lot of very si
 
 This is the first concern of `bevy_rand`. The standard `StdRng`/`SmallRng` types from `rand` _are not portable_, meaning they are not expected to remain the same algorithm between different versions of the `rand` crate, or even the same PRNG algorithm between platforms. This is the case for `SmallRng`, which utilises different versions of the Xoshiro algorithm depending on whether you are on a 32-bit platform or 64-bit platform.
 
-The `rand` crate itself notes and states that if users are concerned about the portability of their PRNGs, then they should be using the algorithm crates directly instead, so pulling in `rand_chacha` or `rand_xoshiro`. A non-portable PRNG means you'll potentially be dealing with different randomness behaviour between your desktop version of your application and web version. Portability resolves this issue by forcing the PRNG algorithm to always be the same, no matter the platform or configuration.
+The `rand` crate itself notes and states that if users are concerned about the portability of their PRNGs, then they should be using the algorithm crates directly instead, so pulling in `chacha20` or `rand_xoshiro`. A non-portable PRNG means you'll potentially be dealing with different randomness behaviour between your desktop version of your application and web version. Portability resolves this issue by forcing the PRNG algorithm to always be the same, no matter the platform or configuration.
 
 ## Determinism
 

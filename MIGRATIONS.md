@@ -203,3 +203,7 @@ fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, W
 ## Migrating from v0.12 to v0.13
 
 `CryptoRng` does not apply to any of the ChaCha rngs, since being portable is at odds with being secure (which needs to ensure you can't replicate the state). If you need `CryptoRng` capable sources, use `rand` directly.
+
+## Migrating from v0.13 to v0.14
+
+`rand_core`/`rand`/`getrandom` have been updated to the latest v0.10/v0.4 versions, which means `rand_core::RngCore` is now `rand_core::Rng`, and `rand::Rng` is now `rand::RngExt`. `rand_chacha` is no longer used and instead `chacha20` crate has been ported to support the `ChaCha*Rng` components. As such, the serialized format has changed as a result. The feature `rand_chacha` has been replaced with `chacha20` as well to reflect the change in the backend crate.

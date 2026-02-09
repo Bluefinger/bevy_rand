@@ -6,7 +6,7 @@ At the simplest case, using `GlobalRng` directly for all random number generatio
 use bevy_ecs::prelude::*;
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::GlobalRng;
-use rand_core::RngCore;
+use rand_core::Rng;
 
 fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
@@ -20,7 +20,7 @@ use bevy_ecs::prelude::*;
 use bevy_math::{ShapeSample, primitives::Circle};
 use bevy_prng::ChaCha8Rng;
 use bevy_rand::prelude::GlobalRng;
-use rand::Rng;
+use rand::RngExt;
 
 fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
     println!("Random u128 value: {}", rng.random::<u128>());
@@ -50,7 +50,7 @@ An example of a guaranteed deterministic system is perhaps spawning new entities
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalRng;
-use rand_core::RngCore;
+use rand_core::Rng;
 
 #[derive(Component)]
 struct Npc;
@@ -76,7 +76,7 @@ However, iterating over queries will **not** yield deterministic output, as quer
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalRng;
-use rand_core::RngCore;
+use rand_core::Rng;
 
 #[derive(Component)]
 struct Npc;

@@ -98,7 +98,7 @@ Reinsertions do not invoke archetype moves, so this will not cause any extra ove
 use bevy_ecs::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::{GlobalRng, RngEntity, RngEntityCommandsExt};
-use rand::Rng;
+use rand::RngExt;
 
 #[derive(Component)]
 struct Source;
