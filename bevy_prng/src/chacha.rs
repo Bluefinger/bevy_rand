@@ -67,7 +67,7 @@ macro_rules! chacha_impl {
         }
 
         impl $name {
-            #[doc = r" Create a new instance."]
+            #[doc = r"Create a new instance."]
             #[inline(always)]
             #[must_use]
             pub fn new(rng: $internal) -> Self {

@@ -1,4 +1,4 @@
-#[cfg(feature = "serialize")]
+#[cfg(all(feature = "serialize", feature = "chacha20"))]
 pub(crate) fn serialize_bytes<const BYTES: usize, S>(
     value: &[u8; BYTES],
     serializer: S,
@@ -9,7 +9,7 @@ where
     serializer.serialize_bytes(value)
 }
 
-#[cfg(feature = "serialize")]
+#[cfg(all(feature = "serialize", feature = "chacha20"))]
 pub(crate) fn deserialize_bytes<'de, const BYTES: usize, D>(deserializer: D) -> Result<[u8; BYTES], D::Error>
 where
     D: serde::Deserializer<'de>,
