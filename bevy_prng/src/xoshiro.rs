@@ -3,7 +3,6 @@ use crate::newtype::newtype_prng;
 #[cfg(feature = "bevy_reflect")]
 use crate::ReflectRemoteRng;
 
-#[cfg(feature = "bevy_reflect")]
 use crate::newtype::newtype_prng_remote;
 
 #[cfg(feature = "bevy_reflect")]
@@ -54,130 +53,52 @@ impl AsMut<[u8]> for Seed512 {
     }
 }
 
-#[cfg(feature = "bevy_reflect")]
-newtype_prng_remote!(
-    Xoshiro512StarStar,
-    ::rand_xoshiro::Xoshiro512StarStar,
-    Seed512,
-    "A [`rand_xoshiro::Xoshiro512StarStar`] RNG component",
-    "rand_xoshiro"
-);
+newtype_prng_remote! {
+    #[feature = "rand_xoshiro"]
+    #[seed = Seed512]
+    /// A [`rand_xoshiro::Xoshiro512StarStar`] RNG component
+    struct Xoshiro512StarStar(rand_xoshiro::Xoshiro512StarStar);
 
-#[cfg(not(feature = "bevy_reflect"))]
-newtype_prng!(
-    Xoshiro512StarStar,
-    ::rand_xoshiro::Xoshiro512StarStar,
-    "A [`rand_xoshiro::Xoshiro512StarStar`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro512PlusPlus`] RNG component
+    struct Xoshiro512PlusPlus(rand_xoshiro::Xoshiro512PlusPlus);
 
-#[cfg(feature = "bevy_reflect")]
-newtype_prng_remote!(
-    Xoshiro512PlusPlus,
-    ::rand_xoshiro::Xoshiro512PlusPlus,
-    Seed512,
-    "A [`rand_xoshiro::Xoshiro512PlusPlus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro512Plus`] RNG component
+    struct Xoshiro512Plus(rand_xoshiro::Xoshiro512Plus);
+}
 
-#[cfg(not(feature = "bevy_reflect"))]
-newtype_prng!(
-    Xoshiro512PlusPlus,
-    ::rand_xoshiro::Xoshiro512PlusPlus,
-    "A [`rand_xoshiro::Xoshiro512PlusPlus`] RNG component",
-    "rand_xoshiro"
-);
+newtype_prng! {
+    #[feature = "rand_xoshiro"]
 
-#[cfg(feature = "bevy_reflect")]
-newtype_prng_remote!(
-    Xoshiro512Plus,
-    ::rand_xoshiro::Xoshiro512Plus,
-    Seed512,
-    "A [`rand_xoshiro::Xoshiro512Plus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro256StarStar`] RNG component
+    struct Xoshiro256StarStar(rand_xoshiro::Xoshiro256StarStar);
 
-#[cfg(not(feature = "bevy_reflect"))]
-newtype_prng!(
-    Xoshiro512Plus,
-    ::rand_xoshiro::Xoshiro512Plus,
-    "A [`rand_xoshiro::Xoshiro512Plus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component
+    struct Xoshiro256PlusPlus(rand_xoshiro::Xoshiro256PlusPlus);
 
-newtype_prng!(
-    Xoshiro256StarStar,
-    ::rand_xoshiro::Xoshiro256StarStar,
-    "A [`rand_xoshiro::Xoshiro256StarStar`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro256Plus`] RNG component
+    struct Xoshiro256Plus(rand_xoshiro::Xoshiro256Plus);
 
-newtype_prng!(
-    Xoshiro256PlusPlus,
-    ::rand_xoshiro::Xoshiro256PlusPlus,
-    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro128StarStar`] RNG component
+    struct Xoroshiro128StarStar(rand_xoshiro::Xoroshiro128StarStar);
 
-newtype_prng!(
-    Xoshiro256Plus,
-    ::rand_xoshiro::Xoshiro256Plus,
-    "A [`rand_xoshiro::Xoshiro256Plus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component
+    struct Xoroshiro128PlusPlus(rand_xoshiro::Xoroshiro128PlusPlus);
 
-newtype_prng!(
-    Xoroshiro128StarStar,
-    ::rand_xoshiro::Xoroshiro128StarStar,
-    "A [`rand_xoshiro::Xoshiro128StarStar`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro128Plus`] RNG component
+    struct Xoroshiro128Plus(rand_xoshiro::Xoroshiro128Plus);
 
-newtype_prng!(
-    Xoroshiro128PlusPlus,
-    ::rand_xoshiro::Xoroshiro128PlusPlus,
-    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro128StarStar`] RNG component
+    struct Xoshiro128StarStar(rand_xoshiro::Xoshiro128StarStar);
 
-newtype_prng!(
-    Xoroshiro128Plus,
-    ::rand_xoshiro::Xoroshiro128Plus,
-    "A [`rand_xoshiro::Xoshiro128Plus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component
+    struct Xoshiro128PlusPlus(rand_xoshiro::Xoshiro128PlusPlus);
 
-newtype_prng!(
-    Xoshiro128StarStar,
-    ::rand_xoshiro::Xoshiro128StarStar,
-    "A [`rand_xoshiro::Xoshiro128StarStar`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoshiro128Plus`] RNG component
+    struct Xoshiro128Plus(rand_xoshiro::Xoshiro128Plus);
 
-newtype_prng!(
-    Xoshiro128PlusPlus,
-    ::rand_xoshiro::Xoshiro128PlusPlus,
-    "A [`rand_xoshiro::Xoshiro256PlusPlus`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoroshiro64StarStar`] RNG component
+    struct Xoroshiro64StarStar(rand_xoshiro::Xoroshiro64StarStar);
 
-newtype_prng!(
-    Xoshiro128Plus,
-    ::rand_xoshiro::Xoshiro128Plus,
-    "A [`rand_xoshiro::Xoshiro128Plus`] RNG component",
-    "rand_xoshiro"
-);
-
-newtype_prng!(
-    Xoroshiro64StarStar,
-    ::rand_xoshiro::Xoroshiro64StarStar,
-    "A [`rand_xoshiro::Xoroshiro64StarStar`] RNG component",
-    "rand_xoshiro"
-);
-
-newtype_prng!(
-    Xoroshiro64Star,
-    ::rand_xoshiro::Xoroshiro64Star,
-    "A [`rand_xoshiro::Xoroshiro64Star`] RNG component",
-    "rand_xoshiro"
-);
+    /// A [`rand_xoshiro::Xoroshiro64Star`] RNG component
+    struct Xoroshiro64Star(rand_xoshiro::Xoroshiro64Star);
+}

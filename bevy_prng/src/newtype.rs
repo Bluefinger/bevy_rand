@@ -1,6 +1,9 @@
 macro_rules! newtype_prng {
-    ($newtype:tt, $rng:ty, $doc:tt, $feature:tt) => {
-        #[doc = $doc]
+    { #[feature = $feature:literal]
+    $(#[$doc:meta]
+    struct $newtype:ident($rng:ty);
+    )+ } => {
+        $(
         #[derive(Debug, Clone, PartialEq, ::bevy_ecs::prelude::Component)]
         #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
         #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
@@ -28,6 +31,7 @@ macro_rules! newtype_prng {
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
         #[repr(transparent)]
+        #[$doc]
         pub struct $newtype($rng);
 
         impl $newtype {
@@ -153,13 +157,18 @@ macro_rules! newtype_prng {
         impl crate::EntropySource for $newtype {}
 
         impl crate::RemoteRng for $newtype {}
+    )*
     };
 }
 
-#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
+#[cfg(feature = "rand_xoshiro")]
 macro_rules! newtype_prng_remote {
-    ($newtype:tt, $rng:ty, $seed:ty, $doc:tt, $feature:tt) => {
-        #[doc = $doc]
+    { #[feature = $feature:literal]
+    #[seed = $seed:ty]
+    $(#[$doc:meta]
+    struct $newtype:ident($rng:ty);)+
+    } => {
+        $(#[cfg(feature = "bevy_reflect")]
         #[derive(Debug, Clone, PartialEq, bevy_ecs::prelude::Component)]
         #[cfg_attr(feature = "bevy_reflect", derive(Reflect))]
         #[cfg_attr(feature = "bevy_reflect", reflect(opaque))]
@@ -187,8 +196,10 @@ macro_rules! newtype_prng_remote {
         #[cfg_attr(docsrs, doc(cfg(feature = $feature)))]
         #[cfg_attr(feature = "bevy_reflect", type_path = "bevy_prng")]
         #[repr(transparent)]
+        #[$doc]
         pub struct $newtype($rng);
 
+        #[cfg(feature = "bevy_reflect")]
         impl $newtype {
             /// Create a new instance.
             #[inline(always)]
@@ -198,6 +209,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        #[cfg(feature = "bevy_reflect")]
         impl ::rand_core::TryRng for $newtype {
             type Error = core::convert::Infallible;
 
@@ -217,7 +229,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
-        #[cfg(feature = "compat_06")]
+        #[cfg(all(feature = "compat_06", feature = "rand_xoshiro"))]
         impl ::rand_core_06::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
@@ -241,7 +253,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
-        #[cfg(feature = "compat_09")]
+        #[cfg(all(feature = "compat_09", feature = "rand_xoshiro"))]
         impl ::rand_core_09::RngCore for $newtype {
             #[inline(always)]
             fn next_u32(&mut self) -> u32 {
@@ -259,6 +271,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        #[cfg(feature = "bevy_reflect")]
         impl ::rand_core::SeedableRng for $newtype {
             type Seed = $seed;
 
@@ -280,6 +293,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        #[cfg(feature = "bevy_reflect")]
         impl Default for $newtype {
             fn default() -> Self {
                 use rand_core::SeedableRng;
@@ -298,6 +312,7 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        #[cfg(feature = "bevy_reflect")]
         impl From<$rng> for $newtype {
             #[inline]
             fn from(value: $rng) -> Self {
@@ -305,12 +320,22 @@ macro_rules! newtype_prng_remote {
             }
         }
 
+        #[cfg(feature = "bevy_reflect")]
         impl crate::EntropySource for $newtype {}
 
+        #[cfg(feature = "bevy_reflect")]
         impl crate::RemoteRng for $newtype {}
+
+        #[cfg(not(feature = "bevy_reflect"))]
+        crate::newtype::newtype_prng! {
+            #[feature = "rand_xoshiro"]
+            #[$doc]
+            struct $newtype($rng);
+        }
+        )*
     };
 }
 
 pub(crate) use newtype_prng;
-#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
+#[cfg(feature = "rand_xoshiro")]
 pub(crate) use newtype_prng_remote;

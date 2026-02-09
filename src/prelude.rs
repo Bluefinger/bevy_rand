@@ -18,7 +18,7 @@ pub use bevy_prng::{ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
 
 #[cfg(feature = "rand_pcg")]
 #[cfg_attr(docsrs, doc(cfg(feature = "rand_pcg")))]
-pub use bevy_prng::{Pcg32, Pcg64, Pcg64Mcg};
+pub use bevy_prng::{Pcg32, Pcg64, Pcg64Dxsm, Pcg64Mcg};
 
 #[cfg(feature = "rand_xoshiro")]
 #[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]

@@ -12,9 +12,9 @@ use bevy_ecs::reflect::ReflectComponent;
 #[cfg(all(feature = "serialize", feature = "bevy_reflect"))]
 use bevy_reflect::{ReflectDeserialize, ReflectSerialize};
 
-newtype_prng!(
-    WyRand,
-    ::wyrand::WyRand,
-    "A [`wyrand::WyRand`] RNG component",
-    "wyrand"
-);
+newtype_prng! {
+    #[feature = "wyrand"]
+
+    /// A [`wyrand::WyRand`] RNG component
+    struct WyRand(wyrand::WyRand);
+}
