@@ -1,13 +1,13 @@
 # Selecting and using PRNG Algorithms
 
-If you need a TL;DR of this section, then select `wyrand` for the fastest PRNG with good enough entropy, or select `rand_chacha` for the best quality entropy at the expense of speed (with `ChaCha8Rng` being the fastest of the three available ones, with `ChaCha20Rng` being the most secure). If you still do not know which one to pick, pick `wyrand`, because for most purposes in games, you do not need cryptographically secure levels of entropy.
+If you need a TL;DR of this section, then select `wyrand` for the fastest PRNG with good enough entropy, or select `chacha20` for the best quality entropy at the expense of speed (with `ChaCha8Rng` being the fastest of the three available ones, with `ChaCha20Rng` being the most secure). If you still do not know which one to pick, pick `wyrand`, because for most purposes in games, you do not need cryptographically secure levels of entropy.
 
 ## Choosing a PRNG
 
 All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 ```toml
-bevy_rand = { version = "0.12", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
 ```rust ignore
 use bevy::prelude::*;
@@ -15,8 +15,8 @@ use bevy_rand::prelude::{ChaCha8Rng, WyRand};
 ```
 or
 ```toml
-bevy_rand = "0.12"
-bevy_prng = { version = "0.12", features = ["rand_chacha", "wyrand"] }
+bevy_rand = "0.14"
+bevy_prng = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
 ```rust ignore
 use bevy::prelude::*;

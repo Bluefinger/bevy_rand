@@ -13,7 +13,7 @@ This is a good property to have though! It means the algorithm is *testable*, an
 1. Default: Pulling from a thread-local or OS source (Random)
 2. Providing a set seed (Deterministic)
 
-Wait, the first option is a default? It's true that library crates like `rand_chacha` don't implement their algorithms with defaults, but that's because they can't make assumptions about what sources are available by default and which platforms the algorithm will be used on. `bevy_rand` *can* make some assumptions however, because:
+Wait, the first option is a default? It's true that library crates like `chacha20` don't implement their algorithms with defaults, but that's because they can't make assumptions about what sources are available by default and which platforms the algorithm will be used on. `bevy_rand` *can* make some assumptions however, because:
 
 * `bevy_rand` is being used in the context of making games/applications in `bevy`, so we are assuming this will be used on platforms with the capability to support/run `bevy` apps (std or no-std).
 * These platforms will have the ability to provide OS/hardware sources or allow for user-space sources.

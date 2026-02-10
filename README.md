@@ -15,24 +15,24 @@ Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS
 
 **There's now a tutorial section, [go to here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.**
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `rand_chacha` directly will not work as these don't implement the necessary traits to support bevy's reflection.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `chacha20` directly will not work as these don't implement the necessary traits to support bevy's reflection.
 
 All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 #### `bevy_rand` feature activation
 ```toml
 rand_core = "0.9"
-bevy_rand = { version = "0.14", features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
 rand_core = "0.9"
 bevy_rand = "0.14"
-bevy_prng = { version = "0.14", features = ["rand_chacha", "wyrand"] }
+bevy_prng = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
 
-The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `rand_chacha`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
+The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `chacha20`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
 
 DO **NOT** use `bevy_rand` for actual security purposes, as this requires much more careful consideration and properly vetted crates designed for cryptography. A good starting point would be to look at [RustCrypto](https://github.com/RustCrypto) and go from there.
 
@@ -41,7 +41,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
-bevy_rand = { version = "0.14", default-features = false, features = ["rand_chacha", "wyrand"] }
+bevy_rand = { version = "0.14", default-features = false, features = ["chacha20", "wyrand"] }
 ```
 
 All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
