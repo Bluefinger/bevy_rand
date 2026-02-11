@@ -12,9 +12,9 @@ version = "0.14.0"
 rust-version = "1.87.0"
 
 [workspace.dependencies]
-bevy_app = { version = "0.18.0", default-features = false }
-bevy_ecs = { version = "0.18.0", default-features = false }
-bevy_reflect = { version = "0.18.0", default-features = false }
+bevy_app = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
+bevy_reflect = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
 serde = { version = "1.0.218", default-features = false }
 rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
@@ -39,7 +39,13 @@ exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std", "bevy_reflect", "compat_09"]
+default = [
+    "serialize",
+    "thread_local_entropy",
+    "std",
+    "bevy_reflect",
+    "compat_09",
+]
 bevy_reflect = [
     "dep:bevy_reflect",
     "bevy_app/bevy_reflect",
@@ -78,13 +84,9 @@ rand_core_06 = { workspace = true, optional = true }
 bevy_prng = { path = "bevy_prng", version = "=0.14" }
 
 [dev-dependencies]
-bevy_app = { workspace = true, features = [
-    "bevy_reflect",
-] }
-bevy_ecs = { workspace = true, features = [
-    "bevy_reflect",
-] }
-bevy_math = { version = "0.18.0" }
+bevy_app = { workspace = true, features = ["bevy_reflect"] }
+bevy_ecs = { workspace = true, features = ["bevy_reflect"] }
+bevy_math = { git = "https://github.com/bevyengine/bevy", branch = "main" }
 bevy_prng = { path = "bevy_prng", version = "0.14", default-features = false, features = [
     "chacha20",
     "wyrand",
@@ -97,7 +99,7 @@ serde = { workspace = true }
 wasm-bindgen-test = "0.3"
 getrandom = { version = "0.4.0", features = ["wasm_js"] }
 getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
-bevy_ecs = { version = "0.18.0", default-features = false, features = [
+bevy_ecs = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = [
     "bevy_reflect",
 ] }
 
