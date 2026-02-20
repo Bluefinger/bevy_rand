@@ -44,7 +44,6 @@ default = [
     "thread_local_entropy",
     "std",
     "bevy_reflect",
-    "compat_09",
 ]
 bevy_reflect = [
     "dep:bevy_reflect",
