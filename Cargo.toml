@@ -9,7 +9,7 @@ edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
 version = "0.14.1"
-rust-version = "1.87.0"
+rust-version = "1.89.0"
 
 [workspace.dependencies]
 bevy_app = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false }
