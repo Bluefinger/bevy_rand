@@ -24,6 +24,7 @@ By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you
 - **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
 - **`compat_06`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
 - **`compat_09`** - This enables the old v0.9 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
+- **`wasm_js`** - This enables the `getrandom` WASM JS backend, though this should only be activated conditionally for `wasm` targets. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 
 In addition to these feature flags to enable various supported algorithms, there's also **`serialize`** flag to provide `serde` support for `Serialize`/`Deserialize`.
 
@@ -46,6 +47,19 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 - [wyrand](https://crates.io/crates/wyrand)
 - [rand_xoshiro](https://crates.io/crates/rand_xoshiro)
 - [rand_pcg](https://crates.io/crates/rand_pcg)
+
+## Usage within Web WASM environments
+
+To enable `bevy_prng` to work with Web WASM in `v0.14`, just paste the following into your `Cargo.toml` for your binary crate:
+
+```toml
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+bevy_prng = { version = "0.14", features = ["wasm_js"] }
+```
+
+This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_prng` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
+
+If you have older versions of `getrandom` in your dep tree, enabling the `wasm_js` feature on `bevy_prng` should be enough to have these versions configured to work for Web WASM.
 
 ## Supported Versions & MSRV
 
