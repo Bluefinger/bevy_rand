@@ -930,7 +930,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "bevy_ecs",
  "getrandom 0.4.1",
@@ -945,7 +945,7 @@ source = "git+https://github.com/bevyengine/bevy?branch=main#48ec375a3a3cdc90447
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "bevy_app",
  "bevy_ecs",

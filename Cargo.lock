@@ -202,11 +202,13 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
  "chacha20",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
  "getrandom 0.4.1",
  "rand_core 0.10.0",
  "rand_core 0.6.4",
@@ -224,14 +226,13 @@ source = "git+https://github.com/bevyengine/bevy?branch=main#7c153070c018db5f606
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.0"
+version = "0.14.1"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_math",
  "bevy_prng",
  "bevy_reflect",
- "getrandom 0.2.17",
  "getrandom 0.4.1",
  "rand",
  "rand_core 0.10.0",
@@ -584,6 +585,20 @@ dependencies = [
  "js-sys",
  "libc",
  "wasi",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "getrandom"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
+dependencies = [
+ "cfg-if",
+ "js-sys",
+ "libc",
+ "r-efi",
+ "wasip2",
  "wasm-bindgen",
 ]
 

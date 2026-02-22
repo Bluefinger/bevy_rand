@@ -57,6 +57,8 @@ bevy_rand = { version = "0.14", features = ["wasm_js"] }
 
 This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_rand` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
 
+If you have older versions of `getrandom` in your dep tree, enabling the `wasm_js` feature on `bevy_rand` should be enough to have these versions configured to work for Web WASM.
+
 ### Registering a PRNG for use with Bevy Rand
 
 Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registered via the plugin.

@@ -26,8 +26,9 @@ chacha20 = ["dep:chacha20"]
 wyrand = ["dep:wyrand"]
 rand_pcg = ["dep:rand_pcg"]
 rand_xoshiro = ["dep:rand_xoshiro"]
-compat_09 = ["dep:rand_core_09"]
-compat_06 = ["dep:rand_core_06"]
+compat_09 = ["dep:rand_core_09", "dep:getrandom_03"]
+compat_06 = ["dep:rand_core_06", "dep:getrandom_02"]
+wasm_js = ["getrandom/wasm_js", "getrandom_03?/wasm_js", "getrandom_02?/js"]
 
 [dependencies]
 getrandom = { workspace = true }
@@ -36,6 +37,8 @@ bevy_reflect = { workspace = true, optional = true }
 rand_core.workspace = true
 rand_core_09 = { workspace = true, optional = true }
 rand_core_06 = { workspace = true, optional = true }
+getrandom_02 = { workspace = true, optional = true }
+getrandom_03 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true, features = ["derive"] }
 chacha20 = { workspace = true, optional = true, features = ["rng"] }
 wyrand = { workspace = true, optional = true }
