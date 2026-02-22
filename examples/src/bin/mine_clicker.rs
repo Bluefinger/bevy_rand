@@ -118,7 +118,7 @@ fn on_insert_mine_pos(
 
 // Clean up old mine data from our index before it is updated or if the mine is despawned
 fn on_replace_mine_pos(
-    trigger: On<Replace, MinePos>,
+    trigger: On<Discard, MinePos>,
     query: Query<&MinePos>,
     mut index: ResMut<SpatialIndex>,
 ) {
