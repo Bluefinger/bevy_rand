@@ -933,9 +933,6 @@ name = "bevy_prng"
 version = "0.14.1"
 dependencies = [
  "bevy_ecs",
- "bevy_reflect",
- "getrandom 0.2.17",
- "getrandom 0.3.4",
  "getrandom 0.4.1",
  "rand_core",
  "wyrand",
@@ -953,7 +950,6 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_prng",
- "bevy_reflect",
  "getrandom 0.4.1",
  "rand_core",
 ]
@@ -2116,29 +2112,14 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff2abc00be7fca6ebc474524697ae276ad847ad0a6b3faa4bcb027e9a4614ad0"
-dependencies = [
- "cfg-if",
- "js-sys",
- "libc",
- "wasi",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "getrandom"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "899def5c37c4fd7b2664648c28120ecec138e4d395b459e5ca34f9cce2dd77fd"
 dependencies = [
  "cfg-if",
- "js-sys",
  "libc",
  "r-efi",
  "wasip2",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -3991,12 +3972,6 @@ dependencies = [
  "same-file",
  "winapi-util",
 ]
-
-[[package]]
-name = "wasi"
-version = "0.11.1+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ccf3ec651a847eb01de73ccad15eb7d99f80485de043efb2f370cd654f4ea44b"
 
 [[package]]
 name = "wasip2"

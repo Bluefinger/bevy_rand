@@ -23,11 +23,9 @@ bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-fe
     "x11",
     "wayland",
     "2d_bevy_render",
-    "reflect_auto_register",
 ] }
 bevy_rand = { path = "..", version = "0.14", default-features = false, features = [
     "wyrand",
-    "bevy_reflect",
 ] }
 rand = { version = "0.10.0", default-features = false }
 

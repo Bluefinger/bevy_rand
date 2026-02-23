@@ -23,9 +23,7 @@ chacha20 = { version = "0.10.0", default-features = false }
 wyrand = { version = "0.4" }
 rand_pcg = "0.10.0"
 rand_xoshiro = "0.8.0"
-getrandom = { version = "0.4.0", features = ["sys_rng"] }
-getrandom_02 = { version = "0.2", package = "getrandom" }
-getrandom_03 = { version = "0.3.4", package = "getrandom" }
+getrandom = { version = "0.4.0", default-features = false, features = ["sys_rng"] }
 
 [package]
 name = "bevy_rand"
