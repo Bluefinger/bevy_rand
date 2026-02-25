@@ -28,6 +28,7 @@ rand_pcg = ["dep:rand_pcg"]
 rand_xoshiro = ["dep:rand_xoshiro"]
 compat_09 = ["dep:rand_core_09"]
 compat_06 = ["dep:rand_core_06"]
+wasm_js = ["getrandom/wasm_js"]
 
 [dependencies]
 getrandom = { workspace = true }
