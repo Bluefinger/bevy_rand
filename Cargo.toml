@@ -8,8 +8,8 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.14.0"
-rust-version = "1.87.0"
+version = "0.14.1"
+rust-version = "1.89.0"
 
 [workspace.dependencies]
 bevy_app = { version = "0.18.0", default-features = false }
@@ -23,7 +23,7 @@ chacha20 = { version = "0.10.0", default-features = false }
 wyrand = { version = "0.4" }
 rand_pcg = "0.10.0"
 rand_xoshiro = "0.8.0"
-getrandom = { version = "0.4.0", features = ["sys_rng"] }
+getrandom = { version = "0.4.0", default-features = false, features = ["sys_rng"] }
 
 [package]
 name = "bevy_rand"
@@ -56,7 +56,7 @@ chacha20 = ["bevy_prng/chacha20"]
 rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
-wasm_js = ["getrandom/wasm_js"]
+wasm_js = ["bevy_prng/wasm_js"]
 
 [dependencies]
 bevy_app.workspace = true
@@ -95,8 +95,6 @@ serde = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-getrandom = { version = "0.4.0", features = ["wasm_js"] }
-getrandom_02 = { version = "0.2", features = ["js"], package = "getrandom" }
 bevy_ecs = { version = "0.18.0", default-features = false, features = [
     "bevy_reflect",
 ] }

@@ -57,6 +57,17 @@ bevy_rand = { version = "0.14", features = ["wasm_js"] }
 
 This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_rand` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
 
+If you have older versions of `getrandom` in your dep tree that are getting compiled in, then you might need to add further configuration to your `Cargo.toml` in order to enable Web WASM builds to compile correctly:
+
+```toml
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+bevy_rand = { version = "0.14", features = ["wasm_js"] }
+# Add the line below to make v0.3.4 getrandom work in Web WASM builds
+getrandom_03 = { version = "0.3.4", features = ["wasm_js"], package = "getrandom" }
+# Add the line below to make v0.2.17 getrandom work in Web WASM builds
+getrandom_02 = { version = "0.2.17", features = ["js"], package = "getrandom" }
+```
+
 ### Registering a PRNG for use with Bevy Rand
 
 Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registered via the plugin.
