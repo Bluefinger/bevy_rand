@@ -875,7 +875,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "bevy_ecs",
  "getrandom 0.4.1",
@@ -891,7 +891,7 @@ checksum = "4f98cbc6d34bbdb58240b72ed1731931b4991a893b3a3238bb7c42ae054aa676"
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
