@@ -202,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_prng"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "bevy_ecs",
  "bevy_reflect",
@@ -224,7 +224,7 @@ source = "git+https://github.com/bevyengine/bevy?branch=main#ea0d43eb67ab99d3ce1
 
 [[package]]
 name = "bevy_rand"
-version = "0.14.1"
+version = "0.14.2"
 dependencies = [
  "bevy_app",
  "bevy_ecs",

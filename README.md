@@ -21,13 +21,13 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 
 #### `bevy_rand` feature activation
 ```toml
-rand_core = "0.9"
+rand_core = "0.10"
 bevy_rand = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
-rand_core = "0.9"
+rand_core = "0.10"
 bevy_rand = "0.14"
 bevy_prng = { version = "0.14", features = ["chacha20", "wyrand"] }
 ```
@@ -48,7 +48,7 @@ All PRNG backends should support `no_std` environments. Furthermore, `getrandom`
 
 #### Usage within Web WASM environments
 
-From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a web environment when compiled for WASM. To enable that in `v0.11`, just paste the following into your `Cargo.toml` for your binary crate:
+From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a web environment when compiled for WASM. To enable that in `v0.14`, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
