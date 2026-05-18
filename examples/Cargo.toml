@@ -4,14 +4,14 @@ authors = ["Gonçalo Rica Pais da Silva <bluefinger@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
-version = "0.14.0"
+version = "0.15.0"
 rust-version = "1.87.0"
 
 [features]
 wasm_js = ["bevy_rand/wasm_js"]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-features = false, features = [
+bevy = { version = "=0.19.0-rc.1", default-features = false, features = [
     "bevy_log",
     "bevy_color",
     "bevy_ui",
@@ -24,7 +24,7 @@ bevy = { git = "https://github.com/bevyengine/bevy", branch = "main", default-fe
     "wayland",
     "2d_bevy_render",
 ] }
-bevy_rand = { path = "..", version = "0.14", default-features = false, features = [
+bevy_rand = { path = "..", version = "0.15", default-features = false, features = [
     "wyrand",
 ] }
 rand = { version = "0.10.0", default-features = false }
