@@ -12,9 +12,9 @@ version = "0.15.0"
 rust-version = "1.95.0"
 
 [workspace.dependencies]
-bevy_app = { version = "=0.19.0-rc.1", default-features = false }
-bevy_ecs = { version = "=0.19.0-rc.1", default-features = false }
-bevy_reflect = { version = "=0.19.0-rc.1", default-features = false }
+bevy_app = { version = "=0.19.0-rc.3", default-features = false }
+bevy_ecs = { version = "=0.19.0-rc.3", default-features = false }
+bevy_reflect = { version = "=0.19.0-rc.3", default-features = false }
 serde = { version = "1.0.218", default-features = false }
 rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
@@ -80,7 +80,7 @@ bevy_prng = { path = "bevy_prng", version = "=0.15" }
 [dev-dependencies]
 bevy_app = { workspace = true, features = ["bevy_reflect"] }
 bevy_ecs = { workspace = true, features = ["bevy_reflect"] }
-bevy_math = { version = "=0.19.0-rc.1" }
+bevy_math = { version = "=0.19.0-rc.3" }
 bevy_prng = { path = "bevy_prng", version = "0.15", default-features = false, features = [
     "chacha20",
     "wyrand",
@@ -91,7 +91,7 @@ serde = { workspace = true }
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
 wasm-bindgen-test = "0.3"
-bevy_ecs = { version = "=0.19.0-rc.1", default-features = false, features = [
+bevy_ecs = { version = "=0.19.0-rc.3", default-features = false, features = [
     "bevy_reflect",
 ] }
 
