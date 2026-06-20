@@ -22,14 +22,14 @@ All supported PRNGs and compatible structs are provided by the `bevy_prng` crate
 #### `bevy_rand` feature activation
 ```toml
 rand_core = "0.10"
-bevy_rand = { version = "0.14", features = ["chacha20", "wyrand"] }
+bevy_rand = { version = "0.15", features = ["chacha20", "wyrand"] }
 ```
 
 #### `bevy_prng` feature activation
 ```toml
 rand_core = "0.10"
-bevy_rand = "0.14"
-bevy_prng = { version = "0.14", features = ["chacha20", "wyrand"] }
+bevy_rand = "0.15"
+bevy_prng = { version = "0.15", features = ["chacha20", "wyrand"] }
 ```
 
 The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `chacha20`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
@@ -41,18 +41,18 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
-bevy_rand = { version = "0.14", default-features = false, features = ["chacha20", "wyrand"] }
+bevy_rand = { version = "0.15", default-features = false, features = ["chacha20", "wyrand"] }
 ```
 
 All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
 
 #### Usage within Web WASM environments
 
-From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a web environment when compiled for WASM. To enable that in `v0.14`, just paste the following into your `Cargo.toml` for your binary crate:
+From `v0.9` onwards, `bevy_rand` no longer assumes that `bevy` will be run in a web environment when compiled for WASM. To enable that in `v0.15`, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-bevy_rand = { version = "0.14", features = ["wasm_js"] }
+bevy_rand = { version = "0.15", features = ["wasm_js"] }
 ```
 
 This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_rand` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
@@ -61,7 +61,7 @@ If you have older versions of `getrandom` in your dep tree that are getting comp
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-bevy_rand = { version = "0.14", features = ["wasm_js"] }
+bevy_rand = { version = "0.15", features = ["wasm_js"] }
 # Add the line below to make v0.3.4 getrandom work in Web WASM builds
 getrandom_03 = { version = "0.3.4", features = ["wasm_js"], package = "getrandom" }
 # Add the line below to make v0.2.17 getrandom work in Web WASM builds
@@ -185,6 +185,7 @@ More info about the examples can be [found here](examples/README.md).
 
 | `bevy` | `bevy_rand`   |
 | ------ | ------------- |
+| v0.19  | v0.15         |
 | v0.18  | v0.13 - v0.14 |
 | v0.17  | v0.12         |
 | v0.16  | v0.10 - v0.11 |
@@ -199,7 +200,7 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 | `bevy_rand`    | `rand_core` | `rand` | `getrandom` | `compat_*` features                  |
 | -------------- | ----------- | ------ | ----------- | ------------------------------------ |
-| v0.14          | v0.10       | v0.10  | v0.4        | ✅ (supports `rand_core` v0.6, v0.9) |
+| v0.14 -> v0.15 | v0.10       | v0.10  | v0.4        | ✅ (supports `rand_core` v0.6, v0.9) |
 | v0.10 -> v0.13 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6)       |
 | v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                                   |
 
