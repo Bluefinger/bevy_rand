@@ -10,7 +10,9 @@ where
 }
 
 #[cfg(all(feature = "serialize", feature = "chacha20"))]
-pub(crate) fn deserialize_bytes<'de, const BYTES: usize, D>(deserializer: D) -> Result<[u8; BYTES], D::Error>
+pub(crate) fn deserialize_bytes<'de, const BYTES: usize, D>(
+    deserializer: D,
+) -> Result<[u8; BYTES], D::Error>
 where
     D: serde::Deserializer<'de>,
 {
@@ -19,7 +21,7 @@ where
     impl<'de, const LEN: usize> serde::de::Visitor<'de> for ByteArrayVisitor<LEN> {
         type Value = [u8; LEN];
 
-        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
             write!(formatter, "Expected an array of length {}", LEN)
         }
 
