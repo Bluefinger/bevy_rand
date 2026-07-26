@@ -8,6 +8,7 @@ on:
       - v0.16
       - v0.17
       - v0.18
+      - v0.19
 
 env:
   RUSTFLAGS: -D warnings
