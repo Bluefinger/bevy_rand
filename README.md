@@ -208,6 +208,12 @@ The versions of `rand_core`/`rand` that `bevy_rand` is compatible with is as fol
 
 Notes on migrating between versions can be found [here](MIGRATIONS.md).
 
+## Contributing to Bevy Rand
+
+If you wish to contribute to `bevy_rand`, feel free to look at the [CONTRIBUTING](./CONTRIBUTING.md) guidelines. Please note, this project has a strict "no LLMs" policy. Do not even use LLMs for analysing/examining the code.
+
+Also, please abide by the [Code of Conduct](./CODE_OF_CONDUCT.md) when interacting and contributing to this project.
+
 ## License
 
 Licensed under either of
