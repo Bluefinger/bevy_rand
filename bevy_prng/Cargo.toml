@@ -15,7 +15,10 @@ rust-version = { workspace = true }
 default = []
 std = []
 thread_local_entropy = ["dep:chacha20", "std"]
-bevy_reflect = ["dep:bevy_reflect"]
+bevy_reflect = [
+    "dep:bevy_reflect",
+    "bevy_ecs/bevy_reflect",
+]
 serialize = [
     "dep:serde",
     "rand_pcg?/serde",
