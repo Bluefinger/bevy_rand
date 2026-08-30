@@ -21,7 +21,7 @@ fn main() {
         .add_plugins((
             MinimalPlugins,
             LogPlugin::default(),
-            EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()),
+            EntropyPlugin::<FastRng>::with_seed(42u64.to_ne_bytes()),
         ))
         .add_systems(Startup, (character_setup, observer_setup).chain())
         .add_systems(
@@ -79,7 +79,7 @@ struct Attack {
 #[derive(Clone, Component, EntityEvent)]
 struct Turn {
     entity: Entity,
-    rng: WyRand,
+    rng: FastRng,
     character: Name,
     kind: Kind,
 }
@@ -91,24 +91,24 @@ struct Turn {
 // We're going to model how attack damage can be partially blocked by the character's armor using
 // event bubbling. Our events will target the armor, and if the armor isn't strong enough to block
 // the attack it will continue up and hit the character.
-fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
+fn character_setup(mut global_rng: GlobalRngEntity<FastRng>) {
     let mut global_rng = global_rng.rng_commands();
 
     let child_spawner = |parent: &mut RelatedSpawner<ChildOf>| {
         parent.spawn((
             Name::new("Helmet"),
             Armor { rating: 5 },
-            RngSource::<WyRand, WyRand>::new(parent.target_entity()),
+            RngSource::<FastRng, FastRng>::new(parent.target_entity()),
         ));
         parent.spawn((
             Name::new("Socks"),
             Armor { rating: 10 },
-            RngSource::<WyRand, WyRand>::new(parent.target_entity()),
+            RngSource::<FastRng, FastRng>::new(parent.target_entity()),
         ));
         parent.spawn((
             Name::new("Shirt"),
             Armor { rating: 15 },
-            RngSource::<WyRand, WyRand>::new(parent.target_entity()),
+            RngSource::<FastRng, FastRng>::new(parent.target_entity()),
         ));
     };
 
@@ -119,7 +119,7 @@ fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
                 Health { points: 60 },
                 Character,
                 Kind::Player,
-                RngLinks::<WyRand, WyRand>::default(),
+                RngLinks::<FastRng, FastRng>::default(),
                 Children::spawn(SpawnWith(child_spawner)),
             ),
             (
@@ -127,7 +127,7 @@ fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
                 Health { points: 25 },
                 Character,
                 Kind::Enemy,
-                RngLinks::<WyRand, WyRand>::default(),
+                RngLinks::<FastRng, FastRng>::default(),
                 Children::spawn(SpawnWith(child_spawner)),
             ),
             (
@@ -135,7 +135,7 @@ fn character_setup(mut global_rng: GlobalRngEntity<WyRand>) {
                 Health { points: 25 },
                 Character,
                 Kind::Enemy,
-                RngLinks::<WyRand, WyRand>::default(),
+                RngLinks::<FastRng, FastRng>::default(),
                 Children::spawn(SpawnWith(child_spawner)),
             ),
         ])
@@ -161,12 +161,12 @@ fn observer_setup(
 /// Calculate the order of attacks each Character will take during this next turn.
 fn next_turn(
     mut characters: Query<
-        (Entity, &mut WyRand, &Name, &Kind),
+        (Entity, &mut FastRng, &Name, &Kind),
         (With<Character>, Without<GlobalRng>),
     >,
-    mut global: Single<&mut WyRand, (With<GlobalRng>, Without<Character>)>,
+    mut global: Single<&mut FastRng, (With<GlobalRng>, Without<Character>)>,
     mut commands: Commands,
-    mut global_rng: GlobalRngEntity<WyRand>,
+    mut global_rng: GlobalRngEntity<FastRng>,
 ) {
     info!("Next turn!\n");
 
@@ -235,7 +235,7 @@ fn track_hits(trigger: On<Attack>, name: Query<&Name>) {
 
 /// A callback placed on [`Armor`], checking if the blow glanced off or if it absorbed all the [`Attack`] damage.
 /// Here, the Armor has its own RNG state to calculate whether a blow glances off it, not relying on the parent RNG state.
-fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut WyRand, &Armor, &Name)>) {
+fn block_attack(mut trigger: On<Attack>, mut armor: Query<(&mut FastRng, &Armor, &Name)>) {
     if let Ok((mut rng, armor, name)) = armor.get_mut(trigger.target) {
         let attack = trigger.event_mut();
         let glance = rng.random_bool(0.1);

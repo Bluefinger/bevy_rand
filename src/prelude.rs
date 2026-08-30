@@ -12,6 +12,18 @@ pub use crate::traits::{
 #[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]
 pub use bevy_prng::WyRand;
 
+#[cfg(feature = "fast_rng")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fast_rng")))]
+pub use bevy_prng::FastRng;
+
+#[cfg(feature = "fast_rng32")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fast_rng32")))]
+pub use bevy_prng::FastRng32;
+
+#[cfg(feature = "quality_rng")]
+#[cfg_attr(docsrs, doc(cfg(feature = "quality_rng")))]
+pub use bevy_prng::QualityRng;
+
 #[cfg(feature = "chacha20")]
 #[cfg_attr(docsrs, doc(cfg(feature = "chacha20")))]
 pub use bevy_prng::{ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};

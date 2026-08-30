@@ -5,7 +5,7 @@ edition = "2024"
 repository = "https://github.com/Bluefinger/bevy_rand"
 license = "MIT OR Apache-2.0"
 version = "0.15.1"
-rust-version = "1.87.0"
+rust-version = "1.95.0"
 
 [features]
 wasm_js = ["bevy_rand/wasm_js"]
@@ -25,7 +25,7 @@ bevy = { git = "https://github.com/bevyengine/bevy/", default-features = false, 
     "2d_bevy_render",
 ] }
 bevy_rand = { path = "..", version = "0.15", default-features = false, features = [
-    "wyrand",
+    "fast_rng",
 ] }
 rand = { version = "0.10.0", default-features = false }
 
