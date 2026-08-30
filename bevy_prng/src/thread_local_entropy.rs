@@ -1,6 +1,5 @@
-use alloc::rc::Rc;
 use core::{cell::UnsafeCell, convert::Infallible};
-use std::thread_local;
+use std::{rc::Rc, thread_local};
 
 use chacha20::ChaCha8Rng;
 use rand_core::{SeedableRng, TryCryptoRng, TryRng};
@@ -8,7 +7,7 @@ use rand_core::{SeedableRng, TryCryptoRng, TryRng};
 thread_local! {
     // We require `Rc` to avoid premature freeing when `ThreadLocalEntropy` is used within thread-local destructors.
     static SOURCE: Rc<UnsafeCell<ChaCha8Rng>> = {
-        Rc::new(UnsafeCell::new(ChaCha8Rng::try_from_rng(&mut getrandom::SysRng).expect("Unable to source entropy for initialisation")))
+        Rc::new(UnsafeCell::new(ChaCha8Rng::try_from_rng(&mut getrandom::SysRng).expect(crate::NO_ENTROPY_SOURCE)))
     };
 }
 
@@ -24,7 +23,10 @@ pub struct ThreadLocalEntropy(Rc<UnsafeCell<ChaCha8Rng>>);
 impl ThreadLocalEntropy {
     /// Obtain a new [`ThreadLocalEntropy`] instance.
     pub fn get() -> Result<Self, std::thread::AccessError> {
-        Ok(Self(SOURCE.try_with(Rc::clone)?))
+        match SOURCE.try_with(Rc::clone) {
+            Ok(source) => Ok(Self(source)),
+            Err(e) => Err(e),
+        }
     }
 
     /// Initiates an access to the thread local source, passing a `&mut ChaCha8Rng` to the
@@ -35,7 +37,9 @@ impl ThreadLocalEntropy {
         F: FnOnce(&mut ChaCha8Rng) -> Result<O, Infallible>,
     {
         // SAFETY: The `&mut` reference constructed here will never outlive the closure
-        // for the thread local access. It is also will never be a null pointer and is aligned.
+        // for the thread local access. It is also will never be a null pointer and is aligned,
+        // and the function signature (&mut self) ensures we will always have exclusive access
+        // to the constructed mutable reference.
         unsafe { f(&mut *self.0.get()) }
     }
 }
@@ -66,7 +70,7 @@ impl TryCryptoRng for ThreadLocalEntropy {}
 
 #[cfg(test)]
 mod tests {
-    use alloc::{format, vec, vec::Vec};
+    use std::{format, vec, vec::Vec};
 
     use rand_core::Rng;
 

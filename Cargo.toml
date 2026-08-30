@@ -20,7 +20,7 @@ rand_core = { version = "0.10.0" }
 rand_core_09 = { version = "0.9.3", default-features = false, package = "rand_core" }
 rand_core_06 = { version = "0.6.4", default-features = false, package = "rand_core" }
 chacha20 = { version = "0.10.0", default-features = false }
-wyrand = { version = "0.4" }
+wyrand = { version = "0.5" }
 rand_pcg = "0.10.0"
 rand_xoshiro = "0.8.0"
 getrandom = { version = "0.4.0", default-features = false, features = ["sys_rng"] }
@@ -57,6 +57,9 @@ rand_pcg = ["bevy_prng/rand_pcg"]
 rand_xoshiro = ["bevy_prng/rand_xoshiro"]
 wyrand = ["bevy_prng/wyrand"]
 wasm_js = ["bevy_prng/wasm_js"]
+fast_rng = ["bevy_prng/fast_rng"]
+fast_rng32 = ["bevy_prng/fast_rng32"]
+quality_rng = ["bevy_prng/quality_rng"]
 
 [dependencies]
 bevy_app.workspace = true
@@ -84,6 +87,8 @@ bevy_math = { git = "https://github.com/bevyengine/bevy/" }
 bevy_prng = { path = "bevy_prng", version = "0.15.1", default-features = false, features = [
     "chacha20",
     "wyrand",
+    "fast_rng",
+    "quality_rng",
 ] }
 rand = "0.10.0"
 ron = { version = "0.8.0", features = ["integer128"] }

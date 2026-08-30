@@ -4,27 +4,34 @@
 #![cfg_attr(docsrs, allow(unused_attributes))]
 #![no_std]
 
-extern crate alloc;
-
 #[cfg(feature = "std")]
 extern crate std;
 
 #[cfg(feature = "chacha20")]
 mod chacha;
+#[cfg(feature = "fast_rng")]
+mod fast_rng;
+#[cfg(feature = "fast_rng32")]
+mod fast_rng32;
 #[cfg(any(
     feature = "wyrand",
     feature = "chacha20",
     feature = "rand_pcg",
-    feature = "rand_xoshiro"
+    feature = "rand_xoshiro",
+    feature = "fast_rng",
+    feature = "fast_rng32",
+    feature = "quality_rng"
 ))]
 mod newtype;
 #[cfg(feature = "rand_pcg")]
 mod pcg;
+#[cfg(feature = "quality_rng")]
+mod quality_rng;
+mod utils;
 #[cfg(feature = "wyrand")]
 mod wyrand;
 #[cfg(feature = "rand_xoshiro")]
 mod xoshiro;
-mod utils;
 
 #[cfg(feature = "thread_local_entropy")]
 mod thread_local_entropy;
@@ -38,14 +45,22 @@ use rand_core::{Rng, SeedableRng};
 
 #[cfg(feature = "chacha20")]
 pub use chacha::*;
+#[cfg(feature = "fast_rng")]
+pub use fast_rng::*;
+#[cfg(feature = "fast_rng32")]
+pub use fast_rng32::*;
 #[cfg(feature = "rand_pcg")]
 pub use pcg::*;
+#[cfg(feature = "quality_rng")]
+pub use quality_rng::*;
 #[cfg(feature = "thread_local_entropy")]
 pub use thread_local_entropy::ThreadLocalEntropy;
 #[cfg(feature = "wyrand")]
 pub use wyrand::WyRand;
 #[cfg(feature = "rand_xoshiro")]
 pub use xoshiro::*;
+
+static NO_ENTROPY_SOURCE: &str = "Unable to source OS/Hardware entropy for initialisation";
 
 /// Trait for handling `SeedableRng` requirements, imposing constraints
 /// depending on whether reflection support is enabled or not
