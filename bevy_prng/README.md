@@ -18,6 +18,9 @@ By default, `bevy_prng` won't export anything _unless_ the feature/algorithm you
 - **`bevy_reflect`** - Enables reflection support for all `bevy_prng` types.
 - **`std`** - This enables some `std` specific functionality. Only for `std` environments.
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature.
+- **`fast_rng`** - This enables the `FastRng` component. Enabled by default.
+- **`fast_rng32`** - This enables the `FastRng32` component, specialised for older 32-bit hardware or platforms.
+- **`quality_rng`** - This enables the `QualityRng` component, providing a much higher quality randomness source that can't be predicted, at the cost of throughput compared to `FastRng`.
 - **`chacha20`** - This enables the exporting of `ChaCha*Rng` components, for those that want/need to use a CSPRNG level source.
 - **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
 - **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.

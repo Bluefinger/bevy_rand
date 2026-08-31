@@ -31,7 +31,6 @@ pub trait RngEntityCommandsExt {
     /// Takes an [`Entity`] and yields the [`RngEntityCommands`] for that entity.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_prng::WyRand;
     /// use bevy_rand::prelude::*;
     ///
     /// #[derive(Component)]
@@ -39,7 +38,7 @@ pub trait RngEntityCommandsExt {
     ///
     /// fn intialise_rng_entities(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     ///     for target in &q_targets {
-    ///         commands.rng::<WyRand>(target).reseed_from_os_rng();
+    ///         commands.rng::<FastRng>(target).reseed_from_os_rng();
     ///     }
     /// }
     /// ```
@@ -49,12 +48,11 @@ pub trait RngEntityCommandsExt {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
-    /// use bevy_prng::WyRand;
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn reseed(mut commands: Commands, query: Query<RngEntity<WyRand>, With<Source>>) {
+    /// fn reseed(mut commands: Commands, query: Query<RngEntity<FastRng>, With<Source>>) {
     ///     for entity in &query {
     ///         commands.rng_entity(&entity).reseed_linked();
     ///     }
@@ -171,19 +169,18 @@ impl<Rng: EntropySource> RngEntityCommands<'_, '_, Rng> {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
-    /// use bevy_prng::WyRand;
     ///
     /// #[derive(Component)]
     /// struct Source;
     /// #[derive(Component)]
     /// struct Target;
     ///
-    /// fn setup_rng_sources(mut global: GlobalRngEntity<WyRand>) {
+    /// fn setup_rng_sources(mut global: GlobalRngEntity<FastRng>) {
     ///     global
     ///         .rng_commands()
     ///         .with_target_rngs([(
     ///             Source,
-    ///             RngLinks::<WyRand, WyRand>::spawn((
+    ///             RngLinks::<FastRng, FastRng>::spawn((
     ///               Spawn(Target),
     ///               Spawn(Target),
     ///               Spawn(Target),
@@ -208,19 +205,19 @@ impl<Rng: EntropySource> RngEntityCommands<'_, '_, Rng> {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::*;
-    /// use bevy_prng::{ChaCha8Rng, WyRand};
+    /// use bevy_prng::{QualityRng, FastRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     /// #[derive(Component)]
     /// struct Target;
     ///
-    /// fn setup_rng_sources(mut global: GlobalRngEntity<ChaCha8Rng>) {
+    /// fn setup_rng_sources(mut global: GlobalRngEntity<QualityRng>) {
     ///     global
     ///         .rng_commands()
-    ///         .with_target_rngs_as::<WyRand>([(
+    ///         .with_target_rngs_as::<FastRng>([(
     ///             Source,
-    ///             RngLinks::<WyRand, WyRand>::spawn((
+    ///             RngLinks::<FastRng, FastRng>::spawn((
     ///                 Spawn(Target),
     ///                 Spawn(Target),
     ///                 Spawn(Target),
@@ -228,7 +225,7 @@ impl<Rng: EntropySource> RngEntityCommands<'_, '_, Rng> {
     ///                 Spawn(Target),
     ///             )),
     ///         )])
-    ///         .reseed_linked_as::<WyRand>();
+    ///         .reseed_linked_as::<FastRng>();
     /// }
     /// ```
     pub fn with_target_rngs_as<Target: EntropySource>(

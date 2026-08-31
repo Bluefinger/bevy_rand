@@ -15,14 +15,14 @@ Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS
 
 **There's now a tutorial section, [go to here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.**
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. To select a given algorithm type with `bevy_rand`, enable the feature representing the algorithm `rand_*` crate you want to use. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags. However, using the algorithm crates like `chacha20` directly will not work as these don't implement the necessary traits to support bevy's reflection.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. `bevy_rand` itself provides three RNG types: `fast_rng` (enabled by default), `fast_rng32` for 32-bit specialised hardware and `quality_rng`. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags, along with additional feature flags for using the algorithm types directly. For what is available, go to [`bevy_prng`](https://docs.rs/bevy_prng/latest/bevy_prng/). However, using the algorithm crates like `chacha20` directly will not work as these don't implement the necessary traits to support bevy's reflection.
 
 All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
 #### `bevy_rand` feature activation
 ```toml
 rand_core = "0.10"
-bevy_rand = { version = "0.15", features = ["chacha20", "wyrand"] }
+bevy_rand = { version = "0.15", features = ["fast_rng", "quality_rng"] }
 ```
 
 #### `bevy_prng` feature activation
@@ -32,7 +32,7 @@ bevy_rand = "0.15"
 bevy_prng = { version = "0.15", features = ["chacha20", "wyrand"] }
 ```
 
-The summary of what RNG algorithm to choose is: pick `wyrand` for almost all cases as it is faster and more portable than other algorithms. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `chacha20`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
+The summary of what RNG algorithm to choose is: pick `fast_rng` for almost all cases as it is faster and produces good randomness. For cases where you need the extra assurance of entropy quality (as in, better and much less predictable 'randomness', etc), then use `quality_rng`. For more information, [go here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/ch01_choosing_prng/index.html).
 
 DO **NOT** use `bevy_rand` for actual security purposes, as this requires much more careful consideration and properly vetted crates designed for cryptography. A good starting point would be to look at [RustCrypto](https://github.com/RustCrypto) and go from there.
 
@@ -41,7 +41,7 @@ DO **NOT** use `bevy_rand` for actual security purposes, as this requires much m
 `bevy_rand` is `no_std` compatible, but it requires disabling default features. It also assumes that `alloc` is available, just the same as `bevy`. Certain features like `thread_local_entropy` are not available for `no_std` due to requiring `std` specific functionalities like thread locals.
 
 ```toml
-bevy_rand = { version = "0.15", default-features = false, features = ["chacha20", "wyrand"] }
+bevy_rand = { version = "0.15", default-features = false, features = ["fast_rng", "quality_rng"] }
 ```
 
 All PRNG backends should support `no_std` environments. Furthermore, `getrandom` needs to be configured to support the platform, so in the case of a `no_std` environment such as an embedded board or console, you'll need to implement the [custom backend for `getrandom` to compile](https://docs.rs/getrandom/latest/getrandom/#custom-backend).
@@ -75,13 +75,12 @@ Before a PRNG can be used via `GlobalEntropy` or `Entropy`, it must be registere
 ```rust
 use bevy_ecs::prelude::*;
 use bevy_app::App;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::EntropyPlugin;
+use bevy_rand::prelude::{FastRng, EntropyPlugin};
 use rand_core::Rng;
 
 fn example_main() {
     App::new()
-        .add_plugins(EntropyPlugin::<WyRand>::default())
+        .add_plugins(EntropyPlugin::<FastRng>::default())
         .run();
 }
 ```
@@ -92,11 +91,10 @@ At the simplest case, using `GlobalEntropy` directly for all random number gener
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::GlobalRng;
+use bevy_rand::prelude::{FastRng, GlobalRng};
 use rand_core::Rng;
 
-fn print_random_value(mut rng: Single<&mut WyRand, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut FastRng, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -107,13 +105,12 @@ For seeding `Entropy`s from a global source, it is best to make use of forking i
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::{ForkableSeed, GlobalRng};
+use bevy_rand::prelude::{FastRng, ForkableSeed, GlobalRng};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut FastRng, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
@@ -126,8 +123,7 @@ fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<Glo
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::ForkableSeed;
+use bevy_rand::prelude::{FastRng, ForkableSeed};
 
 #[derive(Component)]
 struct Npc;
@@ -137,7 +133,7 @@ struct Source;
 
 fn setup_npc_from_source(
    mut commands: Commands,
-   mut q_source: Single<&mut WyRand, (With<Source>, Without<Npc>)>,
+   mut q_source: Single<&mut FastRng, (With<Source>, Without<Npc>)>,
 ) {
    for _ in 0..2 {
        commands
@@ -155,10 +151,9 @@ fn setup_npc_from_source(
 - **`std`** - Enables support for `std` environments. Enabled by default.
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
-- **`chacha20`** - This enables the exporting of `ChaCha*Rng` components, for those that want/need to use a CSPRNG level source.
-- **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
-- **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
+- **`fast_rng`** - This enables the `FastRng` component. Enabled by default.
+- **`fast_rng32`** - This enables the `FastRng32` component, specialised for older 32-bit hardware or platforms.
+- **`quality_rng`** - This enables the `QualityRng` component, providing a much higher quality randomness source that can't be predicted, at the cost of throughput compared to `FastRng`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM JS backend, though this should only be activated conditionally for `wasm` targets. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 - **`compat_06`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.

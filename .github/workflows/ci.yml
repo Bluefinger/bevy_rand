@@ -51,7 +51,7 @@ jobs:
         run: wasm-pack test --headless --chrome --firefox -- --locked --all-features
         if: startsWith(matrix.os, 'ubuntu')
       - name: Test wasm (no default features)
-        run: wasm-pack test --headless --chrome --firefox -- --locked --no-default-features --features wasm_js
+        run: wasm-pack test --headless --chrome --firefox -- --locked --no-default-features --features wasm_js,fast_rng
         if: startsWith(matrix.os, 'ubuntu')
   miri:
     name: "Miri"

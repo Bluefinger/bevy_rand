@@ -1,8 +1,8 @@
 #[cfg(any(
-    feature = "chacha20",
-    feature = "wyrand",
-    feature = "rand_pcg",
-    feature = "rand_xoshiro"
+    feature = "_testing",
+    feature = "fast_rng",
+    feature = "fast_rng32",
+    feature = "quality_rng",
 ))]
 macro_rules! reflection_test {
     ($name:ident, $rng:ty, $seed:expr, $serialised:literal, $seed_cmp:literal, $before:literal, $after:literal) => {
@@ -173,7 +173,40 @@ macro_rules! reflection_test {
     };
 }
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "fast_rng")]
+reflection_test!(
+    fast_rng,
+    bevy_prng::FastRng,
+    u64::MAX.to_ne_bytes(),
+    "(state:3257665815644502180)",
+    "(seed:(255,255,255,255,255,255,255,255))",
+    1205299102744794270,
+    2332786255384219817
+);
+
+#[cfg(feature = "fast_rng32")]
+reflection_test!(
+    fast_rng32,
+    bevy_prng::FastRng32,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+    "(state:15033853422540656993,increment:1157159078456920585)",
+    "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))",
+    1204678643940597513,
+    12029084591851635269
+);
+
+#[cfg(feature = "quality_rng")]
+reflection_test!(
+    quality_rng,
+    bevy_prng::QualityRng,
+    [7; 32],
+    "(state:\"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcAAAAAAAAAAAIAAAAAAAAAAA==\")",
+    "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
+    4115934089738703076,
+    15345232379140719590
+);
+
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha8,
     bevy_prng::ChaCha8Rng,
@@ -184,7 +217,7 @@ reflection_test!(
     15345232379140719590
 );
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha12,
     bevy_prng::ChaCha12Rng,
@@ -195,7 +228,7 @@ reflection_test!(
     13552751203817743523
 );
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha20,
     bevy_prng::ChaCha20Rng,
@@ -206,29 +239,29 @@ reflection_test!(
     8104706558872646932
 );
 
-#[cfg(feature = "wyrand")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     wyrand,
     bevy_prng::WyRand,
     u64::MAX.to_ne_bytes(),
-    "((state:3257665815644502180))",
+    "(state:3257665815644502180)",
     "(seed:(255,255,255,255,255,255,255,255))",
     1205299102744794270,
     2332786255384219817
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg32,
     bevy_prng::Pcg32,
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-    "((state:15033853422540656993,increment:1157159078456920585))",
+    "(state:15033853422540656993,increment:1157159078456920585)",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))",
     1204678643940597513,
     12029084591851635269
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64,
     bevy_prng::Pcg64,
@@ -236,24 +269,24 @@ reflection_test!(
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32
     ],
-    "((state:172305881977888272371905305222824952168,increment:42696867846335054569745073772176806417))",
+    "(state:172305881977888272371905305222824952168,increment:42696867846335054569745073772176806417)",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))",
     8740028313290271629,
     10342282812839511965
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64mcg,
     bevy_prng::Pcg64Mcg,
     42u128.to_ne_bytes(),
-    "((state:320716815976818922153327884990172454295))",
+    "(state:320716815976818922153327884990172454295)",
     "(seed:(42,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))",
     0x63b4a3a813ce700a,
     0x382954200617ab24
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64dxsm,
     bevy_prng::Pcg64Dxsm,
@@ -261,13 +294,13 @@ reflection_test!(
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
         26, 27, 28, 29, 30, 31, 32
     ],
-    "((state:248028475877024480770638062163604013976,increment:42696867846335054569745073772176806417))",
+    "(state:248028475877024480770638062163604013976,increment:42696867846335054569745073772176806417)",
     "(seed:(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32))",
     12201417210360370199,
     1479060906603667107
 );
 
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     xoshiro512starstar,
     bevy_prng::Xoshiro512StarStar,
@@ -276,13 +309,13 @@ reflection_test!(
         0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0,
         0, 0, 0, 0
     ]),
-    "((s:(6,0,2,1,1,4,4107,25165824)))",
+    "(s:(6,0,2,1,1,4,4107,25165824))",
     "(seed:((1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0,5,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,7,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0)))",
     11520,
     0
 );
 
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     xoshiro256starstar,
     bevy_prng::Xoshiro256StarStar,
@@ -290,7 +323,7 @@ reflection_test!(
         1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
         0, 0,
     ],
-    "((s:(7,0,262146,211106232532992)))",
+    "(s:(7,0,262146,211106232532992))",
     "(seed:(1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,4,0,0,0,0,0,0,0))",
     11520,
     0

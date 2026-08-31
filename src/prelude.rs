@@ -8,33 +8,22 @@ pub use crate::traits::{
     ForkRngExt, ForkSeedExt, ForkableAsRng, ForkableAsSeed, ForkableInnerSeed, ForkableRng,
     ForkableSeed, SeedSource,
 };
-#[cfg(feature = "wyrand")]
-#[cfg_attr(docsrs, doc(cfg(feature = "wyrand")))]
-pub use bevy_prng::WyRand;
 
-#[cfg(feature = "chacha20")]
-#[cfg_attr(docsrs, doc(cfg(feature = "chacha20")))]
-pub use bevy_prng::{ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};
+#[cfg(feature = "fast_rng")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fast_rng")))]
+pub use bevy_prng::FastRng;
 
-#[cfg(feature = "rand_pcg")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_pcg")))]
-pub use bevy_prng::{Pcg32, Pcg64, Pcg64Dxsm, Pcg64Mcg};
+#[cfg(feature = "fast_rng32")]
+#[cfg_attr(docsrs, doc(cfg(feature = "fast_rng32")))]
+pub use bevy_prng::FastRng32;
 
-#[cfg(feature = "rand_xoshiro")]
-#[cfg_attr(docsrs, doc(cfg(feature = "rand_xoshiro")))]
-pub use bevy_prng::{
-    Xoroshiro64Star, Xoroshiro64StarStar, Xoroshiro128Plus, Xoroshiro128PlusPlus,
-    Xoroshiro128StarStar, Xoshiro128Plus, Xoshiro128PlusPlus, Xoshiro128StarStar, Xoshiro256Plus,
-    Xoshiro256PlusPlus, Xoshiro256StarStar, Xoshiro512Plus, Xoshiro512PlusPlus, Xoshiro512StarStar,
-};
-
-#[cfg(all(feature = "rand_xoshiro", feature = "bevy_reflect"))]
-#[cfg_attr(
-    docsrs,
-    doc(cfg(all(feature = "rand_xoshiro", feature = "rand_xoshiro")))
-)]
-pub use bevy_prng::Seed512;
+#[cfg(feature = "quality_rng")]
+#[cfg_attr(docsrs, doc(cfg(feature = "quality_rng")))]
+pub use bevy_prng::QualityRng;
 
 #[cfg(feature = "thread_local_entropy")]
-#[cfg_attr(docsrs, doc(cfg(feature = "thread_local_entropy")))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "thread_local_entropy", feature = "std")))
+)]
 pub use bevy_prng::ThreadLocalEntropy;

@@ -1457,9 +1457,9 @@ dependencies = [
 
 [[package]]
 name = "wyrand"
-version = "0.4.1"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5484c3d24f0e2e117d30bce6f8792e193be33e2b6e0b3f8945ccf265c56c6da"
+checksum = "314cab1cba1cc8e3badd07970a62a7ca57ec424afbc56623772d7ecac491b1c4"
 dependencies = [
  "rand_core 0.10.0",
  "serde",

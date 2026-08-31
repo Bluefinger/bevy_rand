@@ -6,7 +6,7 @@ use rand::RngExt;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, EntropyPlugin::<WyRand>::new()))
+        .add_plugins((DefaultPlugins, EntropyPlugin::<FastRng>::new()))
         .init_resource::<SpatialIndex>()
         .add_systems(Startup, (initial_setup, observer_setup).chain())
         .add_systems(Update, (draw_shapes, handle_click))
@@ -46,7 +46,7 @@ struct Explode {
     entity: Entity,
 }
 
-fn initial_setup(mut commands: Commands, mut global_rng: GlobalRngEntity<WyRand>) {
+fn initial_setup(mut commands: Commands, mut global_rng: GlobalRngEntity<FastRng>) {
     commands.spawn(Camera2d);
     commands.spawn((
         Text::new(
@@ -70,7 +70,7 @@ fn initial_setup(mut commands: Commands, mut global_rng: GlobalRngEntity<WyRand>
 fn observer_setup(
     query: Query<Entity, With<Mine>>,
     mut commands: Commands,
-    mut global_rng: GlobalRngEntity<WyRand>,
+    mut global_rng: GlobalRngEntity<FastRng>,
 ) {
     let observer = Observer::new(on_init_mine);
 
@@ -82,8 +82,8 @@ fn observer_setup(
 // Each mine has its own RNG state, which allows them not to rely on a global RNG source
 // for any update
 fn on_init_mine(
-    trigger: On<Insert, WyRand>,
-    mut query: Query<&mut WyRand, With<Mine>>,
+    trigger: On<Insert, FastRng>,
+    mut query: Query<&mut FastRng, With<Mine>>,
     mut commands: Commands,
 ) {
     let target = trigger.entity;
@@ -189,7 +189,7 @@ fn handle_click(
     camera: Single<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
     mut commands: Commands,
-    mut global_rng: GlobalRngEntity<WyRand>,
+    mut global_rng: GlobalRngEntity<FastRng>,
 ) {
     let Ok(windows) = windows.single() else {
         return;

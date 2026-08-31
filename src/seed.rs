@@ -22,8 +22,7 @@ use crate::traits::SeedSource;
 /// Randomised Seed via `Default`:
 /// ```
 /// use bevy_ecs::prelude::*;
-/// use bevy_prng::WyRand;
-/// use bevy_rand::prelude::RngSeed;
+/// use bevy_rand::prelude::{FastRng, RngSeed};
 ///
 /// #[derive(Component)]
 /// struct Source;
@@ -32,7 +31,7 @@ use crate::traits::SeedSource;
 ///     commands
 ///         .spawn((
 ///             Source,
-///             RngSeed::<WyRand>::default(),
+///             RngSeed::<FastRng>::default(),
 ///         ));
 /// }
 /// ```
