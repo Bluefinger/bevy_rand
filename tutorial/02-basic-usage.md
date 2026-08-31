@@ -4,11 +4,11 @@ At the simplest case, using `GlobalRng` directly for all random number generatio
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::ChaCha8Rng;
+use bevy_prng::QualityRng;
 use bevy_rand::prelude::GlobalRng;
 use rand_core::Rng;
 
-fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut QualityRng, With<GlobalRng>>) {
     println!("Random value: {}", rng.next_u32());
 }
 ```
@@ -18,15 +18,15 @@ In addition, the `rand` crate can be optionally pulled in and used with `bevy_ra
 ```rust ignore
 use bevy_ecs::prelude::*;
 use bevy_math::{ShapeSample, primitives::Circle};
-use bevy_prng::ChaCha8Rng;
+use bevy_prng::QualityRng;
 use bevy_rand::prelude::GlobalRng;
 use rand::RngExt;
 
-fn print_random_value(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+fn print_random_value(mut rng: Single<&mut QualityRng, With<GlobalRng>>) {
     println!("Random u128 value: {}", rng.random::<u128>());
 }
 
-fn sample_from_circle(mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+fn sample_from_circle(mut rng: Single<&mut QualityRng, With<GlobalRng>>) {
     let circle = Circle::new(42.0);
 
     let boundary = circle.sample_boundary(rng.as_mut());
@@ -48,7 +48,7 @@ An example of a guaranteed deterministic system is perhaps spawning new entities
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::GlobalRng;
 use rand_core::Rng;
 
@@ -58,7 +58,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut WyRand, With<GlobalRng>>) {
+fn spawn_randomised_npcs(mut commands: Commands, mut rng: Single<&mut FastRng, With<GlobalRng>>) {
     for _ in 0..10 {
         commands.spawn((
             Npc,
@@ -74,7 +74,7 @@ However, iterating over queries will **not** yield deterministic output, as quer
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::GlobalRng;
 use rand_core::Rng;
 
@@ -84,7 +84,7 @@ struct Npc;
 #[derive(Component)]
 struct Stat(u32);
 
-fn randomise_npc_stat(mut rng: Single<&mut WyRand, With<GlobalRng>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
+fn randomise_npc_stat(mut rng: Single<&mut FastRng, With<GlobalRng>>, mut q_npc: Query<&mut Stat, With<Npc>>) {
     for mut stat in q_npc.iter_mut() {
         stat.0 = rng.next_u32();
     }

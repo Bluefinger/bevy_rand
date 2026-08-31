@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::{
     plugin::EntropyPlugin,
     traits::{ForkRngExt, ForkSeedExt, SeedSource},
@@ -14,10 +14,10 @@ use wasm_bindgen_test::*;
 fn exclusive_system_forking() {
     let mut app = App::new();
 
-    app.add_plugins(EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()))
+    app.add_plugins(EntropyPlugin::<FastRng>::with_seed(42u64.to_ne_bytes()))
         .add_systems(Update, |mut world: &mut World| {
             let mut forked = world
-                .fork_rng::<WyRand>()
+                .fork_rng::<FastRng>()
                 .expect("Forking should be successful");
 
             assert_eq!(forked.next_u32(), 2755170287);
@@ -30,16 +30,16 @@ fn exclusive_system_forking() {
 fn exclusive_system_forking_seeds() {
     let mut app = App::new();
 
-    app.add_plugins(EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()))
+    app.add_plugins(EntropyPlugin::<FastRng>::with_seed(42u64.to_ne_bytes()))
         .add_systems(Update, |mut world: &mut World| {
             let forked = world
-                .fork_seed::<WyRand>()
+                .fork_seed::<FastRng>()
                 .expect("Forking should be successful");
 
             assert_eq!(forked.get_seed(), &[137, 57, 152, 118, 124, 216, 113, 202]);
 
             let inner = world
-                .fork_inner_seed::<WyRand>()
+                .fork_inner_seed::<FastRng>()
                 .expect("Forking should be successful");
 
             // Forking should always yield new and different seeds
@@ -57,7 +57,7 @@ fn exclusive_system_forking_returns_error_without_correct_setup() {
 
     app.add_systems(Update, |mut world: &mut World| {
         let mut forked = world
-            .fork_rng::<WyRand>()
+            .fork_rng::<FastRng>()
             .expect("Forking should be successful");
 
         assert_eq!(forked.next_u32(), 2755170287);

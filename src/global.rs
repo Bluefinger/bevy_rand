@@ -23,9 +23,8 @@ pub struct GlobalRng;
 /// ```
 /// use bevy_ecs::prelude::*;
 /// use bevy_rand::prelude::*;
-/// use bevy_prng::WyRand;
 ///
-/// fn reseed_all_linked_rngs_from_global(mut global: GlobalRngEntity<WyRand>) {
+/// fn reseed_all_linked_rngs_from_global(mut global: GlobalRngEntity<FastRng>) {
 ///     global.rng_commands().reseed_linked();
 /// }
 /// ```

@@ -18,7 +18,7 @@ Wait, the first option is a default? It's true that library crates like `chacha2
 * `bevy_rand` is being used in the context of making games/applications in `bevy`, so we are assuming this will be used on platforms with the capability to support/run `bevy` apps (std or no-std).
 * These platforms will have the ability to provide OS/hardware sources or allow for user-space sources.
 
-In the rare occasion these assumptions cannot be upheld, there's still an escape hatch for this, but it involves getting stuck into `getrandom`. For those cases, I defer to the [getrandom documentation](https://docs.rs/getrandom/0.2.15/getrandom/macro.register_custom_getrandom.html) on how to enable support for these particular platforms.
+In the rare occasion these assumptions cannot be upheld, there's still an escape hatch for this, but it involves getting stuck into `getrandom`. For those cases, I defer to the [getrandom documentation](https://docs.rs/getrandom/latest/getrandom/#custom-backend) on how to enable support for these particular platforms.
 
 Otherwise for most users, `bevy_rand` makes use of defaults to pull in random seeds from platform/user-space sources, when you aren't concerned about what seed but need it to be random enough that there's no chance that it can be predicted. As long as the above infrastructure is in place, it'll do this automatically. Once you have at least *one* random seed, it also becomes possible to use one source to generate new seeds for more sources, allowing for a *deterministic* distribution of seeds.
 
@@ -34,7 +34,7 @@ But for most purposes, you don't actually *need* to know its exact internal stat
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::RngSeed;
 
 #[derive(Component)]
@@ -44,9 +44,9 @@ fn setup_source(mut commands: Commands) {
     commands
         .spawn((
             Source,
-            // This will yield a random `RngSeed<WyRand>` and then a `WyRand`
+            // This will yield a random `RngSeed<FastRng>` and then a `FastRng`
             // component with the same random seed
-            RngSeed::<WyRand>::default(),
+            RngSeed::<FastRng>::default(),
         ));
 }
 ```
@@ -55,17 +55,17 @@ It also means all the previous examples about forking `EntropySource` components
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::{GlobalRng, ForkableSeed};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut commands: Commands, mut global: Single<&mut WyRand, With<GlobalRng>>) {
+fn setup_source(mut commands: Commands, mut global: Single<&mut FastRng, With<GlobalRng>>) {
     commands
         .spawn((
             Source,
-            // This will yield a `RngSeed<WyRand>` and then a `WyRand` component
+            // This will yield a `RngSeed<FastRng>` and then a `FastRng` component
             global.fork_seed(),
         ));
 }
@@ -79,13 +79,13 @@ In order to ensure that new seeds always proliferate into updating `EntropySourc
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::{RngSeed, SeedSource, GlobalRngEntity};
 
 #[derive(Component)]
 struct Source;
 
-fn setup_source(mut global: GlobalRngEntity<WyRand>) {
+fn setup_source(mut global: GlobalRngEntity<FastRng>) {
     let new_seed = [42; 8]; // This seed has been chosen as random
 
     global.rng_commands().reseed(new_seed);
@@ -96,14 +96,14 @@ Reinsertions do not invoke archetype moves, so this will not cause any extra ove
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::{GlobalRng, RngEntity, RngEntityCommandsExt};
 use rand::RngExt;
 
 #[derive(Component)]
 struct Source;
 
-fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<WyRand>, With<Source>>, mut global: Single<&mut WyRand, With<GlobalRng>>) {
+fn reseed_sources(mut commands: Commands, q_sources: Query<RngEntity<FastRng>, With<Source>>, mut global: Single<&mut FastRng, With<GlobalRng>>) {
     for rng_entity in q_sources.iter() {
         commands.rng_entity(&rng_entity).reseed(global.random());
     }

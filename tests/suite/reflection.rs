@@ -1,8 +1,5 @@
 #[cfg(any(
-    feature = "chacha20",
-    feature = "wyrand",
-    feature = "rand_pcg",
-    feature = "rand_xoshiro",
+    feature = "_testing",
     feature = "fast_rng",
     feature = "fast_rng32",
     feature = "quality_rng",
@@ -209,7 +206,7 @@ reflection_test!(
     15345232379140719590
 );
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha8,
     bevy_prng::ChaCha8Rng,
@@ -220,7 +217,7 @@ reflection_test!(
     15345232379140719590
 );
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha12,
     bevy_prng::ChaCha12Rng,
@@ -231,7 +228,7 @@ reflection_test!(
     13552751203817743523
 );
 
-#[cfg(feature = "chacha20")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     chacha20,
     bevy_prng::ChaCha20Rng,
@@ -242,7 +239,7 @@ reflection_test!(
     8104706558872646932
 );
 
-#[cfg(feature = "wyrand")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     wyrand,
     bevy_prng::WyRand,
@@ -253,7 +250,7 @@ reflection_test!(
     2332786255384219817
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg32,
     bevy_prng::Pcg32,
@@ -264,7 +261,7 @@ reflection_test!(
     12029084591851635269
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64,
     bevy_prng::Pcg64,
@@ -278,7 +275,7 @@ reflection_test!(
     10342282812839511965
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64mcg,
     bevy_prng::Pcg64Mcg,
@@ -289,7 +286,7 @@ reflection_test!(
     0x382954200617ab24
 );
 
-#[cfg(feature = "rand_pcg")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     pcg64dxsm,
     bevy_prng::Pcg64Dxsm,
@@ -303,7 +300,7 @@ reflection_test!(
     1479060906603667107
 );
 
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     xoshiro512starstar,
     bevy_prng::Xoshiro512StarStar,
@@ -318,7 +315,7 @@ reflection_test!(
     0
 );
 
-#[cfg(feature = "rand_xoshiro")]
+#[cfg(feature = "_testing")]
 reflection_test!(
     xoshiro256starstar,
     bevy_prng::Xoshiro256StarStar,

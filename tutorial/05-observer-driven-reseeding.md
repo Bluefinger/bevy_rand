@@ -6,19 +6,19 @@ The nature of the relations are strictly either One to One or One to Many. Many 
 
 ```rust
 use bevy_app::prelude::*;
-use bevy_prng::{ChaCha8Rng, WyRand};
+use bevy_prng::{QualityRng, FastRng};
 use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
 
 fn main() {
     App::new()
         .add_plugins((
-            // First initialise the RNGs. This also initialises observers for WyRand -> WyRand
-            // and ChaCha8Rng -> ChaCha8Rng seeding relations
-            EntropyPlugin::<ChaCha8Rng>::default(),
-            EntropyPlugin::<WyRand>::default(),
+            // First initialise the RNGs. This also initialises observers for FastRng -> FastRng
+            // and QualityRng -> QualityRng seeding relations
+            EntropyPlugin::<QualityRng>::default(),
+            EntropyPlugin::<FastRng>::default(),
             // You only need to explicitly provide the relations plugin for cross PRNG relations.
-            // For example: This initialises observers for ChaCha8Rng -> WyRand seeding relations
-            EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+            // For example: This initialises observers for QualityRng -> FastRng seeding relations
+            EntropyRelationsPlugin::<QualityRng, FastRng>::default(),
         ))
         .run();
 }
@@ -28,13 +28,13 @@ Once the plugins are initialised, various observer systems are ready to begin li
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::GlobalRngEntity;
 
 #[derive(Component)]
 struct Target;
 
-fn link_and_seed_target_rngs_with_global(q_targets: Query<Entity, With<Target>>, mut global: GlobalRngEntity<WyRand>) {
+fn link_and_seed_target_rngs_with_global(q_targets: Query<Entity, With<Target>>, mut global: GlobalRngEntity<FastRng>) {
     let targets = q_targets.iter().collect::<Vec<_>>();
 
     global.rng_commands().link_target_rngs(&targets).reseed_linked();
@@ -47,13 +47,13 @@ If you want to spawn related entities directly, then you can! The example below 
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::GlobalRngEntity;
 
 #[derive(Component)]
 struct Target;
 
-fn link_and_seed_target_rngs_with_global(mut global: GlobalRngEntity<WyRand>) {
+fn link_and_seed_target_rngs_with_global(mut global: GlobalRngEntity<FastRng>) {
     global.rng_commands().with_target_rngs([Target, Target, Target]);
 }
 ```
@@ -64,7 +64,7 @@ Alternatively, one can provide a set seed to reseed all target entities with:
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::*;
 
 #[derive(Component)]
@@ -74,7 +74,7 @@ fn intialise_rng_entities_with_set_seed(mut commands: Commands, mut q_targets: Q
     let seed = u64::to_ne_bytes(42); 
 
     for target in &q_targets {
-        commands.rng::<WyRand>(target).reseed(seed);
+        commands.rng::<FastRng>(target).reseed(seed);
     }
 }
 ```
@@ -89,7 +89,7 @@ Once the relations are created, it becomes easy to pull new seeds from sources/g
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::{RngEntity, RngEntityCommandsExt};
 
 #[derive(Component)]
@@ -98,7 +98,7 @@ struct Source;
 #[derive(Component)]
 struct Target;
 
-fn pull_seeds_from_source(mut commands: Commands, q_targets: Query<RngEntity<WyRand>, With<Target>>) {
+fn pull_seeds_from_source(mut commands: Commands, q_targets: Query<RngEntity<FastRng>, With<Target>>) {
     for entity in q_targets {
         commands.rng_entity(&entity).reseed_from_source();
     }
@@ -109,7 +109,7 @@ Of course, one _can_ also make use of the observer events directly, though it do
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::prelude::{SeedFromGlobal, RngLinks};
 
 #[derive(Component)]
@@ -122,7 +122,7 @@ fn initial_setup(mut commands: Commands) {
     // Create the source entity with its related target entities and get the Entity id.
     // You can also make use of the related! macro for this instead.
     let source = commands
-        .spawn((Source, RngLinks::<WyRand, WyRand>::spawn((
+        .spawn((Source, RngLinks::<FastRng, FastRng>::spawn((
             Spawn(Target),
             Spawn(Target),
             Spawn(Target)
@@ -131,7 +131,7 @@ fn initial_setup(mut commands: Commands) {
 
     // Initialise the Source entity to be an RNG source and then seed all its
     // linked entities.
-    commands.trigger(SeedFromGlobal::<WyRand, WyRand>::new(source));
+    commands.trigger(SeedFromGlobal::<FastRng, FastRng>::new(source));
 }
 ```
 
@@ -139,7 +139,7 @@ Once the link has been created, child entities can also pull a new seed from its
 
 ```rust
 use bevy_ecs::prelude::*;
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::observers::SeedFromSource;
 
 #[derive(Component)]
@@ -150,7 +150,7 @@ struct Target;
 
 fn pull_seed_from_parent(mut commands: Commands, mut q_targets: Query<Entity, With<Target>>) {
     for target in &q_targets {
-        commands.trigger(SeedFromSource::<WyRand, WyRand>::new(target));
+        commands.trigger(SeedFromSource::<FastRng, FastRng>::new(target));
     }
 }
 ```
@@ -163,9 +163,20 @@ So in summary:
 
 | Source types                         | Target types                         |         |
 | ------------------------------------ | ------------------------------------ | ------- |
-| `ChaCha8` / `ChaCha12` / `ChaCha20`  | `WyRand` / `Xoshiro256StarStar`      | ✅ Good |
-| `ChaCha12` / `ChaCha20`              | `ChaCha8`                            | ✅ Good |
+| `ChaCha8` / `ChaCha12` / `ChaCha20`  | `WyRand` / `Xoshiro256StarStar`      | ✅ Best |
+| `ChaCha12` / `ChaCha20`              | `ChaCha8`                            | ✅ Best |
 | `ChaCha8`                            | `ChaCha8`                            | ✅ Good |
 | `WyRand`                             | `WyRand`                             | ✅ Good |
 | `WyRand` /`Xoshiro256StarStar`       | `ChaCha8` / `ChaCha12` / `ChaCha20`  | ❌ Bad  |
 | `ChaCha8`                            | `ChaCha12` / `ChaCha20`              | ❌ Bad  |
+
+Or for the simplified types:
+
+| Source types                         | Target types                         |         |
+| ------------------------------------ | ------------------------------------ | ------- |
+| `QualityRng`                         | `FastRng` / `FastRng32`              | ✅ Best |
+| `FastRng`                            | `FastRng32`                          | ✅ Best |
+| `QualityRng`                         | `QualityRng`                         | ✅ Good |
+| `FastRng`                            | `FastRng`                            | ✅ Good |
+| `FastRng` / `FastRng32`              | `QualityRng`                         | ❌ Bad  |
+| `FastRng32`                          | `FastRng`                            | ❌ Bad  |

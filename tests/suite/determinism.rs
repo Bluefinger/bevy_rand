@@ -1,6 +1,6 @@
 use bevy_app::prelude::*;
 use bevy_ecs::prelude::*;
-use bevy_prng::{ChaCha8Rng, ChaCha12Rng, WyRand};
+use bevy_prng::{FastRng, QualityRng};
 use bevy_rand::prelude::{
     EntropyPlugin, ForkableAsRng, ForkableAsSeed, ForkableRng, ForkableSeed, GlobalRng,
     GlobalRngEntity,
@@ -26,7 +26,7 @@ struct SourceD;
 #[derive(Component)]
 struct SourceE;
 
-fn random_output_a(mut rng: Single<&mut ChaCha8Rng, With<SourceA>>) {
+fn random_output_a(mut rng: Single<&mut QualityRng, With<SourceA>>) {
     assert_eq!(
         rng.random::<u32>(),
         3315785188,
@@ -34,14 +34,14 @@ fn random_output_a(mut rng: Single<&mut ChaCha8Rng, With<SourceA>>) {
     );
 }
 
-fn random_output_b(mut rng: Single<&mut ChaCha8Rng, With<SourceB>>) {
+fn random_output_b(mut rng: Single<&mut QualityRng, With<SourceB>>) {
     assert!(
         rng.random_bool(0.5),
         "SourceB does not match expected output"
     );
 }
 
-fn random_output_c(mut rng: Single<&mut ChaCha8Rng, With<SourceC>>) {
+fn random_output_c(mut rng: Single<&mut QualityRng, With<SourceC>>) {
     assert_eq!(
         rng.random_range(0u32..=20u32),
         4,
@@ -49,39 +49,39 @@ fn random_output_c(mut rng: Single<&mut ChaCha8Rng, With<SourceC>>) {
     );
 }
 
-fn random_output_d(mut rng: Single<&mut ChaCha12Rng, With<SourceD>>) {
+fn random_output_d(mut rng: Single<&mut FastRng, With<SourceD>>) {
     assert_eq!(
         rng.random::<(u16, u16)>(),
-        (41421, 7891),
+        (5547, 31934),
         "SourceD does not match expected output"
     );
 }
 
-fn random_output_e(mut rng: Single<&mut WyRand, With<SourceE>>) {
+fn random_output_e(mut rng: Single<&mut FastRng, With<SourceE>>) {
     let mut bytes = [0u8; 8];
 
     rng.fill_bytes(bytes.as_mut());
 
     assert_eq!(
         &bytes,
-        &[42, 244, 101, 178, 244, 252, 72, 104],
+        &[106, 106, 25, 30, 16, 159, 227, 197],
         "SourceE does not match expected output"
     );
 }
 
-fn setup_sources(mut commands: Commands, mut rng: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+fn setup_sources(mut commands: Commands, mut rng: Single<&mut QualityRng, With<GlobalRng>>) {
     commands.spawn((SourceA, rng.fork_rng()));
 
     commands.spawn((SourceB, rng.fork_seed()));
 
     commands.spawn((SourceC, rng.fork_rng()));
 
-    commands.spawn((SourceD, rng.fork_as::<ChaCha12Rng>()));
+    commands.spawn((SourceD, rng.fork_as::<FastRng>()));
 
-    commands.spawn((SourceE, rng.fork_as_seed::<WyRand>()));
+    commands.spawn((SourceE, rng.fork_as_seed::<FastRng>()));
 }
 
-fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {
+fn read_global_seed(rng: GlobalRngEntity<QualityRng>) {
     assert_eq!(rng.clone_seed(), [2; 32]);
 }
 
@@ -99,7 +99,7 @@ fn read_global_seed(rng: GlobalRngEntity<ChaCha8Rng>) {
 fn test_parallel_determinism() {
     let mut app = App::new();
 
-    app.add_plugins(EntropyPlugin::<ChaCha8Rng>::with_seed([2; 32]))
+    app.add_plugins(EntropyPlugin::<QualityRng>::with_seed([2; 32]))
         .add_systems(Startup, setup_sources)
         .add_systems(
             Update,

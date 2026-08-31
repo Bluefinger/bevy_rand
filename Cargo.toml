@@ -39,7 +39,7 @@ exclude = ["/.*", "Cargo.lock"]
 rust-version = { workspace = true }
 
 [features]
-default = ["serialize", "thread_local_entropy", "std", "bevy_reflect"]
+default = ["serialize", "thread_local_entropy", "std", "bevy_reflect", "fast_rng"]
 bevy_reflect = [
     "dep:bevy_reflect",
     "bevy_app/bevy_reflect",
@@ -50,16 +50,13 @@ compat_06 = ["bevy_prng/compat_06", "dep:rand_core_06"]
 compat_09 = ["bevy_prng/compat_09", "dep:rand_core_09"]
 std = ["bevy_prng/std", "getrandom/std"]
 experimental = []
-thread_local_entropy = ["bevy_prng/thread_local_entropy"]
+thread_local_entropy = ["std", "bevy_prng/thread_local_entropy"]
 serialize = ["bevy_prng/serialize"]
-chacha20 = ["bevy_prng/chacha20"]
-rand_pcg = ["bevy_prng/rand_pcg"]
-rand_xoshiro = ["bevy_prng/rand_xoshiro"]
-wyrand = ["bevy_prng/wyrand"]
 wasm_js = ["bevy_prng/wasm_js"]
 fast_rng = ["bevy_prng/fast_rng"]
 fast_rng32 = ["bevy_prng/fast_rng32"]
 quality_rng = ["bevy_prng/quality_rng"]
+_testing = ["bevy_prng/chacha20", "bevy_prng/rand_pcg", "bevy_prng/rand_xoshiro", "bevy_prng/wyrand"]
 
 [dependencies]
 bevy_app.workspace = true
@@ -85,8 +82,6 @@ bevy_app = { workspace = true, features = ["bevy_reflect"] }
 bevy_ecs = { workspace = true, features = ["bevy_reflect"] }
 bevy_math = { git = "https://github.com/bevyengine/bevy/" }
 bevy_prng = { path = "bevy_prng", version = "0.15.1", default-features = false, features = [
-    "chacha20",
-    "wyrand",
     "fast_rng",
     "quality_rng",
 ] }

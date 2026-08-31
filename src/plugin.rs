@@ -11,21 +11,21 @@ use bevy_prng::{EntropySeed, EntropySource};
 /// ```
 /// use bevy_app::prelude::*;
 /// use bevy_ecs::prelude::*;
-/// use bevy_prng::{ChaCha8Rng, WyRand};
+/// use bevy_prng::{QualityRng, FastRng};
 /// use bevy_rand::prelude::{EntropyPlugin, GlobalRng};
 /// use rand_core::Rng;
 ///
 /// fn main() {
 ///  App::new()
 ///    .add_plugins((
-///        EntropyPlugin::<ChaCha8Rng>::default(),
-///        EntropyPlugin::<WyRand>::default()
+///        EntropyPlugin::<QualityRng>::default(),
+///        EntropyPlugin::<FastRng>::default()
 ///    ))
 ///    .add_systems(Update, print_random_value)
 ///    .run();
 /// }
 ///
-/// fn print_random_value(mut rng: Single<&mut WyRand, With<GlobalRng>>) {
+/// fn print_random_value(mut rng: Single<&mut FastRng, With<GlobalRng>>) {
 ///   println!("Random value: {}", rng.next_u32());
 /// }
 /// ```
@@ -97,18 +97,18 @@ where
 ///
 /// ```
 /// use bevy_app::prelude::*;
-/// use bevy_prng::{ChaCha8Rng, WyRand};
+/// use bevy_prng::{QualityRng, FastRng};
 /// use bevy_rand::prelude::{EntropyPlugin, EntropyRelationsPlugin};
 ///
 /// App::new()
 ///     .add_plugins((
-///         // First initialise the RNGs. This also initialises observers for WyRand -> WyRand
-///         // and ChaCha8Rng -> ChaCha8Rng seeding relations
-///         EntropyPlugin::<ChaCha8Rng>::default(),
-///         EntropyPlugin::<WyRand>::default(),
+///         // First initialise the RNGs. This also initialises observers for FastRng -> FastRng
+///         // and QualityRng -> QualityRng seeding relations
+///         EntropyPlugin::<QualityRng>::default(),
+///         EntropyPlugin::<FastRng>::default(),
 ///         // You only need to explicitly provide the relations plugin for cross PRNG relations.
-///         // For example: This initialises observers for ChaCha8Rng -> WyRand seeding relations
-///         EntropyRelationsPlugin::<ChaCha8Rng, WyRand>::default(),
+///         // For example: This initialises observers for QualityRng -> FastRng seeding relations
+///         EntropyRelationsPlugin::<QualityRng, FastRng>::default(),
 ///     ))
 ///     .run();
 /// ```

@@ -18,13 +18,13 @@ pub trait ForkableRng: EntropySource {
     /// This method preserves the RNG algorithm between original and forked instances.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_prng::QualityRng;
     /// use bevy_rand::prelude::{GlobalRng, ForkableRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut QualityRng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -52,16 +52,16 @@ pub trait ForkableAsRng: EntropySource {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::{ForkableAsRng, GlobalRng};
-    /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    /// use bevy_prng::{QualityRng, FastRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha12Rng, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut QualityRng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
-    ///             global.fork_as::<ChaCha8Rng>(),
+    ///             global.fork_as::<FastRng>(),
     ///         ));
     /// }
     /// ```
@@ -82,13 +82,13 @@ pub trait ForkableSeed<S: EntropySource>: EntropySource {
     /// This method preserves the RNG algorithm between original instance and forked seed.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_prng::QualityRng;
     /// use bevy_rand::prelude::{ForkableSeed, GlobalRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut QualityRng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
@@ -121,16 +121,16 @@ pub trait ForkableAsSeed<S: EntropySource>: EntropySource {
     /// ```
     /// use bevy_ecs::prelude::*;
     /// use bevy_rand::prelude::{ForkableAsSeed, GlobalRng};
-    /// use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    /// use bevy_prng::{QualityRng, FastRng};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut QualityRng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
-    ///             global.fork_as_seed::<ChaCha8Rng>(),
+    ///             global.fork_as_seed::<FastRng>(),
     ///         ));
     /// }
     /// ```
@@ -155,17 +155,17 @@ pub trait ForkableInnerSeed<S: EntropySource>: EntropySource {
     /// This method preserves the RNG algorithm between original instance and forked seed.
     /// ```
     /// use bevy_ecs::prelude::*;
-    /// use bevy_prng::ChaCha8Rng;
+    /// use bevy_prng::QualityRng;
     /// use bevy_rand::prelude::{ForkableInnerSeed, GlobalRng, SeedSource, RngSeed};
     ///
     /// #[derive(Component)]
     /// struct Source;
     ///
-    /// fn setup_source(mut commands: Commands, mut global: Single<&mut ChaCha8Rng, With<GlobalRng>>) {
+    /// fn setup_source(mut commands: Commands, mut global: Single<&mut QualityRng, With<GlobalRng>>) {
     ///     commands
     ///         .spawn((
     ///             Source,
-    ///             RngSeed::<ChaCha8Rng>::from_seed(global.fork_inner_seed()),
+    ///             RngSeed::<QualityRng>::from_seed(global.fork_inner_seed()),
     ///         ));
     /// }
     /// ```
@@ -423,13 +423,13 @@ mod private {
 mod tests {
     use alloc::format;
 
-    use bevy_prng::{ChaCha8Rng, ChaCha12Rng};
+    use bevy_prng::{FastRng, QualityRng};
 
     use super::*;
 
     #[test]
     fn forking() {
-        let mut rng1 = ChaCha8Rng::default();
+        let mut rng1 = FastRng::default();
 
         let rng2 = rng1.fork_rng();
 
@@ -438,9 +438,9 @@ mod tests {
 
     #[test]
     fn forking_as() {
-        let mut rng1 = ChaCha12Rng::default();
+        let mut rng1 = QualityRng::default();
 
-        let rng2 = rng1.fork_as::<ChaCha8Rng>();
+        let rng2 = rng1.fork_as::<FastRng>();
 
         let rng1 = format!("{rng1:?}");
         let rng2 = format!("{rng2:?}");
@@ -453,8 +453,8 @@ mod tests {
     fn type_paths() {
         use bevy_reflect::TypePath;
 
-        assert_eq!("bevy_prng::ChaCha8Rng", ChaCha8Rng::type_path());
+        assert_eq!("bevy_prng::FastRng", FastRng::type_path());
 
-        assert_eq!("ChaCha8Rng", ChaCha8Rng::short_type_path());
+        assert_eq!("FastRng", FastRng::short_type_path());
     }
 }

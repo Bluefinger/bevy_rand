@@ -1,7 +1,7 @@
 use bevy_app::{App, Update};
 use bevy_ecs::{query::With, system::Single};
 use bevy_math::{ShapeSample, Vec2, primitives::Circle};
-use bevy_prng::WyRand;
+use bevy_prng::FastRng;
 use bevy_rand::{global::GlobalRng, plugin::EntropyPlugin};
 use rand_core::SeedableRng;
 #[cfg(target_arch = "wasm32")]
@@ -10,7 +10,7 @@ use wasm_bindgen_test::*;
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[test]
 fn prng_compatibility() {
-    let mut source = WyRand::from_seed(42u64.to_ne_bytes());
+    let mut source = FastRng::from_seed(42u64.to_ne_bytes());
 
     let circle = Circle::new(42.0);
 
@@ -27,10 +27,10 @@ fn prng_compatibility() {
 #[test]
 fn component_compatibility() {
     App::new()
-        .add_plugins(EntropyPlugin::<WyRand>::with_seed(42u64.to_ne_bytes()))
+        .add_plugins(EntropyPlugin::<FastRng>::with_seed(42u64.to_ne_bytes()))
         .add_systems(
             Update,
-            |mut source: Single<&mut WyRand, With<GlobalRng>>| {
+            |mut source: Single<&mut FastRng, With<GlobalRng>>| {
                 let circle = Circle::new(42.0);
 
                 let boundary = circle.sample_boundary(source.as_mut());
