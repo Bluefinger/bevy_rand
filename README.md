@@ -15,7 +15,7 @@ Bevy Rand is a plugin to provide integration of `rand` ecosystem PRNGs in an ECS
 
 **There's now a tutorial section, [go to here](https://docs.rs/bevy_rand/latest/bevy_rand/tutorial/index.html) if you want a more comprehensive rundown of how to use `bevy_rand`. Else keep reading for the quick start version below.**
 
-Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. `bevy_rand` itself provides three RNG types: `fast_rng` (enabled by default), `fast_rng32` for 32-bit specialised hardware and `quality_rng`. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags, along with additional feature flags for using the algorithm types directly. For what is available, go to `bevy_prng`. However, using the algorithm crates like `chacha20` directly will not work as these don't implement the necessary traits to support bevy's reflection.
+Usage of Bevy Rand can range from very simple to quite complex use-cases, all depending on whether one cares about deterministic output or not. First, add `bevy_rand`, and either `rand_core` or `rand` to your `Cargo.toml` to bring in both the components and the PRNGs you want to use, along with the various traits needed to use the RNGs. `bevy_rand` itself provides three RNG types: `fast_rng` (enabled by default), `fast_rng32` for 32-bit specialised hardware and `quality_rng`. This will then give you access to the PRNG structs via the prelude. Alternatively, you can use `bevy_prng` directly to get the newtyped structs with the same feature flags, along with additional feature flags for using the algorithm types directly. For what is available, go to [`bevy_prng`](https://docs.rs/bevy_prng/latest/bevy_prng/). However, using the algorithm crates like `chacha20` directly will not work as these don't implement the necessary traits to support bevy's reflection.
 
 All supported PRNGs and compatible structs are provided by the `bevy_prng` crate. Simply activate the relevant features in `bevy_rand`/`bevy_prng` to pull in the PRNG algorithm you want to use, and then import them like so:
 
@@ -151,10 +151,9 @@ fn setup_npc_from_source(
 - **`std`** - Enables support for `std` environments. Enabled by default.
 - **`thread_local_entropy`** - Enables `ThreadLocalEntropy`, overriding `SeedableRng::from_entropy` implementations to make use of thread local entropy sources for faster PRNG initialisation. Requires `std` environments so it enables the `std` feature. Enabled by default.
 - **`serialize`** - Enables `Serialize` and `Deserialize` derives. Enabled by default.
-- **`chacha20`** - This enables the exporting of `ChaCha*Rng` components, for those that want/need to use a CSPRNG level source.
-- **`rand_pcg`** - This enables the exporting of `Pcg*` components from `rand_pcg`.
-- **`rand_xoshiro`** - This enables the exporting of `Xoshiro*` components from `rand_xoshiro`. It also exports a remote-reflected version of `Seed512` so to allow setting up `Xoshiro512StarStar` and so forth.
-- **`wyrand`** - This enables the exporting of the `WyRand` component from `wyrand`, the same algorithm in use within `fastrand`/`turborand`.
+- **`fast_rng`** - This enables the `FastRng` component. Enabled by default.
+- **`fast_rng32`** - This enables the `FastRng32` component, specialised for older 32-bit hardware or platforms.
+- **`quality_rng`** - This enables the `QualityRng` component, providing a much higher quality randomness source that can't be predicted, at the cost of throughput compared to `FastRng`.
 - **`experimental`** - This enables any unstable/experimental features for `bevy_rand`. Currently, this does nothing at the moment.
 - **`wasm_js`** - This enables the `getrandom` WASM JS backend, though this should only be activated conditionally for `wasm` targets. That requires extra steps outlined [here](#usage-within-web-wasm-environments).
 - **`compat_06`** - This enables the old v0.6 `RngCore` trait implementation on the RNGs, providing additional compatibility with other crates that haven't yet upgraded to the latest `rand_core`/`rand` versions.
