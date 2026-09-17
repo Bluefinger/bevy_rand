@@ -11,7 +11,7 @@ rust-version = "1.87.0"
 wasm_js = ["bevy_rand/wasm_js"]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy/", default-features = false, features = [
+bevy = { version = "=0.20.0-rc.1", default-features = false, features = [
     "bevy_log",
     "bevy_color",
     "bevy_ui",
@@ -24,7 +24,7 @@ bevy = { git = "https://github.com/bevyengine/bevy/", default-features = false, 
     "wayland",
     "2d_bevy_render",
 ] }
-bevy_rand = { path = "..", version = "0.15", default-features = false, features = [
+bevy_rand = { path = "..", version = "0.16", default-features = false, features = [
     "wyrand",
 ] }
 rand = { version = "0.10.0", default-features = false }

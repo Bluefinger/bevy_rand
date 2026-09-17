@@ -205,7 +205,7 @@ pub fn seed_linked<Source: EntropySource, Target: EntropySource>(
 /// Observer System for triggering seed propagation from source Rng to all child entities. This observer
 /// will only run if there is a source entity and also if there are target entities to seed.
 pub fn trigger_seed_linked<Source: EntropySource, Target: EntropySource>(
-    event: On<Insert, Source>,
+    event: On<Insert<Source>>,
     q_source: Query<RngEntity<Source>, With<RngLinks<Source, Target>>>,
     mut commands: Commands,
 ) {

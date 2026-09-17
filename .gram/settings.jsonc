@@ -1,0 +1,20 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: gram://docs/configuring-gram#settings-files
+{
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "linkedProjects": ["./Cargo.toml", "./examples/Cargo.toml"],
+        "cargo": {
+          "features": "all",
+        },
+        "check": {
+          "command": "clippy",
+        },
+      },
+      "enable_lsp_tasks": true,
+    },
+  },
+}
