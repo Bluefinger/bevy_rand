@@ -4,6 +4,7 @@
 [![CI](https://github.com/Bluefinger/bevy_rand/actions/workflows/ci.yml/badge.svg)](https://github.com/Bluefinger/bevy_rand/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue.svg)](https://github.com/Bluefinger/bevy_rand)
 [![Documentation](https://docs.rs/bevy_prng/badge.svg)](https://docs.rs/bevy_prng)
+[![Creative Bevians badge](https://raw.githubusercontent.com/CreativeBevians/badges/refs/heads/main/rendered/creative_bevians.svg)](https://creative.bevians.com)
 
 ## What is Bevy PRNG?
 
@@ -50,11 +51,11 @@ All the below crates implement the necessary traits to be compatible with `bevy_
 
 ## Usage within Web WASM environments
 
-To enable `bevy_prng` to work with Web WASM in `v0.15`, just paste the following into your `Cargo.toml` for your binary crate:
+To enable `bevy_prng` to work with Web WASM in `v0.16`, just paste the following into your `Cargo.toml` for your binary crate:
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-bevy_prng = { version = "0.15", features = ["wasm_js"] }
+bevy_prng = { version = "0.16", features = ["wasm_js"] }
 ```
 
 This enables the `wasm_js` backend to be made available for `getrandom`, which will allow `bevy_prng` to compile correctly for web WASM environments. The reason for this is that `wasm32-unknown-unknown` is itself not actually a web target, so to actually target a web environment, we must specify the feature in order to activate `wasm-bindgen` to do its thing.
@@ -63,7 +64,7 @@ If you have older versions of `getrandom` in your dep tree that are getting comp
 
 ```toml
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
-bevy_prng = { version = "0.15", features = ["wasm_js"] }
+bevy_prng = { version = "0.16", features = ["wasm_js"] }
 # Add the line below to make v0.3.4 getrandom work in Web WASM builds
 getrandom_03 = { version = "0.3.4", features = ["wasm_js"], package = "getrandom" }
 # Add the line below to make v0.2.17 getrandom work in Web WASM builds
@@ -76,6 +77,7 @@ getrandom_02 = { version = "0.2.17", features = ["js"], package = "getrandom" }
 
 | `bevy` | `bevy_prng`   |
 | ------ | ------------- |
+| v0.20  | v0.16         |
 | v0.19  | v0.15         |
 | v0.18  | v0.13 - v0.14 |
 | v0.17  | v0.12         |
@@ -90,7 +92,7 @@ The versions of `rand_core`/`rand` that `bevy_prng` is compatible with is as fol
 
 | `bevy_prng`    | `rand_core` | `rand` | `getrandom` | `compat_*` features                  |
 | -------------- | ----------- | ------ | ----------- | ------------------------------------ |
-| v0.14 -> v0.15 | v0.10       | v0.10  | v0.4        | ✅ (supports `rand_core` v0.6, v0.9) |
+| v0.14 -> v0.16 | v0.10       | v0.10  | v0.4        | ✅ (supports `rand_core` v0.6, v0.9) |
 | v0.10 -> v0.13 | v0.9        | v0.9   | v0.3        | ✅ (supports `rand_core` v0.6)       |
 | v0.1 -> v0.9   | v0.6        | v0.8   | v0.2        | ❌                                   |
 
