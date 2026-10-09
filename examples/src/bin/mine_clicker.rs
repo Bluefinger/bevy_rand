@@ -82,7 +82,7 @@ fn observer_setup(
 // Each mine has its own RNG state, which allows them not to rely on a global RNG source
 // for any update
 fn on_init_mine(
-    trigger: On<Insert, WyRand>,
+    trigger: On<Insert<WyRand>>,
     mut query: Query<&mut WyRand, With<Mine>>,
     mut commands: Commands,
 ) {
@@ -104,7 +104,7 @@ fn on_init_mine(
 }
 
 fn on_insert_mine_pos(
-    trigger: On<Insert, MinePos>,
+    trigger: On<Insert<MinePos>>,
     query: Query<&MinePos>,
     mut index: ResMut<SpatialIndex>,
 ) {
@@ -118,7 +118,7 @@ fn on_insert_mine_pos(
 
 // Clean up old mine data from our index before it is updated or if the mine is despawned
 fn on_replace_mine_pos(
-    trigger: On<Discard, MinePos>,
+    trigger: On<Discard<MinePos>>,
     query: Query<&MinePos>,
     mut index: ResMut<SpatialIndex>,
 ) {

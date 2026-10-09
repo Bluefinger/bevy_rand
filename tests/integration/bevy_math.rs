@@ -1,8 +1,9 @@
 use bevy_app::{App, Update};
 use bevy_ecs::{query::With, system::Single};
-use bevy_math::{ShapeSample, Vec2, primitives::Circle};
+use bevy_math::Vec2;
 use bevy_prng::WyRand;
 use bevy_rand::{global::GlobalRng, plugin::EntropyPlugin};
+use bevy_shape::{Circle, ShapeSample};
 use rand_core::SeedableRng;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::*;
