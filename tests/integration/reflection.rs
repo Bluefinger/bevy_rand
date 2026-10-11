@@ -178,7 +178,7 @@ reflection_test!(
     chacha8,
     bevy_prng::ChaCha8Rng,
     [7; 32],
-    "(state:\"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcAAAAAAAAAAAIAAAAAAAAAAA==\")",
+    "(state:b\"\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\")",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     4115934089738703076,
     15345232379140719590
@@ -189,7 +189,7 @@ reflection_test!(
     chacha12,
     bevy_prng::ChaCha12Rng,
     [7; 32],
-    "(state:\"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcAAAAAAAAAAAIAAAAAAAAAAA==\")",
+    "(state:b\"\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\")",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     2363194108971422454,
     13552751203817743523
@@ -200,7 +200,7 @@ reflection_test!(
     chacha20,
     bevy_prng::ChaCha20Rng,
     [7; 32],
-    "(state:\"BwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcAAAAAAAAAAAIAAAAAAAAAAA==\")",
+    "(state:b\"\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x07\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\")",
     "(seed:(7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7))",
     4753173749397848308,
     8104706558872646932
